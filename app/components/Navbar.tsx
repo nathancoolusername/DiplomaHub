@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Search } from "lucide-react";
+import { useRef } from "react";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -12,6 +14,7 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const ref = useRef<HTMLInputElement>(null)
 
   return (
     <header className="sticky top-0 z-50 bg-surface border-b border-outline-variant">
@@ -41,9 +44,9 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-md">
-          <button className="text-outline hover:text-primary transition-colors">
-            🔍
-          </button>
+          <button className="text-outline hover:text-primary transition-colors" onClick={() => ref.current?.focus()}><Search/></button>
+          <input ref={ref} type="text" placeholder="Search..." className="bg-surface-container-low p-xs rounded-lg border-outline-variant border-1">
+          </input>
           <Link href="/login">
             <button className="bg-primary text-on-primary px-lg py-sm rounded-lg text-label-md hover:opacity-90 transition-opacity">
               Login
