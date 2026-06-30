@@ -3,10 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-export default function FilterDropdown({options} : {options:string[]}) {
+export default function FilterDropdown({options, selected, handleClick} : {options:string[], selected:string, handleClick:Function}) {
     const optionL = options.length > 4
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(options[0]);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,7 +39,7 @@ export default function FilterDropdown({options} : {options:string[]}) {
             <button
               key={option}
               onClick={() => {
-                setSelected(option);
+                handleClick(option);
                 setIsOpen(false);
               }}
               className={`cursor-pointer w-full text-left px-md py-sm text-label-md transition-colors hover:bg-surface-container

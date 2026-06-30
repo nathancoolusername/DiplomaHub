@@ -24,7 +24,7 @@ export default function Panel({article}: Props) {
 }
     return (<div className="group flex flex-col bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden cursor-pointer h-130 hover:border-primary hover:drop-shadow-xl/25 transition duration-200">
         <div className="overflow-hidden relative">
-            <div style={{backgroundImage: 'url(place-holder.webp)'}} className="w-full h-48 bg-cover transition-transform duration-300 group-hover:scale-110">
+            <div style={{backgroundImage: `url(${article["picture-url"]})`}} className="w-full h-48 bg-cover transition-transform duration-300 group-hover:scale-110">
             </div>
             <PanelPill category={article.topic}/>
         </div>

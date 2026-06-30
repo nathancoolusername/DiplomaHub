@@ -3,9 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-export default function SortDropdown() {
+export default function SortDropdown({selected, handleClick} : {selected:string, handleClick:Function }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState("Newest");
   const ref = useRef<HTMLDivElement>(null);
 
   const options = ["Newest", "Oldest", "Most Liked", "Most Viewed"];
@@ -39,7 +38,7 @@ export default function SortDropdown() {
             <button
               key={option}
               onClick={() => {
-                setSelected(option);
+                handleClick(option);
                 setIsOpen(false);
               }}
               className={`cursor-pointer w-full text-left px-md py-sm text-label-md transition-colors hover:bg-surface-container

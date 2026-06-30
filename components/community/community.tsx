@@ -14,9 +14,53 @@ type Props = {
 }
 
 export default function CommunityPage({data}:Props) {
+    const [selectedS, setSelectedS] = useState(optionsSubject[0]);
+    const [selectedT, setSelectedT] = useState(opttionsType[0]);
+    const [selectedY, setSelectedY] = useState(optionsYear[0]);
     const [order, setOrder] = useState("Newest");
+    const handleClickS = (selectedS:string) => setSelectedS(selectedS)
+    const handleClickT = (selectedS:string) => setSelectedT(selectedS)
+    const handleClickY = (selectedS:string) => setSelectedY(selectedS)
     let newest = order == "Newest";
     let Hot = order == "Hot";
+    const trending = data;
+    trending.sort((a, b) => {
+  const hoursA = (Date.now() - a.created_at.getTime()) / (1000 * 60 * 60 * 24)
+  const hoursB = (Date.now() - b.created_at.getTime()) / (1000 * 60 * 60 * 24)
+
+  const scoreA = a.like_count + a.reply_count / Math.pow(hoursA + 2, 1.5)
+  const scoreB = b.like_count + a.reply_count / Math.pow(hoursB + 2, 1.5)
+
+  return scoreB - scoreA
+})
+function isT(discussion:Discussion) {
+        return discussion.type_tag != "Resource"
+    }
+    const actual = trending.filter(isT)
+    function isR(discussion:Discussion) {
+        return discussion.type_tag == "Resource"
+    }
+    const essential = trending.find(isR)
+    const filteredS = data.filter((discussion) => {
+        if (selectedS == optionsSubject[0]) {return true} else {
+        return (discussion.subject_tag === selectedS)}
+    });
+    const filteredT = filteredS.filter((discussion) => {
+        if (selectedT == opttionsType[0]) {return true} else {
+        return (discussion.type_tag === selectedT)}
+    });
+    const filteredY = filteredT.filter((discussion) => {
+        if (selectedY == optionsYear[0]) {return true} else {
+        return (discussion.year_tag === selectedY)}
+    });
+    let filtered = filteredY;
+     if (newest) {
+        filtered.sort((a, b) => b.created_at.getTime() - a.created_at.getTime())} else {
+            filtered = trending
+        }
+
+
+
     return (
         <div className="bg-surface-container-low flex flex-row py-margin px-30">
 
@@ -25,18 +69,23 @@ export default function CommunityPage({data}:Props) {
                 <div className="flex-col flex w-full">
                     <h1 className="font-serif text-headline-md">Filter Discussions</h1>
                     <div className="flex flex-row mt-margin gap-margin">
-                        <div className="flex flex-col gap-sm basis-1/3">
+                        <div className="flex flex-col gap-sm basis-2/7">
                             <h1 className="text-on-surface-variant text-body-md">Subject</h1>
-                            <FilterDropdown options={optionsSubject}/>
+                            <FilterDropdown options={optionsSubject} selected={selectedS} handleClick={handleClickS}/>
                         </div>
-                        <div className="flex flex-col gap-sm basis-1/3">
+                        <div className="flex flex-col gap-sm basis-2/7">
                             <h1 className="text-on-surface-variant text-body-md">Type</h1>
-                            <FilterDropdown options={opttionsType}/>
+                            <FilterDropdown options={opttionsType} selected={selectedT} handleClick={handleClickT}/>
                         </div>
-                        <div className="flex flex-col gap-sm basis-1/3">
+                        <div className="flex flex-col gap-sm basis-2/7">
                             <h1 className="text-on-surface-variant text-body-md">Year</h1>
-                            <FilterDropdown options={optionsYear}/>
+                            <FilterDropdown options={optionsYear} selected={selectedY} handleClick={handleClickY}/>
                         </div>
+                        <button className="self-end cursor-pointer" onClick={() => {setSelectedS(optionsSubject[0]); setSelectedT(opttionsType[0]); setSelectedY(optionsYear[0])}}>
+                        <div className="bg-on-primary-fixed-variant items-center flex justify-center h-10 w-20 self-end rounded-xl  hover:drop-shadow-xl/10">
+                            <h1 className="text-on-primary text-body-md">Clear</h1>
+                        </div>
+                        </button>
                     </div>
                 </div>
 
@@ -50,22 +99,22 @@ export default function CommunityPage({data}:Props) {
                             <div className="px-sm bg-on-primary-fixed-variant text-on-primary text-label-md font-semibold w-30 rounded-sm justify-center">
                                 <h1>MOST ACTIVE</h1>
                             </div>
-                            <h1 className="text-headline-md font-serif">Math AA HL Paper 3 Predictions</h1>
+                            <h1 className="text-headline-md font-serif">{actual[0].title}</h1>
                             <div className="flex flex-row gap-sm text-on-surface-variant text-label-md items-center">
-                                <h1>2.4k views</h1>
+                                <h1>20k views</h1>
                                 <Dot/>
-                                <h1>200 replies</h1>
+                                <h1>{`${actual[0].reply_count} replies`}</h1>
                             </div>
                         </div>
                         <div className="flex flex-col bg-surface-container-high px-md py-lg rounded-xl basis-1/2 gap-sm border-1 border-outline-variant cursor-pointer transition hover:border-secondary">
                             <div className="px-sm bg-secondary text-on-primary text-label-md font-semibold w-23 rounded-sm justify-center">
                                 <h1>ESSENTIAL</h1>
                             </div>
-                            <h1 className="text-headline-md font-serif">Extended Essay Citation Template</h1>
+                            <h1 className="text-headline-md font-serif">{essential?.title}</h1>
                             <div className="flex flex-row gap-sm text-on-surface-variant text-label-md items-center">
-                                <h1>6.7k views</h1>
+                                <h1>20k views</h1>
                                 <Dot/>
-                                <h1>200 replies</h1>
+                                <h1>{`${actual[0].reply_count} replies`}</h1>
                             </div>
                         </div>
                     </div>
@@ -82,7 +131,7 @@ export default function CommunityPage({data}:Props) {
                 </div>
 
                 <div className="flex flex-col gap-margin">
-                    {data.map((discussion) => {
+                    {filtered.map((discussion) => {
                         return (<div key={discussion.id}>
                             <Panel discussion={discussion}/>
                         </div>)

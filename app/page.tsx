@@ -20,12 +20,12 @@ import { discussions } from '@/components/data';
     "created_at":Date,
     "published":boolean,
     "slug":string,
+    "picture-url":string
   }
 
 
 export default function Home() {
   const data : article[] = articles
-
   return (
    <div className="flex flex-col">
 
@@ -65,19 +65,8 @@ export default function Home() {
     </div>
 
 
-    <div className='bg-surface-container-lowest h-[800px] flex flex-col px-lg place-content-center'>
-      <div className='mb-lg flex flex-row justify-between'>
-        <div>
-        <h1 className='text-headline-lg font-serif font-bold'>Featured Articles</h1>
-        <h1 className="text-on-surface-variant text-body-lg">Handpicked expertise from the IB community's top contributors.</h1>
-        </div>
-        <div className='flex flex-row gap-sm'>
-          <div className='p-sm rounded-xl border-outline-variant border-1 h-10 hover:bg-surface-container-high transition cursor-pointer'><ChevronLeft/></div>
-          <div className='p-sm rounded-xl border-outline-variant border-1 h-10 hover:bg-surface-container-high transition cursor-pointer'><ChevronRight /></div>
-        </div>
-      </div>
+
       <ArticleHome data={data}/>
-    </div>
 
     <Trending discussions={discussions}/>
 

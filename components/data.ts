@@ -215,6 +215,7 @@ type article = {
     "created_at":Date,
     "published":boolean,
     "slug":string,
+    "picture-url":string,
   }
 
 
@@ -230,7 +231,8 @@ export const articles: article[] = [{
     "like_count":6767,
     "created_at" : new Date("2026-05-12 11:13:00"),
     "published" : true,
-    "slug" : "1/6-useful-tips-for-a-physics-extended-essay"
+    "slug" : "1/6-useful-tips-for-a-physics-extended-essay",
+    "picture-url" : "option-pics/EE/EE2.jpg"
 }, 
 {
     "id": 2,
@@ -246,7 +248,8 @@ Model could accurately predict power deficits in multi row wind farms.`,
     "like_count":6767,
     "created_at" : new Date("2026-05-12 15:13:00"),
     "published" : true,
-    "slug" : "2/what-working-with-wind-farms-taught-me-about-my-extended-essay" 
+    "slug" : "2/what-working-with-wind-farms-taught-me-about-my-extended-essay",
+    "picture-url" : "option-pics/EE/EE3.jpg" 
 }, 
 {
     "id": 3,
@@ -260,7 +263,78 @@ Model could accurately predict power deficits in multi row wind farms.`,
     "like_count":6767,
     "created_at" : new Date("2026-05-12 13:19:00"),
     "published" : true,
-    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay"
+    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
+    "picture-url" : "option-pics/EE/EE1.jpg"
+}, {
+    "id": 4,
+    "title": `How to Write a Standout IB Mathematics Extended Essay?`,
+    "description" : `The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning.`,
+    "content" : MathEEArticle,
+    "author_id" : 12,
+    "author":"Nathan",
+    "topic" : "EE",
+    "view_count" : 2000,
+    "like_count":6767,
+    "created_at" : new Date("2026-05-12 13:19:00"),
+    "published" : true,
+    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
+    "picture-url" : "option-pics/EE/EE1.jpg"
+}, {
+    "id": 5,
+    "title": `How to Write a Standout IB Mathematics Extended Essay?`,
+    "description" : `The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning.`,
+    "content" : MathEEArticle,
+    "author_id" : 12,
+    "author":"Nathan",
+    "topic" : "EE",
+    "view_count" : 2000,
+    "like_count":6767,
+    "created_at" : new Date("2026-05-12 13:19:00"),
+    "published" : true,
+    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
+    "picture-url" : "option-pics/EE/EE1.jpg"
+}, {
+    "id": 6,
+    "title": `How to Write a Standout IB Mathematics Extended Essay?`,
+    "description" : `The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning.`,
+    "content" : MathEEArticle,
+    "author_id" : 12,
+    "author":"Nathan",
+    "topic" : "Student Life",
+    "view_count" : 20,
+    "like_count":676,
+    "created_at" : new Date("2026-05-12 13:19:00"),
+    "published" : true,
+    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
+    "picture-url" : "option-pics/EE/EE1.jpg"
+}, {
+    "id": 7,
+    "title": `How to Write a Standout IB Mathematics Extended Essay?`,
+    "description" : `The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning.`,
+    "content" : MathEEArticle,
+    "author_id" : 12,
+    "author":"Nathan",
+    "topic" : "Exam",
+    "view_count" : 200,
+    "like_count":667,
+    "created_at" : new Date("2026-05-12 13:19:00"),
+    "published" : true,
+    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
+    "picture-url" : "option-pics/EE/EE1.jpg"
+}, {
+    "id": 8,
+    "title": `How to Write a Standout IB Mathematics Extended Essay?`,
+    "description" : `The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning.`,
+    "content" : MathEEArticle,
+    "author_id" : 12,
+    "author":"Nathan",
+    "topic" : "IA",
+    "view_count" : 2000,
+    "like_count":6767,
+    "created_at" : new Date("2026-05-12 13:19:00"),
+    "published" : true,
+    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
+    "picture-url" : "option-pics/EE/EE1.jpg"
 }];
 
 type Discussion = {
@@ -284,7 +358,7 @@ export const discussions: Discussion[] = [
     author_id: 12,
     subject_tag: "Math AA",
     type_tag: "Question",
-    year_tag: "DP 2",
+    year_tag: "DP2",
     like_count : 67,
     reply_count: 14,
     created_at: new Date("2026-05-12 14:13:00"),
@@ -296,7 +370,7 @@ export const discussions: Discussion[] = [
     author_id: 11,
     subject_tag: "Physics",
     type_tag: "Resource",
-    year_tag: "DP 1",
+    year_tag: "DP1",
     like_count : 67,
     reply_count: 7,
     created_at: new Date("2026-06-30 11:13:00"),
@@ -308,7 +382,7 @@ export const discussions: Discussion[] = [
     author_id: 12,
     subject_tag: "CAS",
     type_tag: "Discussion",
-    year_tag: "DP 2",
+    year_tag: "DP2",
     like_count : 67,
     reply_count: 21,
     created_at: new Date("2026-06-20 11:13:00"),

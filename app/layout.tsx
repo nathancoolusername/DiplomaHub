@@ -23,8 +23,8 @@ const merriweather = Merriweather({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${merriweather.variable}`}>
-      <body>
+    <html lang="en" className={`${inter.variable} ${merriweather.variable} h-1/1`}>
+      <body className="min-h-[100vh] relative flex flex-col">
         <Navbar />
         <main>{children}</main>
         <Footer />
