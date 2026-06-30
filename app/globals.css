@@ -11,18 +11,20 @@
   --color-primary-fixed: #dde1ff;
   --color-primary-fixed-dim: #b7c4ff;
   --color-on-primary-fixed: #001453;
-  --color-on-primary-fixed-variant: #0438b6;
+  --color-on-primary-fixed-variant: #0738b6;
   --color-inverse-primary: #b7c4ff;
 
+/* Secondary - teal tint */
   --color-secondary: #006a61;
-  --color-on-secondary: #ffffff;
-  --color-secondary-container: #86f2e4;
-  --color-on-secondary-container: #006f66;
+--color-on-secondary: #ffffff;
+--color-secondary-container: #d0f0ec;
+--color-on-secondary-container: #004a43;
 
-  --color-tertiary: #5a2e00;
-  --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #7b4100;
-  --color-on-tertiary-container: #ffb272;
+/* Tertiary - amber/warm tint (for IB Pro badge) */
+--color-tertiary: #7a4f00;
+--color-on-tertiary: #ffffff;
+--color-tertiary-container: #fdecd0;
+--color-on-tertiary-container: #5a3a00;
 
   --color-error: #ba1a1a;
   --color-on-error: #ffffff;
