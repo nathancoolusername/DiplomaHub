@@ -10,6 +10,7 @@ const navLinks = [
   { label: "Home", href: "/" },
   { label: "Community", href: "/community" },
   { label: "Resources", href: "/resources" },
+  { label: "Articles", href: "/articles" },
   { label: "Roadmap", href: "/roadmap" },
   { label: "About", href: "/about" },
 ];
@@ -23,7 +24,7 @@ export default function Navbar() {
       <div className="max-w-[2000px] mx-lg px-lg h-16 flex items-center justify-between">
         <div className="flex items-center gap-xl">
           <Link href="/">
-            <span className="font-serif text-headline-md text-primary">IBPeople</span>
+            <span className="font-serif text-headline-md text-primary font-bold">IBPeople</span>
           </Link>
           <nav className="hidden md:flex gap-lg">
             {navLinks.map((link) => {
@@ -47,7 +48,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-md">
           <button className="text-outline hover:text-primary transition-colors cursor-pointer" onClick={() => ref.current?.focus()}><Search/></button>
-          <input ref={ref} type="text" placeholder="Search discussions, articles, resources..." className="bg-surface-container-low p-xs rounded-lg border-outline-variant border-1 w-60">
+          <input ref={ref} type="text" placeholder="Search discussions, articles, resources..." className="bg-surface-container-low p-xs rounded-lg border-outline-variant border-1 w-60 text-primary">
           </input>
           <Link href="/login">
             <Button>

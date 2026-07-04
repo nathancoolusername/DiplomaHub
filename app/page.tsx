@@ -1,31 +1,15 @@
 import { GraduationCap, ChevronRight, ChevronLeft } from 'lucide-react';
-import ArticleHome from '../components/home/article-section/article-home';
+import ResourceHome from '../components/home/article-section/article-home';
 import Trending from '../components/home/trending';
 import Image from 'next/image';
 import Link from 'next/link';
-import {articles} from '@/components/data';
-import { discussions } from '@/components/data';
-
-
- export type article = {
-    "id":number,
-    "title":string,
-    "description":string,
-    "content":string,
-    "author_id":number,
-    "author":string,
-    "topic":string,
-    "view_count":number,
-    "like_count":number,
-    "created_at":Date,
-    "published":boolean,
-    "slug":string,
-    "picture-url":string
-  }
+import {SEED_RESOURCES, Resource} from '@/components/data';
+import { SEED_DISCUSSIONS, Discussion } from '@/components/data';
 
 
 export default function Home() {
-  const data : article[] = articles
+  const discussions : Discussion[] = SEED_DISCUSSIONS
+  const resources : Resource[] = SEED_RESOURCES
   return (
    <div className="flex flex-col">
 
@@ -33,14 +17,14 @@ export default function Home() {
     <div className="bg-surface-container-low h-[700px] flex flex-col items-center justify-content-center place-content-center">
       <div className='text-primary bg-surface-container-lowest p-sm flex flex-row gap-sm'>
         <GraduationCap />
-        <h1 className='text-body-lg text-primary'>AN ACADEMIC RESOURCE FOR THE IB COMMUNITY</h1>
+        <h1 className='text-body-lg text-primary'>A RESOURCE FOR THE IB COMMUNITY</h1>
       </div>
       <div className="text-center">
         <h1 className="text-display-lg font-serif font-bold m-md">
-          Your Journey Through the IB,
+          By IBPeople,
         </h1>
         <h1 className="text-display-lg font-serif font-bold m-md text-primary italic">
-          Simplified Together
+          For IBPeople
         </h1>
         <h1 className="text-on-surface-variant text-body-lg w-170">
           The dedicated community platform for IB students, alumni, and educators. Collaborate, share resources, and navigate the IB journey with calm competence.
@@ -66,7 +50,7 @@ export default function Home() {
 
 
 
-      <ArticleHome data={data}/>
+      <ResourceHome data={resources}/>
 
     <Trending discussions={discussions}/>
 

@@ -14,13 +14,11 @@
   --color-on-primary-fixed-variant: #0738b6;
   --color-inverse-primary: #b7c4ff;
 
-/* Secondary - teal tint */
   --color-secondary: #006a61;
 --color-on-secondary: #ffffff;
 --color-secondary-container: #d0f0ec;
 --color-on-secondary-container: #004a43;
 
-/* Tertiary - amber/warm tint (for IB Pro badge) */
 --color-tertiary: #7a4f00;
 --color-on-tertiary: #ffffff;
 --color-tertiary-container: #fdecd0;

@@ -1,7 +1,7 @@
 
 
-export default function Pill({ children, className = '', diff}: { children: string, className?: string, diff: string }) {
-    return (<span className={`${className} transition font-bold uppercase cursor-pointer`} key={diff}>
+export default function Pill({ children, className = ''}: { children: string, className?: string}) {
+    return (<span className={`${className} transition font-bold uppercase cursor-pointer`}>
                 {children}
             </span>)
 }

@@ -1,11 +1,12 @@
-import { Discussion } from "@/app/community/page";
+import { Discussion } from "../data";
 import { Users, Heart, MessageSquare, Bookmark } from "lucide-react";
+import { TitleTag } from "../pills";
 
 type Props = {
   discussion:Discussion
 }
 
-const typeTags : Tags = {
+export const typeTags : Tags = {
     "Discussion" : "px-md h-9 rounded-3xl py-1 bg-surface-container-high text-on-surface-variant items-center",
     "Resource" : "px-md h-9 rounded-3xl py-1 bg-secondary-container text-on-secondary-container items-center",
     "Question" : "px-md h-9 rounded-3xl py-1 bg-tertiary-container text-on-tertiary-container items-center"
@@ -39,7 +40,10 @@ export default function Panel({discussion}:Props) {
                     <div className="flex flex-row items-center gap-md">
                         <div  className="border-1 border-outline-variant rounded-[50%] h-15 w-15 items-center justify-items-center pt-2"><Users size={40}/></div>
                         <div className="flex flex-col">
-                            <h1 className="text-body-md font-bold">Someone</h1>
+                            <div className="flex flex-row gap-sm items-center"><h1 className="text-body-md font-bold">{discussion.author.name}</h1> <div className="flex flex-row gap-sm">
+                                                        {TitleTag[discussion.author.title]}
+                                                        <h1 className="text-on-primary-fixed-variant font-bold">{discussion.author.is_pro ? "IB Pro" : ""}</h1>
+                                                        </div></div>
                             <div className="flex flex-row gap-sm items-center"><h1  className="text-on-surface-variant text-label-md">Posted {finalTime} ago in </h1> <h1 className="text-on-primary-fixed-variant">{discussion.subject_tag}</h1></div>
                         </div>
                     </div>

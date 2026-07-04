@@ -1,29 +1,28 @@
-import { Pencil } from "lucide-react"
+import { Upload } from "lucide-react"
 import Button from "../../components/button"
-import ArticleGrid from "../../components/articles/article-grid"
-import {articles} from "@/components/data"
-import { article } from "../page"
+import ResourceGrid from "@/components/resources/resources-grid"
+import {SEED_RESOURCES, Resource} from "@/components/data"
 
-export default function Articles() {
-const data : article[] = articles
+export default function Resources() {
+const data : Resource[] = SEED_RESOURCES
 return (<div className="flex flex-col bg-surface-bright px-margin py-lg gap-margin">
 
     <div className="flex flex-row justify-between py-margin">
         <div>
-            <h1 className="text-display-lg font-serif font-bold">Resource Archive</h1>
+            <h1 className="text-display-lg font-serif font-bold">Resources Vault</h1>
             <h1 className="text-on-surface-variant text-body-lg w-170">
-                A curated collection of resources, guides, and student experiences from across the IB community.
+                Practical IB materials, exemplars, revision guides, and much more curated for the rigorous academic journey.
             </h1>
         </div>
         <Button className="h-12 self-center text-body-lg">
             <div className="flex flex-row items-center gap-sm text-label-md font-sans">
-                <Pencil/>
-                Write Article
+                <Upload />
+                Upload Resource
             </div>
         </Button>
     </div>
 
-    <ArticleGrid data={data}/>
+    <ResourceGrid data={data}/>
 
 
 </div>)

@@ -3,11 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-export default function SortDropdown({selected, handleClick} : {selected:string, handleClick:Function }) {
+export default function SortDropdown({selected, handleClick, options} : {selected:string, handleClick:Function, options:string[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  const options = ["Newest", "Oldest", "Most Liked", "Most Viewed"];
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -24,7 +22,7 @@ export default function SortDropdown({selected, handleClick} : {selected:string,
 
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="cursor-pointer flex items-center gap-sm bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm text-body-md text-on-surface hover:border-primary transition-colors"
+        className="cursor-pointer flex items-center gap-sm bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm text-body-md text-on-surface hover:border-primary transition-colors w-full justify-between"
       >
         <span className="text-on-surface font-bold text-label-md">{selected}</span>
         <ChevronDown

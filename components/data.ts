@@ -1,6 +1,6 @@
-const SidArticle = `
-<h1 class="font-serif text-headline-lg leading-[2.5rem] text-primary mb-6">6 Useful Tips for a Physics Extended Essay</h1>
+import { DOMAttributes } from "react";
 
+const SidArticle = `
 <p class="font-sans text-body-lg leading-[1.75rem] text-on-surface mb-4">Writing an extended essay in IB Physics can be one of the most rewarding parts of the DP, however it is notorious for being difficult. Unlike the regular lab reports you do in class, the Physics EE requires students to work like an actual physicist. Whether you are drowning in data or just trying to choose a topic, here are 6 helpful tips to help you achieve that elusive A.</p>
 
 <h2 class="font-serif text-headline-md leading-[2rem] text-primary mt-10 mb-4">1. Choose a topic you actually are interested in</h2>
@@ -42,11 +42,9 @@ const SidArticle = `
 
 <p class="font-sans text-body-lg leading-[1.75rem] text-on-surface mb-4">Instead ask yourself "why?". Why is the value different from the theoretical value of 9.81 ms⁻²? Was it a systematic error such as friction, or a random error like reaction time.</p>
 
-<p class="font-sans text-body-lg leading-[1.75rem] text-on-surface-variant px-6 py-4 bg-surface-container border-l-4 border-primary rounded-lg mb-4">Additionally, it is important to be very specific in the description. Instead of saying the inaccuracies were caused by a human error, say "a 0.5 second delay in manual stopwatch operation introduced a 3% random uncertainty in the time intervals."</p>
+<p class="font-sans text-body-lg leading-[1.75rem] text-on-surface-variant px-6 py-4 italic bg-surface-container border-l-4 border-primary rounded-lg mb-4">Additionally, it is important to be very specific in the description. Instead of saying the inaccuracies were caused by a human error, say "a 0.5 second delay in manual stopwatch operation introduced a 3% random uncertainty in the time intervals."</p>
 `
 const AdarshArticle = `
-<h1 class="font-serif text-headline-lg leading-[2.5rem] text-primary mb-6">What Working With Wind Farms Taught Me About My Extended Essay</h1>
-
 <p class="font-sans text-body-lg leading-[1.75rem] text-on-surface mb-4">When I first began my IB Physics Extended Essay, I thought the hardest part would be understanding the physics. I investigated whether a simplified Jensen Wake Superposition Model could accurately predict power deficits in multi row wind farms. The project included wind turbine wakes, velocity deficits, power calculations, and comparisons with data from the Horns Rev I offshore wind farm in Denmark.</p>
 
 <p class="font-sans text-body-lg leading-[1.75rem] text-on-surface mb-4">However, with me, the hardest problem I ran into was learning how to conduct scientific research and not the actual physics behind it!</p>
@@ -139,8 +137,6 @@ const AdarshArticle = `
 `
 
 const MathEEArticle = `
-<h1 class="font-serif text-headline-lg leading-[2.5rem] text-primary mb-6">How to Write a Standout IB Mathematics Extended Essay</h1>
-
 <p class="font-sans text-body-lg leading-[1.75rem] text-on-surface mb-4">The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning. However, that freedom can also be its biggest challenge. Here is how to make sure your essay stands out.</p>
 
 <h2 class="font-serif text-headline-md leading-[2rem] text-primary mt-10 mb-4">1. Pick a question with real mathematical depth</h2>
@@ -149,7 +145,7 @@ const MathEEArticle = `
 
 <p class="font-sans text-body-lg leading-[1.75rem] text-on-surface mb-4">A strong Maths EE question should allow you to derive, prove, model, or analyse something. For example, "How does step size affect the accuracy of Euler's Method when approximating solutions to logistic differential equations?" gives you a concrete mathematical object to investigate with clear variables and measurable outcomes.</p>
 
-<p class="font-sans text-body-lg leading-[1.75rem] text-on-surface-variant px-6 py-4 bg-surface-container border-l-4 border-primary rounded-lg mb-4">A good rule of thumb: if your research question could be answered without writing a single equation, it is probably not mathematical enough.</p>
+<p class="font-sans text-body-lg leading-[1.75rem] text-on-surface-variant px-6 py-4 bg-surface-container border-l-4 border-primary rounded-lg mb-4 italic">A good rule of thumb: if your research question could be answered without writing a single equation, it is probably not mathematical enough.</p>
 
 <h2 class="font-serif text-headline-md leading-[2rem] text-primary mt-10 mb-4">2. Stay within mathematics you can actually explain</h2>
 
@@ -182,7 +178,7 @@ const MathEEArticle = `
 
 <p class="font-sans text-body-lg leading-[1.75rem] text-on-surface mb-4">Ask yourself: why does the method fail here? Is it a fundamental limitation of the approach, or a consequence of an assumption you made early on? What would a more sophisticated model look like? These questions demonstrate exactly the kind of critical mathematical thinking that earns marks in the higher bands.</p>
 
-<p class="font-sans text-body-lg leading-[1.75rem] text-on-surface-variant px-6 py-4 bg-surface-container border-l-4 border-primary rounded-lg mb-4">A model that works perfectly and a model that fails in an interesting way are equally valuable — as long as you can explain why.</p>
+<p class="font-sans text-body-lg leading-[1.75rem] text-on-surface-variant px-6 py-4 bg-surface-container border-l-4 border-primary rounded-lg mb-4 italic">A model that works perfectly and a model that fails in an interesting way are equally valuable — as long as you can explain why.</p>
 
 <h2 class="font-serif text-headline-md leading-[2rem] text-primary mt-10 mb-4">6. Write for a mathematically literate reader</h2>
 
@@ -198,196 +194,364 @@ const MathEEArticle = `
 
 <p class="font-sans text-body-lg leading-[1.75rem] text-on-surface mb-4">Good luck with your EE!</p>
 `
-const Discussion1 = ``;
+// types/index.ts
 
-const Discussion2 = ``;
+export type SubjectTag =
+  | "Math AA"
+  | "Math AI"
+  | "Physics"
+  | "Chemistry"
+  | "Biology"
+  | "English"
+  | "History"
+  | "Economics"
+  | "Geography"
+  | "TOK"
+  | "EE"
+  | "General"
+  | "Other";
 
-type article = {
-    "id":number,
-    "title":string,
-    "description":string,
-    "content":string,
-    "author_id":number,
-    "author":string,
-    "topic":string,
-    "view_count":number,
-    "like_count":number,
-    "created_at":Date,
-    "published":boolean,
-    "slug":string,
-    "picture-url":string,
-  }
+export type ResourceTypeTag =
+  | "Template"
+  | "Guide"
+  | "Subject Notes"
+  | "Past Paper Tips"
+  | "External Link"
+  | "Other";
 
+export type DiscussionTypeTag =
+  | "Discussion"
+  | "Question"
+  | "Resource"
+  | "EE/IA Help"
+  | "Rant/Vent";
 
-export const articles: article[] = [{
-    "id": 1,
-    "title": "6 useful tips for a Physics Extended Essay",
-    "description" : `Writing an extended essay in IB Physics can be one of the most rewarding parts of the DP, however it is notorious for being difficult. Unlike the regular lab reports you do in class, the Physics EE requires students to work like an actual physicist.`,
-    "content" : SidArticle,
-    "author_id" : 10,
-    "author" : "Sid",
-    "topic" : "EE",
-    "view_count" : 2000,
-    "like_count":6767,
-    "created_at" : new Date("2026-05-12 11:13:00"),
-    "published" : true,
-    "slug" : "1/6-useful-tips-for-a-physics-extended-essay",
-    "picture-url" : "option-pics/EE/EE2.jpg"
-}, 
-{
-    "id": 2,
-    "title": `What Working With Wind Farms Taught Me About My Extended Essay?`,
-    "description" : `When I first began my IB Physics Extended Essay, I thought the hardest part would be
-understanding the physics. I investigated whether a simplified Jensen Wake Superposition
-Model could accurately predict power deficits in multi row wind farms.`,
-    "content" : AdarshArticle,
-    "author_id" : 11,
-    "author" : "Adarsh",
-    "topic" : "EE",
-    "view_count" : 2000,
-    "like_count":6767,
-    "created_at" : new Date("2026-05-12 15:13:00"),
-    "published" : true,
-    "slug" : "2/what-working-with-wind-farms-taught-me-about-my-extended-essay",
-    "picture-url" : "option-pics/EE/EE3.jpg" 
-}, 
-{
-    "id": 3,
-    "title": `How to Write a Standout IB Mathematics Extended Essay?`,
-    "description" : `The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning.`,
-    "content" : MathEEArticle,
-    "author_id" : 12,
-    "author":"Nathan",
-    "topic" : "EE",
-    "view_count" : 2000,
-    "like_count":6767,
-    "created_at" : new Date("2026-05-12 13:19:00"),
-    "published" : true,
-    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
-    "picture-url" : "option-pics/EE/EE1.jpg"
-}, {
-    "id": 4,
-    "title": `How to Write a Standout IB Mathematics Extended Essay?`,
-    "description" : `The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning.`,
-    "content" : MathEEArticle,
-    "author_id" : 12,
-    "author":"Nathan",
-    "topic" : "EE",
-    "view_count" : 2000,
-    "like_count":6767,
-    "created_at" : new Date("2026-05-12 13:19:00"),
-    "published" : true,
-    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
-    "picture-url" : "option-pics/EE/EE1.jpg"
-}, {
-    "id": 5,
-    "title": `How to Write a Standout IB Mathematics Extended Essay?`,
-    "description" : `The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning.`,
-    "content" : MathEEArticle,
-    "author_id" : 12,
-    "author":"Nathan",
-    "topic" : "EE",
-    "view_count" : 2000,
-    "like_count":6767,
-    "created_at" : new Date("2026-05-12 13:19:00"),
-    "published" : true,
-    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
-    "picture-url" : "option-pics/EE/EE1.jpg"
-}, {
-    "id": 6,
-    "title": `How to Write a Standout IB Mathematics Extended Essay?`,
-    "description" : `The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning.`,
-    "content" : MathEEArticle,
-    "author_id" : 12,
-    "author":"Nathan",
-    "topic" : "Student Life",
-    "view_count" : 20,
-    "like_count":676,
-    "created_at" : new Date("2026-05-12 13:19:00"),
-    "published" : true,
-    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
-    "picture-url" : "option-pics/EE/EE1.jpg"
-}, {
-    "id": 7,
-    "title": `How to Write a Standout IB Mathematics Extended Essay?`,
-    "description" : `The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning.`,
-    "content" : MathEEArticle,
-    "author_id" : 12,
-    "author":"Nathan",
-    "topic" : "Exam",
-    "view_count" : 200,
-    "like_count":667,
-    "created_at" : new Date("2026-05-12 13:19:00"),
-    "published" : true,
-    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
-    "picture-url" : "option-pics/EE/EE1.jpg"
-}, {
-    "id": 8,
-    "title": `How to Write a Standout IB Mathematics Extended Essay?`,
-    "description" : `The IB Mathematics Extended Essay is one of the most intellectually demanding yet rewarding pieces of work you will produce in the Diploma Programme. Unlike other subjects, a Maths EE gives you the freedom to explore a topic purely through the lens of mathematical reasoning.`,
-    "content" : MathEEArticle,
-    "author_id" : 12,
-    "author":"Nathan",
-    "topic" : "IA",
-    "view_count" : 2000,
-    "like_count":6767,
-    "created_at" : new Date("2026-05-12 13:19:00"),
-    "published" : true,
-    "slug" : "3/how-to-write-a-standout-ib-mathematics-extended-essay",
-    "picture-url" : "option-pics/EE/EE1.jpg"
-}];
+export type YearTag = "Pre-IB" | "DP1" | "DP2" | "Alumni" | "General";
 
-type Discussion = {
-  id: number
-  title: string
-  content: string
-  author_id: number
-  subject_tag: string
-  type_tag: string
-  year_tag: string
-  like_count:number
-  reply_count: number
-  created_at: Date
+export type FileType = "PDF" | "DOCX" | "PPTX" | "XLSX" | "Link" | "Other";
+
+export interface Author {
+  name: string;
+  is_pro: boolean;
+  initials: string;
+  title:string;
 }
 
-export const discussions: Discussion[] = [
+export interface Resource {
+  id: string;
+  title: string;
+  description: string;
+  subject_tag: SubjectTag;
+  type_tag: ResourceTypeTag;
+  year_tag: YearTag;
+  file_url: string;
+  file_type: FileType;
+  author: Author;
+  download_count: number;
+  like_count: number;
+  created_at:  Date;
+  published?: boolean;
+}
+
+export interface TopReply {
+  content: string;
+  author: string;
+}
+
+export interface Discussion {
+  id: string;
+  title: string;
+  content: string;
+  subject_tag: SubjectTag;
+  type_tag: DiscussionTypeTag;
+  year_tag: YearTag;
+  author: Author;
+  reply_count: number;
+  like_count: number;
+  top_reply: TopReply;
+  created_at:  Date;
+}
+
+export interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  subject_tag: SubjectTag;
+  author: Author;
+  view_count: number;
+  like_count: number;
+  read_time: number; // minutes
+  created_at: Date;
+  published?: boolean;
+}
+
+export interface Contributor {
+  rank: number;
+  name: string;
+  initials: string;
+  xp: number;
+  is_pro: boolean;
+}
+
+// Filter state shape — useful for your filter components
+export interface ResourceFilters {
+  subject: SubjectTag | "All";
+  type: ResourceTypeTag | "All";
+  year: YearTag | "All";
+  sort: "Most Downloaded" | "Newest" | "Most Liked";
+}
+
+export interface DiscussionFilters {
+  subject: SubjectTag | "All";
+  type: DiscussionTypeTag | "All";
+  year: YearTag | "All";
+  sort: "Newest" | "Hot";
+}
+
+// lib/seed-data.ts
+
+export const SEED_RESOURCES: Resource[] = [
   {
-    id: 1,
-    title: "How do you approach the Math AA HL Paper 3?",
-    content: "I just got my first Paper 3 practice exam back and the investigation questions threw me off completely. Any tips on how to prepare for these?",
-    author_id: 12,
+    id: "1",
+    title: "EE Structure Template (All Subjects)",
+    description: "A complete Extended Essay structure with section breakdowns, word count targets per section, and examiner notes on what each part should achieve.",
+    subject_tag: "EE",
+    type_tag: "Template",
+    year_tag: "DP2",
+    file_url: "/seed/ee-structure-template.pdf",
+    author: { name: "Nathan K.", is_pro: true, initials: "NK", title:"IB Student" },
+    download_count: 847,
+    like_count: 203,
+    created_at:  new Date("2026-06-12"),
+    file_type: "PDF",
+  },
+  {
+    id: "2",
+    title: "Math AA HL Paper 3 Techniques",
+    description: "Breakdown of every Paper 3 topic that has appeared since 2021. Includes worked examples and the exact phrasing examiners use for each technique.",
     subject_tag: "Math AA",
+    type_tag: "Guide",
+    year_tag: "DP2",
+    file_url: "/seed/math-aa-p3.pdf",
+    author: { name: "Yuki S.", is_pro: true, initials: "YS", title:"IB Educator"  },
+    download_count: 1204,
+    like_count: 341,
+    created_at:  new Date("2026-06-18"),
+    file_type: "PDF",
+  },
+  {
+    id: "3",
+    title: "Physics IA Rubric Breakdown",
+    description: "Line-by-line breakdown of the Physics IA markscheme. Shows exactly what examiners look for in Personal Engagement, Exploration, Analysis, and Evaluation.",
+    subject_tag: "Physics",
+    type_tag: "Guide",
+    year_tag: "DP1",
+    file_url: "/seed/physics-ia-rubric.pdf",
+    author: { name: "Liam G.", is_pro: true, initials: "LG", title:"Almuni"  },
+    download_count: 692,
+    like_count: 178,
+    created_at:  new Date("2026-06-20"),
+    file_type: "PDF",
+  },
+  {
+    id: "4",
+    title: "History IA Citation Matrix",
+    description: "A spreadsheet template for tracking sources across your History IA. Columns for source type, origin, purpose, value, and limitation — maps directly to OPVL.",
+    subject_tag: "History",
+    type_tag: "Template",
+    year_tag: "DP1",
+    file_url: "/seed/history-ia-citations.xlsx",
+    author: { name: "Elena R.", is_pro: false, initials: "ER", title:"IB Educator"  },
+    download_count: 423,
+    like_count: 97,
+    created_at:  new Date("2026-06-25"),
+    file_type: "XLSX",
+  },
+  {
+    id: "5",
+    title: "TOK Exhibition Object Planning Sheet",
+    description: "One-page planning sheet per object. Prompts you to justify object choice, link to the IA prompt, and pre-empt examiner questions about real-world context.",
+    subject_tag: "TOK",
+    type_tag: "Template",
+    year_tag: "DP1",
+    file_url: "/seed/tok-exhibition-planner.pdf",
+    author: { name: "Sofia M.", is_pro: false, initials: "SM", title:"Alumni"  },
+    download_count: 318,
+    like_count: 84,
+    created_at:  new Date("2026-06-28"),
+    file_type: "PDF",
+  },
+  {
+    id: "6",
+    title: "IB Command Terms Cheat Sheet",
+    description: "Every IB command term across all subjects with plain-English definitions and example exam sentences. Laminate-ready A4 layout.",
+    subject_tag: "General",
+    type_tag: "Guide",
+    year_tag: "General",
+    file_url: "/seed/command-terms.pdf",
+    author: { name: "Nathan K.", is_pro: true, initials: "NK", title:"IB Student"  },
+    download_count: 2103,
+    like_count: 589,
+    created_at:  new Date("2026-05-30"),
+    file_type: "PDF",
+  },
+];
+
+export const SEED_DISCUSSIONS:Discussion[] = [
+  {
+    id: "1",
+    title: "How are you guys structuring your Physics IA evaluation section?",
+    content: "I've collected my data for the refractive index experiment, but I'm struggling to distinguish between systematic and random errors in the conclusion.",
+    subject_tag: "Physics",
     type_tag: "Question",
     year_tag: "DP2",
-    like_count : 67,
-    reply_count: 14,
-    created_at: new Date("2026-05-12 14:13:00"),
+    author: { name: "Alex Thompson", is_pro: true, initials: "AT", title:"IB Student"  },
+    reply_count: 32,
+    like_count: 124,
+    top_reply: {
+      content: "Make sure to explicitly mention how each error affects your final gradient...",
+      author: "Maya S.",
+    },
+    created_at:  new Date("2026-07-01T17:57:00Z"),
   },
   {
-    id: 2,
-    title: "Tips for starting your Physics IA early",
-    content: "I keep hearing I should start early but I'm not sure how early is early enough. Curious what worked for people who didn't leave it too late.",
-    author_id: 11,
-    subject_tag: "Physics",
+    id: "2",
+    title: "Sample EE Structure for History (Category 2)",
+    content: "I just uploaded my final draft structure to the resource folder. It focuses on Cold War dynamics. Feel free to use the citation matrix I built!",
+    subject_tag: "History",
     type_tag: "Resource",
-    year_tag: "DP1",
-    like_count : 67,
-    reply_count: 7,
-    created_at: new Date("2026-06-30 11:13:00"),
+    year_tag: "DP2",
+    author: { name: "Elena Rodriguez", is_pro: false, initials: "ER", title:"IB Student"  },
+    reply_count: 89,
+    like_count: 542,
+    top_reply: {
+      content: "This citation matrix is a lifesaver, thank you Elena!",
+      author: "James W.",
+    },
+    created_at:  new Date("2026-07-01T14:30:00Z"),
   },
   {
-    id: 3,
-    title: "Anyone else struggling to balance CAS with exams?",
-    content: "My CAS hours have completely stalled since exams started ramping up and now I'm worried I won't hit the requirement in time.",
-    author_id: 12,
-    subject_tag: "CAS",
+    id: "3",
+    title: "Math AA HL Paper 3 predictions for May 2027 — what topics are you expecting?",
+    content: "Based on the past 3 years there's a clear rotation between statistics, calculus, and proof. I think complex numbers are overdue.",
+    subject_tag: "Math AA",
     type_tag: "Discussion",
     year_tag: "DP2",
-    like_count : 67,
-    reply_count: 21,
-    created_at: new Date("2026-06-20 11:13:00"),
+    author: { name: "Yuki S.", is_pro: true, initials: "YS", title:"IB Educator"  },
+    reply_count: 156,
+    like_count: 398,
+    top_reply: {
+      content: "Agreed on complex numbers. The 2025 paper skipped it entirely which is unusual.",
+      author: "Priya N.",
+    },
+    created_at:  new Date("2026-06-30T09:15:00Z"),
   },
-]
+  {
+    id: "4",
+    title: "Is anyone else finding TOK essays impossible this year?",
+    content: "The prescribed titles feel deliberately vague. Title 3 especially — what does 'productive' even mean in the context of knowledge?",
+    subject_tag: "TOK",
+    type_tag: "Discussion",
+    year_tag: "DP2",
+    author: { name: "Chloe B.", is_pro: false, initials: "CB", title:"IB Student"  },
+    reply_count: 47,
+    like_count: 211,
+    top_reply: {
+content: "Productive = generates more questions than it answers. That's literally the whole point of TOK.",
+      author: "Daniel K.",
+    },
+    created_at:  new Date("2026-06-29T21:44:00Z"),
+  },
+  {
+    id: "5",
+    title: "Chemistry IA — is colorimetry a safe topic or too overdone?",
+    content: "My teacher said colorimetry gets marked harder because examiners have seen it a thousand times. But the method is clean and I have access to the equipment.",
+    subject_tag: "Chemistry",
+    type_tag: "Question",
+    year_tag: "DP1",
+    author: { name: "Reza M.", is_pro: false, initials: "RM", title:"Alumni"  },
+    reply_count: 28,
+    like_count: 76,
+    top_reply: {
+      content: "It's fine if your analysis goes beyond Beer-Lambert. Most students stop too early.",
+      author: "Yuki S.",
+    },
+    created_at:  new Date("2026-06-28T16:20:00Z"),
+  },
+  {
+    id: "6",
+    title: "University application thread — Canadian CS programs 2027 entry",
+    content: "Waterloo, UofT, UBC, McGill. Let's share predicted grades, extracurriculars, and what we're hearing back. Waterloo AIF tips especially welcome.",
+    subject_tag: "General",
+    type_tag: "Discussion",
+    year_tag: "DP2",
+    author: { name: "Nathan K.", is_pro: true, initials: "NK", title:"IB Student"  },
+    reply_count: 73,
+    like_count: 187,
+    top_reply: {
+      content: "For Waterloo AIF, specificity beats volume. One deep project beats five shallow ones.",
+      author: "Liam G.",
+    },
+    created_at:  new Date("2026-06-27T11:05:00Z"),
+  },
+];
 
+export const SEED_ARTICLES :Article[]= [
+  {
+    id: "1",
+    title: "How I Went From a Predicted 4 to a Final 7 in Math AA HL",
+    slug: "predicted-4-to-final-7-math-aa-hl",
+    excerpt: "In November of DP1 I was averaging 58% on past papers. By May exams I scored a 7. Here's exactly what changed — and what I wish I'd done earlier.",
+    subject_tag: "Math AA",
+    author: { name: "Yuki S.", is_pro: true, initials: "YS", title:"IB Educator"  },
+    view_count: 3420,
+    like_count: 412,
+    read_time: 8,
+    created_at:  new Date("2026-06-10"),
+  },
+  {
+    id: "2",
+    title: "The EE Mistake 80% of Students Make in Their First Draft",
+    slug: "ee-mistake-first-draft",
+    excerpt: "Your research question is probably too broad. Here's how to diagnose it, fix it, and reframe your entire argument in under a week.",
+    subject_tag: "EE",
+    author: { name: "Nathan K.", is_pro: true, initials: "NK", title:"IB Student"  },
+    view_count: 2891,
+    like_count: 334,
+    read_time: 6,
+    created_at:  new Date("2026-06-15"),
+  },
+  {
+    id: "3",
+    title: "Physics IA: Why Your Evaluation Section is Losing You Marks",
+    slug: "physics-ia-evaluation-marks",
+    excerpt: "Most students describe errors. Examiners want you to quantify and link them. The difference is worth 3–4 marks and most students never make the switch.",
+    subject_tag: "Physics",
+    author: { name: "Liam G.", is_pro: true, initials: "LG", title:"Alumni"  },
+    view_count: 1756,
+    like_count: 198,
+    read_time: 5,
+    created_at:  new Date("2026-06-22"),
+  },
+  {
+    id: "4",
+    title: "Applying to Waterloo CS as an IB Student — What Actually Matters",
+    slug: "waterloo-cs-ib-student-guide",
+    excerpt: "The AIF is worth more than most people think. Here's how to structure your responses, what Waterloo is actually looking for, and how IB grades translate.",
+    subject_tag: "General",
+    author: { name: "Nathan K.", is_pro: true, initials: "NK", title:"IB Student"  },
+    view_count: 2104,
+    like_count: 287,
+    read_time: 10,
+    created_at:  new Date("2026-06-25"),
+  },
+];
 
-
+export const SEED_TOP_CONTRIBUTORS = [
+  { rank: 1, name: "Yuki S.", initials: "YS", xp: 2450, is_pro: true },
+  { rank: 2, name: "Liam G.", initials: "LG", xp: 2120, is_pro: true },
+  { rank: 3, name: "Sofia M.", initials: "SM", xp: 1890, is_pro: false },
+  { rank: 4, name: "Nathan K.", initials: "NK", xp: 1740, is_pro: true },
+  { rank: 5, name: "Elena R.", initials: "ER", xp: 1320, is_pro: false },
+];

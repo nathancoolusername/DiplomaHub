@@ -1,10 +1,11 @@
 "use client"
-
+import Link from "next/link";
 import FilterDropdown from "./drop-down";
 import { useState } from "react";
 import { TrendingUp, Dot, SquarePen } from "lucide-react";
-import { Discussion } from "@/app/community/page";
+import { Discussion } from "../data";
 import Panel from "./discussion-panel";
+import { SubjectTags } from "../pills";
 
 const optionsSubject = ["All Subjects", "Mathematics AA", "Physics", "Chemistry", "Economics", "English A lit", "Enligsh A Lang & Lit", "CAS"];
 const opttionsType = ["All Types", "Discussion", "Question", "Resource"];
@@ -71,7 +72,7 @@ function isT(discussion:Discussion) {
                     <div className="flex flex-row mt-margin gap-margin">
                         <div className="flex flex-col gap-sm basis-2/7">
                             <h1 className="text-on-surface-variant text-body-md">Subject</h1>
-                            <FilterDropdown options={optionsSubject} selected={selectedS} handleClick={handleClickS}/>
+                            <FilterDropdown options={Object.keys(SubjectTags)} selected={selectedS} handleClick={handleClickS}/>
                         </div>
                         <div className="flex flex-col gap-sm basis-2/7">
                             <h1 className="text-on-surface-variant text-body-md">Type</h1>
@@ -101,7 +102,7 @@ function isT(discussion:Discussion) {
                             </div>
                             <h1 className="text-headline-md font-serif">{actual[0].title}</h1>
                             <div className="flex flex-row gap-sm text-on-surface-variant text-label-md items-center">
-                                <h1>20k views</h1>
+                                <h1>{actual[0].like_count} likes</h1>
                                 <Dot/>
                                 <h1>{`${actual[0].reply_count} replies`}</h1>
                             </div>
@@ -112,9 +113,9 @@ function isT(discussion:Discussion) {
                             </div>
                             <h1 className="text-headline-md font-serif">{essential?.title}</h1>
                             <div className="flex flex-row gap-sm text-on-surface-variant text-label-md items-center">
-                                <h1>20k views</h1>
+                                <h1>{essential?.like_count} likes</h1>
                                 <Dot/>
-                                <h1>{`${actual[0].reply_count} replies`}</h1>
+                                <h1>{essential?.reply_count} replies</h1>
                             </div>
                         </div>
                     </div>
@@ -133,7 +134,9 @@ function isT(discussion:Discussion) {
                 <div className="flex flex-col gap-margin">
                     {filtered.map((discussion) => {
                         return (<div key={discussion.id}>
+                            <Link href={`/community/${discussion.id}`}>
                             <Panel discussion={discussion}/>
+                            </Link>
                         </div>)
                     })}
                 </div>
