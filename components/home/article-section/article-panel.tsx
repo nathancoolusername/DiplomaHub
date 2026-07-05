@@ -1,7 +1,7 @@
 import { Heart, Download, FileText, Users, Target } from "lucide-react";
 import { Resource } from "@/components/data";
 import { SubjectTags, ResourceTypeTag } from "@/components/pills";
-import Button from "@/components/button";
+import { DownloadButton } from "@/components/resources/DownloadButton";
 import Link from "next/link";
 
 type Props = {
@@ -61,7 +61,7 @@ export default function Panel({ resource }: Props) {
                       {resource.author.title}
                     </h1>{" "}
                     <h1 className="text-on-primary-fixed-variant font-bold">
-                      {resource.author.is_pro ? "IB Pro" : ""}
+                      {resource.author.is_pro ? "Diploma Pro" : ""}
                     </h1>
                   </div>
                 </div>
@@ -86,10 +86,7 @@ export default function Panel({ resource }: Props) {
               target="_blank"
               download
             >
-              <Button>
-                <Download />
-                Download
-              </Button>
+              <DownloadButton resourceId={resource.id} />
             </Link>
           </div>
         </div>
