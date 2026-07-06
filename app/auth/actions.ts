@@ -22,7 +22,7 @@ export async function signUp(
   });
 
   if (error) return { success: false, error: error.message };
-  redirect("/profile");
+  redirect("/profile/edit");
 }
 
 export async function signIn(
@@ -45,7 +45,7 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/profile`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
     },
   });
 

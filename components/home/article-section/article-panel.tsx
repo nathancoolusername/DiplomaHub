@@ -1,5 +1,5 @@
 import { Heart, Download, FileText, Users, Target } from "lucide-react";
-import { Resource } from "@/components/data";
+import type { Resource } from "@/app/lib/types";
 import { SubjectTags, ResourceTypeTag } from "@/components/pills";
 import { DownloadButton } from "@/components/resources/DownloadButton";
 import Link from "next/link";
@@ -54,11 +54,11 @@ export default function Panel({ resource }: Props) {
                 </div>
                 <div className="flex flex-col">
                   <h1 className="text-body-md font-bold">
-                    {resource.author.name}
+                    {resource.author.display_name}
                   </h1>
                   <div className="flex flex-row gap-sm items-center">
                     <h1 className="text-on-surface-variant text-label-md">
-                      {resource.author.title}
+                      {resource.author.ib_year}
                     </h1>{" "}
                     <h1 className="text-on-primary-fixed-variant font-bold">
                       {resource.author.is_pro ? "Diploma Pro" : ""}

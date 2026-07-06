@@ -96,3 +96,67 @@ export async function downloadResource(
   revalidatePath("/resources");
   return { success: true, data: { fileUrl: resource.file_url } };
 }
+
+// lib/actions/resources.ts
+export async function getResourcesWithUserState(filters?: {
+  subject?: string;
+  type?: string;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Step 1: fetch resources + author info in ONE query using embedded select
+  let query = supabase
+    .from("resources")
+    .select(
+      `
+      *,
+      author:users(display_name, is_pro, ib_year)
+    `,
+    )
+    .eq("published", true)
+    .order("created_at", { ascending: false });
+
+  if (filters?.subject) query = query.eq("subject_tag", filters.subject);
+  if (filters?.type) query = query.eq("type_tag", filters.type);
+
+  const { data: resources, error } = await query;
+  if (error) return { success: false, error: error.message };
+
+  // Step 2: if logged in, fetch which of THESE resources the user liked/saved
+  // (skip entirely for logged-out visitors — no wasted query)
+  if (!user) {
+    return {
+      success: true,
+      data: resources.map((r) => ({ ...r, isLiked: false, isSaved: false })),
+    };
+  }
+
+  const resourceIds = resources.map((r) => r.id);
+
+  const [{ data: likes }, { data: saves }] = await Promise.all([
+    supabase
+      .from("likes")
+      .select("resource_id")
+      .eq("user_id", user.id)
+      .in("resource_id", resourceIds),
+    supabase
+      .from("saved_items")
+      .select("resource_id")
+      .eq("user_id", user.id)
+      .in("resource_id", resourceIds),
+  ]);
+
+  const likedIds = new Set(likes?.map((l) => l.resource_id));
+  const savedIds = new Set(saves?.map((s) => s.resource_id));
+
+  const enriched = resources.map((r) => ({
+    ...r,
+    isLiked: likedIds.has(r.id),
+    isSaved: savedIds.has(r.id),
+  }));
+
+  return { success: true, data: enriched };
+}

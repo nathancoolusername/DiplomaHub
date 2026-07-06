@@ -19,7 +19,7 @@ export function ResendConfirmationButton({ email }: { email: string }) {
     <button
       onClick={handleResend}
       disabled={loading || sent}
-      className="text-sm font-medium text-amber-800 underline disabled:opacity-50"
+      className="text-label-sm font-medium text-secondary disabled:opacity-50"
     >
       {sent ? "Sent!" : loading ? "Sending..." : "Resend email"}
     </button>

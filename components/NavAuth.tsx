@@ -1,15 +1,14 @@
 // components/AuthNav.tsx
 import { createClient } from "@/app/lib/supabase/server";
+import { getCurrentUserProfile } from "@/app/lib/get-current-user";
 import { signOut } from "@/app/auth/actions";
 import Button from "./button";
 import Link from "next/link";
+import ProfileDropdown from "./profileMenu";
 
 export async function AuthNav() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getCurrentUserProfile();
   if (!user) {
     return (
       <Link href="/login">
@@ -26,9 +25,13 @@ export async function AuthNav() {
 
   return (
     <div className="flex items-center gap-3">
-      <span className="text-body-lg text-primary font-bold font-serif">
-        {profile?.display_name} · {profile?.points}pts {profile?.is_pro && "⭐"}
-      </span>
+      <ProfileDropdown
+        display_name={profile?.display_name}
+        is_pro={profile?.is_pro}
+        points={profile?.points}
+        sign_out={signOut}
+        id={user.id}
+      />
     </div>
   );
 }

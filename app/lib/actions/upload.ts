@@ -26,3 +26,36 @@ export async function uploadResourceFile(
     .getPublicUrl(filePath);
   return { success: true, data: { fileUrl: urlData.publicUrl } };
 }
+
+export async function uploadAvatar(
+  file: File,
+): Promise<ActionResult<{ avatarUrl: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not logged in" };
+
+  const fileExt = file.name.split(".").pop();
+  const filePath = `${user.id}/avatar.${fileExt}`; // fixed filename — overwrites old avatar automatically
+
+  const { error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) return { success: false, error: uploadError.message };
+
+  const { data: urlData } = supabase.storage
+    .from("avatars")
+    .getPublicUrl(filePath);
+
+  // save the URL onto the user's row immediately
+  const { error: updateError } = await supabase
+    .from("users")
+    .update({ avatar_url: urlData.publicUrl })
+    .eq("id", user.id);
+
+  if (updateError) return { success: false, error: updateError.message };
+
+  return { success: true, data: { avatarUrl: urlData.publicUrl } };
+}

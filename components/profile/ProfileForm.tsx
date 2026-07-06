@@ -34,33 +34,38 @@ export function ProfileForm({
   }
 
   return (
-    <form action={handleSubmit} className="space-y-4">
+    <form
+      action={handleSubmit}
+      className="space-y-4 flex flex-col gap-margin h-full py-margin px-gutter bg-surface-container-lowest border-1 border-outline-variant rounded-xl"
+    >
       <div>
-        <label className="block text-sm font-medium mb-1">Email</label>
+        <label className="block text-body-lg font-medium mb-1">Email</label>
         <input
           value={email}
           disabled
-          className="w-full border rounded-lg px-3 py-2 bg-gray-50 text-gray-500"
+          className="w-full border rounded-lg px-5 py-4 bg-gray-50 text-on-surface-variant text-body-lg"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Display name</label>
+        <label className="block text-body-lg font-medium mb-1">
+          Display name
+        </label>
         <input
           name="display_name"
           defaultValue={profile.display_name ?? ""}
           required
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full border text-body-lg rounded-lg px-5 py-4"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">I am a...</label>
+        <label className="block text-body-lg font-medium mb-1">I am a...</label>
         <select
           name="ib_year"
           defaultValue={profile.ib_year ?? ""}
           required
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full border rounded-lg px-5 py-4"
         >
           <option value="">Select one</option>
           <option value="Pre-IB">Pre-IB</option>
@@ -77,7 +82,7 @@ export function ProfileForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
+        className="w-full cursor-pointer py-2 rounded-lg bg-primary text-white font-medium hover:bg-blue-700 disabled:opacity-50"
       >
         {loading ? "Saving..." : "Save changes"}
       </button>

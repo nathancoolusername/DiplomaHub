@@ -1,6 +1,7 @@
 import { Discussion } from "../data";
 import { Users, Heart, MessageSquare, Bookmark } from "lucide-react";
 import { TitleTag } from "../pills";
+import { SaveButton } from "../saveButton";
 
 type Props = {
   discussion: Discussion;
@@ -112,9 +113,7 @@ export default function Panel({ discussion }: Props) {
             {discussion.reply_count}
           </h1>
         </div>
-        <div className="ml-auto text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl">
-          <Bookmark />
-        </div>
+        <SaveButton />
       </div>
     </div>
   );

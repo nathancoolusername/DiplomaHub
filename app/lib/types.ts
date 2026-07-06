@@ -1,4 +1,3 @@
-// lib/types.ts
 export type Resource = {
   id: string;
   title: string;
@@ -13,6 +12,11 @@ export type Resource = {
   created_at: string;
   published: boolean;
   community_trust: number;
+  author: {
+    display_name: string;
+    is_pro: boolean;
+    ib_year: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+  };
 };
 
 export type Article = {
@@ -46,8 +50,7 @@ export type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
 
-// lib/types.ts
-export type User = {
+export type UserProfile = {
   id: string;
   email: string;
   display_name: string;
@@ -55,5 +58,7 @@ export type User = {
   is_pro: boolean;
   author_trust_score: number;
   ib_year: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+  avatar_url: string;
+  bio: string | null;
   created_at: string;
 };

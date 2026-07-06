@@ -1,10 +1,7 @@
 "use client";
 
-import { AuthNav } from "./NavAuth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search } from "lucide-react";
-import { useRef } from "react";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -17,7 +14,6 @@ const navLinks = [
 
 export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
   const pathname = usePathname();
-  const ref = useRef<HTMLInputElement>(null);
 
   return (
     <header className="sticky top-0 z-50 bg-surface border-b border-outline-variant">
@@ -48,21 +44,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
           </nav>
         </div>
 
-        <div className="flex items-center gap-md">
-          <button
-            className="text-outline hover:text-primary transition-colors cursor-pointer"
-            onClick={() => ref.current?.focus()}
-          >
-            <Search />
-          </button>
-          <input
-            ref={ref}
-            type="text"
-            placeholder="Search resources, discussions, articles..."
-            className="bg-surface-container-low p-xs rounded-lg border-outline-variant border-1 w-60 text-primary"
-          ></input>
-          {authSlot}
-        </div>
+        <div className="flex items-center gap-md">{authSlot}</div>
       </div>
     </header>
   );
