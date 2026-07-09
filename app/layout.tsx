@@ -8,8 +8,8 @@ import ScrollTopBtn from "@/components/scrollTop";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "IBPeople",
-  description: "By IB People, For IB People",
+  title: "DiplomaHub",
+  description: "Where IB students never graduate alone.",
 };
 
 const inter = Inter({

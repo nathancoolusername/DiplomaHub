@@ -39,26 +39,26 @@ export async function getPublicProfile(userId: string): Promise<
   ] = await Promise.all([
     supabase
       .from("articles")
-      .select("*")
+      .select("*, author:users(display_name, is_pro)")
       .eq("author_id", userId)
       .eq("published", true)
       .order("created_at", { ascending: false }),
     supabase
       .from("resources")
-      .select("*")
+      .select("*, author:users(display_name, is_pro, ib_year)")
       .eq("author_id", userId)
       .eq("published", true)
       .order("created_at", { ascending: false }),
     supabase
       .from("discussions")
-      .select("*")
+      .select("*, author:users(display_name, is_pro)")
       .eq("author_id", userId)
       .order("created_at", { ascending: false }),
   ]);
 
   const { data: drafts, error: draftError } = await supabase
     .from("articles")
-    .select("*")
+    .select("*, author:users(display_name, is_pro)")
     .eq("author_id", userId)
     .eq("published", false)
     .order("created_at", { ascending: false });
@@ -68,6 +68,19 @@ export async function getPublicProfile(userId: string): Promise<
   if (discussionsError)
     return { success: false, error: discussionsError.message };
   if (draftError) return { success: false, error: draftError.message };
+
+  const normalizedResources = resources.map((r) => ({
+    ...r,
+    author: Array.isArray(r.author) ? r.author[0] : r.author,
+  }));
+  const normalizedArticles = articles.map((a) => ({
+    ...a,
+    author: Array.isArray(a.author) ? a.author[0] : a.author,
+  }));
+  const normalizedDiscussions = discussions.map((d) => ({
+    ...d,
+    author: Array.isArray(d.author) ? d.author[0] : d.author,
+  }));
 
   const articleIds = articles.map((a) => a.id);
   const resourceIds = resources.map((r) => r.id);
@@ -108,25 +121,30 @@ export async function getPublicProfile(userId: string): Promise<
 
   const totalLikes =
     articles.reduce((sum, a) => sum + a.like_count, 0) +
-    resources.reduce((sum, r) => sum + r.like_count, 0);
-  discussions.reduce((sum, d) => sum + d.like_count, 0);
+    resources.reduce((sum, r) => sum + r.like_count, 0) +
+    discussions.reduce((sum, d) => sum + d.like_count, 0);
 
   const total_downloads = resources.reduce(
-    (sum, r) => sum + r.download_ount,
+    (sum, r) => sum + r.download_count,
     0,
   );
+
+  const normalizedDrafts = drafts?.map((a) => ({
+    ...a,
+    author: Array.isArray(a.author) ? a.author[0] : a.author,
+  }));
 
   return {
     success: true,
     data: {
       user,
-      articles,
-      resources,
-      discussions,
+      articles: normalizedArticles,
+      resources: normalizedResources,
+      discussions: normalizedDiscussions,
       totalLikes,
       total_downloads,
       commentsWritten: commentsWritten ?? [],
-      drafts,
+      drafts: normalizedDrafts ?? null,
     },
   };
 }

@@ -3,12 +3,25 @@ import ResourceHome from "../components/home/article-section/article-home";
 import Trending from "../components/home/trending";
 import Image from "next/image";
 import Link from "next/link";
-import { SEED_RESOURCES, Resource } from "@/components/data";
+import { createClient } from "./lib/supabase/server";
 import { SEED_DISCUSSIONS, Discussion } from "@/components/data";
 
-export default function Home() {
+export default async function Home() {
   const discussions: Discussion[] = SEED_DISCUSSIONS;
-  const resources: Resource[] = SEED_RESOURCES;
+
+  const supabase = await createClient();
+  const { data: resourceRows } = await supabase
+    .from("resources")
+    .select("*, author:users(display_name, is_pro, ib_year)")
+    .eq("published", true)
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  const resources = (resourceRows ?? []).map((r) => ({
+    ...r,
+    author: Array.isArray(r.author) ? r.author[0] : r.author,
+  }));
+
   return (
     <div className="flex flex-col">
       <div className="bg-surface-container-low h-[700px] flex flex-col items-center justify-content-center place-content-center">

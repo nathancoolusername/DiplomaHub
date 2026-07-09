@@ -83,3 +83,90 @@ body {
   color: var(--color-on-surface);
   font-family: var(--font-sans);
 }
+
+/* Shared typography for both the write-article editor and rendered article content */
+.article-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--color-outline);
+  pointer-events: none;
+}
+
+.article-editor,
+.article-content {
+  line-height: 1.75rem;
+}
+
+.article-editor h2,
+.article-content h2 {
+  font-family: var(--font-serif);
+  font-size: var(--text-headline-md);
+  line-height: var(--text-headline-md--line-height);
+  color: var(--color-primary);
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.article-editor h3,
+.article-content h3 {
+  font-family: var(--font-serif);
+  font-size: var(--text-body-lg);
+  line-height: var(--text-body-lg--line-height);
+  color: var(--color-primary);
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.article-editor p,
+.article-content p,
+.article-editor div,
+.article-content div {
+  margin-bottom: 1rem;
+}
+
+.article-editor ul,
+.article-content ul {
+  list-style: disc;
+  list-style-position: outside;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.article-editor ol,
+.article-content ol {
+  list-style: decimal;
+  list-style-position: outside;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.article-editor li,
+.article-content li {
+  margin-bottom: 0.25rem;
+}
+
+/* Tiptap wraps each list item's text in its own <p>, which would otherwise
+   also pick up the full paragraph margin and make items look double-spaced. */
+.article-editor li > p,
+.article-content li > p {
+  margin-bottom: 0;
+}
+
+.article-editor blockquote,
+.article-content blockquote {
+  border-left: 4px solid var(--color-primary);
+  background: var(--color-surface-container);
+  color: var(--color-on-surface-variant);
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-lg);
+  margin-bottom: 1rem;
+}
+
+.article-editor a,
+.article-content a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}

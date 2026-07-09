@@ -5,18 +5,7 @@ import ResourcePanel from "../home/article-section/article-panel";
 import DiscussionPanel from "../community/discussion-panel";
 import ArticlePanel from "../articles/article-panel";
 import Comment from "../detailed-articles/comment";
-
-function groupBySubject<T extends { subject_tag: string | null }>(items: T[]) {
-  const grouped: Record<string, T[]> = {};
-
-  for (const item of items) {
-    const key = item.subject_tag ?? "Other";
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(item);
-  }
-
-  return grouped;
-}
+import { LoadMoreList } from "./LoadMoreList";
 
 export default function ProfileInfo({
   articles,
@@ -58,29 +47,6 @@ export default function ProfileInfo({
   function handleClick(section: string) {
     setSection(section);
   }
-  const groupedArticles = groupBySubject(
-    articles.map((a) => ({ ...a, subject_tag: a.topic })),
-  );
-  const groupedResources = groupBySubject(resources);
-  const groupedDiscussions = groupBySubject(
-    discussions.map((d) => ({ ...d, subject_tag: d.subject_tag })),
-  );
-  let savedArticles;
-  let savedResources;
-  let savedDiscussions;
-  if (savedItems?.articles?.length) {
-    savedArticles = groupBySubject(
-      savedItems.articles.map((a) => ({ ...a, subject_tag: a.topic })),
-    );
-  }
-  if (savedItems?.resources?.length) {
-    savedResources = groupBySubject(savedItems.resources);
-  }
-  if (savedItems?.discussions?.length) {
-    savedDiscussions = groupBySubject(
-      savedItems.discussions.map((d) => ({ ...d, subject_tag: d.subject_tag })),
-    );
-  }
 
   return (
     <div className="flex flex-row bg-surface-container-low grow h-full py-10 px-30 gap-margin">
@@ -100,7 +66,7 @@ export default function ProfileInfo({
               <b>Downloads</b>
             </h1>
             <h1 className="text-primary text-body-lg font-bold">
-              {total_downloads}
+              {`${total_downloads}`}
             </h1>
           </div>
           <div className="flex flex-row justify-between border-b-1 border-outline-variant pb-3 cursor-pointer">
@@ -219,133 +185,107 @@ export default function ProfileInfo({
           )}
         </div>
         {section == "Resources" && (
-          <div className="grid grid-cols-2 gap-gutter items-center">
-            {Object.entries(groupedResources).map(([subject, resources]) =>
-              resources.map((resource) => (
-                <div key={resource.id}>
-                  <ResourcePanel resource={resource} />
-                </div>
-              )),
+          <LoadMoreList
+            items={resources}
+            listClassName="grid grid-cols-2 gap-gutter items-center"
+            emptyMessage="No published resources yet."
+            renderItem={(resource) => (
+              <div key={resource.id}>
+                <ResourcePanel resource={resource} />
+              </div>
             )}
-            {resources.length === 0 && (
-              <p className="text-on-surface-variant text-body-md">
-                No published resources yet.
-              </p>
-            )}
-          </div>
+          />
         )}
 
         {section == "Discussions" && (
-          <div className="flex flex-col gap-gutter">
-            {Object.entries(groupedDiscussions).map(([subject, discussions]) =>
-              discussions.map((discussion) => (
-                <div key={discussion.id}>
-                  <DiscussionPanel discussion={discussion} />
-                </div>
-              )),
+          <LoadMoreList
+            items={discussions}
+            listClassName="flex flex-col gap-gutter"
+            emptyMessage="No published discussions yet."
+            renderItem={(discussion) => (
+              <div key={discussion.id}>
+                <DiscussionPanel discussion={discussion} />
+              </div>
             )}
-            {discussions.length === 0 && (
-              <p className="text-on-surface-variant text-body-md">
-                No published discussions yet.
-              </p>
-            )}
-          </div>
+          />
         )}
 
         {section == "Articles" && (
-          <div className="grid grid-cols-2 gap-gutter">
-            {Object.entries(groupedArticles).map(([subject, articles]) =>
-              articles.map((article) => (
-                <div key={article.id}>
-                  <ArticlePanel article={article} />
-                </div>
-              )),
+          <LoadMoreList
+            items={articles}
+            listClassName="grid grid-cols-2 gap-gutter"
+            emptyMessage="No published articles yet."
+            renderItem={(article) => (
+              <div key={article.id}>
+                <ArticlePanel article={article} />
+              </div>
             )}
-            {articles.length === 0 && (
-              <p className="text-on-surface-variant text-body-md">
-                No published articles yet.
-              </p>
-            )}
-          </div>
+          />
         )}
         {section == "Comments" && (
-          <div className="flex flex-col gap-gutter items-cener">
-            {commentsWritten.map((comment) => (
+          <LoadMoreList
+            items={commentsWritten}
+            listClassName="flex flex-col gap-gutter items-cener"
+            emptyMessage="No published comments yet."
+            renderItem={(comment) => (
               <div key={comment.id}>
                 <Comment />
               </div>
-            ))}
-            {commentsWritten.length === 0 && (
-              <p className="text-on-surface-variant text-body-md">
-                No published comments yet.
-              </p>
             )}
-          </div>
+          />
         )}
         {section == "Saves" && (
           <div className="flex flex-col gap-margin">
             <h1 className="text-headline-md font-serif">Saved Resources</h1>
-            <div className="grid grid-cols-2 gap-gutter">
-              {savedItems?.resources && savedResources ? (
-                Object.entries(savedResources).map(([subject, resources]) =>
-                  resources.map((resource: Resource) => (
-                    <div key={resource.id}>
-                      <ResourcePanel resource={resource} />
-                    </div>
-                  )),
-                )
-              ) : (
-                <h1 className="text-body-md text-on-surface-variant">
-                  No saved resources
-                </h1>
+            <LoadMoreList
+              items={savedItems?.resources ?? []}
+              listClassName="grid grid-cols-2 gap-gutter"
+              emptyMessage="No saved resources"
+              renderItem={(resource) => (
+                <div key={resource.id}>
+                  <ResourcePanel resource={resource} />
+                </div>
               )}
-            </div>
+            />
             <h1 className="text-headline-md font-serif">Saved Discussions</h1>
-            <div className="flex flex-col gap-gutter">
-              {savedDiscussions ? (
-                Object.entries(savedDiscussions).map(
-                  ([subject, discussions]: any[]) =>
-                    discussions.map((discussion: Discussion) => (
-                      <div key={discussion.id}>
-                        <DiscussionPanel discussion={discussion} />
-                      </div>
-                    )),
-                )
-              ) : (
-                <h1 className="text-body-md text-on-surface-variant">
-                  No saved discussions
-                </h1>
+            <LoadMoreList
+              items={savedItems?.discussions ?? []}
+              listClassName="flex flex-col gap-gutter"
+              emptyMessage="No saved discussions"
+              renderItem={(discussion) => (
+                <div key={discussion.id}>
+                  <DiscussionPanel discussion={discussion} />
+                </div>
               )}
-            </div>
+            />
             <h1 className="text-headline-md font-serif">Saved Articles</h1>
-            <div className="grid grid-cols-2 gap-gutter items-center">
-              {savedArticles ? (
-                Object.entries(savedArticles).map(
-                  ([subject, articles]: any[]) =>
-                    articles.map((article: Article) => (
-                      <div key={article.id}>
-                        <ArticlePanel article={article} />
-                      </div>
-                    )),
-                )
-              ) : (
-                <h1 className="text-body-md text-on-surface-variant">
-                  No saved articles
-                </h1>
+            <LoadMoreList
+              items={savedItems?.articles ?? []}
+              listClassName="grid grid-cols-2 gap-gutter items-center"
+              emptyMessage="No saved articles"
+              renderItem={(article) => (
+                <div key={article.id}>
+                  <ArticlePanel article={article} />
+                </div>
               )}
-            </div>
+            />
           </div>
         )}
-        {section == "Draft" &&
-          (drafts?.length ? (
-            drafts.map((article) => (
+        {section == "Draft" && (
+          <LoadMoreList
+            items={drafts ?? []}
+            listClassName="grid grid-cols-2 gap-gutter"
+            emptyMessage="No drafts"
+            renderItem={(article) => (
               <div key={article.id}>
-                <ArticlePanel article={article} />
+                <ArticlePanel
+                  article={article}
+                  href={`/articles/${article.slug}/edit`}
+                />
               </div>
-            ))
-          ) : (
-            <h1 className="text-body-md text-on-surface-variant">No drafts</h1>
-          ))}
+            )}
+          />
+        )}
       </div>
     </div>
   );

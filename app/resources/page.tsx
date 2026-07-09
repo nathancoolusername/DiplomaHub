@@ -2,10 +2,10 @@ import { Upload } from "lucide-react";
 import Button from "../../components/button";
 import ResourceGrid from "@/components/resources/resources-grid";
 import { createClient } from "../lib/supabase/server";
+import Link from "next/link";
 
 export default async function ResourcesPage() {
   const supabase = await createClient();
-
   const { data, error } = await supabase
     .from("resources")
     .select("*, author:users(display_name, is_pro, ib_year)")
@@ -32,12 +32,14 @@ export default async function ResourcesPage() {
             curated for the rigorous academic journey.
           </h1>
         </div>
-        <Button className="h-12 self-center text-body-lg">
-          <div className="flex flex-row items-center gap-sm text-label-md font-sans">
-            <Upload />
-            Upload Resource
-          </div>
-        </Button>
+        <Link href={"/resources/upload"}>
+          <Button className="h-12 self-center text-body-lg">
+            <div className="flex flex-row items-center gap-sm text-label-md font-sans">
+              <Upload />
+              Upload Resource
+            </div>
+          </Button>
+        </Link>
       </div>
 
       <ResourceGrid data={normalized} />

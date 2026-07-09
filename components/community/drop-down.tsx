@@ -24,6 +24,7 @@ export default function FilterDropdown({options, selected, handleClick} : {optio
     <div className="relative w-full" ref={ref}>
 
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="cursor-pointer flex items-center gap-sm bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-[0.75rem] tezxt-body-md text-on-surface hover:border-primary transition-colors w-full justify-between"
       >
@@ -37,6 +38,7 @@ export default function FilterDropdown({options, selected, handleClick} : {optio
         <div className={`absolute right-0 top-full mt-xs bg-surface-container-lowest border border-outline-variant rounded-xl shadow-md z-10 min-w-full overflow-hidden ${optionL ? "overflow-y-scroll" : ""} h-40`}>
           {options.map((option) => (
             <button
+              type="button"
               key={option}
               onClick={() => {
                 handleClick(option);

@@ -3,12 +3,26 @@ import { useState } from "react";
 import SortDropdown from "./drop-down";
 import Panel from "./article-panel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Article, SubjectTag } from "../data";
-import Link from "next/link";
 import { SubjectTags, ActiveSubjectTags } from "../pills";
 
+type GridArticle = {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  cover_image_url?: string | null;
+  subject_tag: string | null;
+  view_count: number;
+  like_count: number;
+  created_at: string;
+  author?: {
+    display_name?: string;
+    is_pro?: boolean;
+  };
+};
+
 type Props = {
-  data: Article[];
+  data: GridArticle[];
 };
 
 export default function ArticleGrid({ data }: Props) {
@@ -26,9 +40,13 @@ export default function ArticleGrid({ data }: Props) {
     }
   });
   if (selected == "Newest") {
-    filtered.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+    filtered.sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
   } else if (selected == "Oldest") {
-    filtered.sort((a, b) => a.created_at.getTime() - b.created_at.getTime());
+    filtered.sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    );
   } else if (selected == "Most Viewed") {
     filtered.sort((a, b) => b.view_count - a.view_count);
   } else if (selected == "Most Liked") {
@@ -115,6 +133,7 @@ export default function ArticleGrid({ data }: Props) {
               options={options}
               selected={selected}
               handleClick={handleClick}
+              placeholder="Sort by"
             />
           </div>
         </div>
@@ -122,24 +141,12 @@ export default function ArticleGrid({ data }: Props) {
 
       <div className="grid grid-cols-3 gap-gutter">
         {currentItems.map((article) => {
-          if (active == "All") {
+          if (active == "All" || active == article.subject_tag) {
             return (
               <div key={article.id}>
-                <Link href={`/articles/${article.id}`}>
-                  <Panel article={article}>
-                    {SubjectTags[article.subject_tag]}
-                  </Panel>
-                </Link>
-              </div>
-            );
-          } else if (active == article.subject_tag) {
-            return (
-              <div key={article.id}>
-                <Link href={`/articles/${article.id}`}>
-                  <Panel article={article}>
-                    {SubjectTags[article.subject_tag]}
-                  </Panel>
-                </Link>
+                <Panel article={article}>
+                  {article.subject_tag && SubjectTags[article.subject_tag]}
+                </Panel>
               </div>
             );
           }

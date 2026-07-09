@@ -24,12 +24,17 @@ export type Article = {
   title: string;
   slug: string;
   content: string;
+  cover_image_url: string | null;
   author_id: string;
   topic: string | null;
   view_count: number;
   like_count: number;
   created_at: string;
   published: boolean;
+  author?: {
+    display_name: string;
+    is_pro: boolean;
+  };
 };
 
 export type Discussion = {

@@ -27,6 +27,30 @@ export async function uploadResourceFile(
   return { success: true, data: { fileUrl: urlData.publicUrl } };
 }
 
+export async function uploadArticleCoverImage(
+  file: File,
+): Promise<ActionResult<{ coverImageUrl: string }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Log in to upload files" };
+
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${crypto.randomUUID()}.${fileExt}`;
+  const filePath = `${user.id}/${fileName}`;
+
+  const { error } = await supabase.storage
+    .from("article-covers")
+    .upload(filePath, file);
+  if (error) return { success: false, error: error.message };
+
+  const { data: urlData } = supabase.storage
+    .from("article-covers")
+    .getPublicUrl(filePath);
+  return { success: true, data: { coverImageUrl: urlData.publicUrl } };
+}
+
 export async function uploadAvatar(
   file: File,
 ): Promise<ActionResult<{ avatarUrl: string }>> {

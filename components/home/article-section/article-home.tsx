@@ -2,7 +2,7 @@
 
 import Panel from "./article-panel";
 import Link from "next/link";
-import { Resource } from "@/components/data";
+import type { Resource } from "@/app/lib/types";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 

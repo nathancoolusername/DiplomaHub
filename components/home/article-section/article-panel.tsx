@@ -81,13 +81,11 @@ export default function Panel({ resource }: Props) {
             </h1>
           </div>
           <div className="ml-auto text-primary">
-            <Link
-              href={"/resources/IB-Command-Terms-Cheat-Sheet.pdf"}
-              target="_blank"
-              download
-            >
-              <DownloadButton resourceId={resource.id} />
-            </Link>
+            <DownloadButton
+              resourceId={resource.id}
+              fileName={resource.title}
+              isExternalLink={resource.type_tag === "External Link"}
+            />
           </div>
         </div>
       </div>

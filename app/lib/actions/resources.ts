@@ -3,6 +3,7 @@
 import { createClient } from "../supabase/server";
 import { createAdminClient } from "../supabase/admin";
 import { revalidatePath } from "next/cache";
+import { isAdmin } from "../admin";
 import type { ActionResult, Resource } from "../types";
 
 export async function createResource(
@@ -33,6 +34,72 @@ export async function createResource(
   return { success: true, data };
 }
 
+export async function getResourceForEdit(
+  resourceId: string,
+): Promise<ActionResult<Resource>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not logged in" };
+
+  const { data, error } = await supabase
+    .from("resources")
+    .select("*, author:users(display_name, is_pro, ib_year)")
+    .eq("id", resourceId)
+    .single();
+
+  if (error || !data) return { success: false, error: "Resource not found" };
+  if (data.author_id !== user.id && !isAdmin(user.id)) {
+    return { success: false, error: "You can only edit your own resources" };
+  }
+
+  return {
+    success: true,
+    data: {
+      ...data,
+      author: Array.isArray(data.author) ? data.author[0] : data.author,
+    },
+  };
+}
+
+export async function updateResource(
+  resourceId: string,
+  formData: FormData,
+): Promise<ActionResult<Resource>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not logged in" };
+
+  let query = supabase
+    .from("resources")
+    .update({
+      title: formData.get("title") as string,
+      description: formData.get("description") as string,
+      subject_tag: formData.get("subject_tag") as string,
+      type_tag: formData.get("type_tag") as string,
+      year_tag: formData.get("year_tag") as string,
+      file_url: formData.get("file_url") as string,
+    })
+    .eq("id", resourceId);
+
+  if (!isAdmin(user.id)) {
+    query = query.eq("author_id", user.id);
+  }
+
+  const { data, error } = await query.select().maybeSingle();
+
+  if (error) return { success: false, error: error.message };
+  if (!data)
+    return { success: false, error: "You can only edit your own resources" };
+
+  revalidatePath("/resources");
+  revalidatePath(`/resources/${resourceId}`);
+  return { success: true, data };
+}
+
 export async function getResources(filters?: {
   subject?: string;
   type?: string;
@@ -57,11 +124,30 @@ export async function deleteResource(
   resourceId: string,
 ): Promise<ActionResult<null>> {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("resources")
-    .delete()
-    .eq("id", resourceId);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not logged in" };
+
+  let query = supabase.from("resources").delete().eq("id", resourceId);
+  if (!isAdmin(user.id)) {
+    query = query.eq("author_id", user.id);
+  }
+  const { data, error } = await query.select("id, file_url");
+
   if (error) return { success: false, error: error.message };
+  if (!data || data.length === 0)
+    return { success: false, error: "You can only delete your own resources" };
+
+  const fileUrl = data[0].file_url;
+  const bucketMarker = "/object/public/resources/";
+  const markerIndex = fileUrl?.indexOf(bucketMarker) ?? -1;
+  if (markerIndex > -1) {
+    const storagePath = fileUrl!.slice(markerIndex + bucketMarker.length);
+    // Best effort — the resource row is already gone either way.
+    await supabase.storage.from("resources").remove([storagePath]);
+  }
+
   revalidatePath("/resources");
   return { success: true, data: null };
 }

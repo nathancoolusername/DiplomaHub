@@ -1,10 +1,26 @@
-import { Discussion } from "../data";
 import { Users, Heart, MessageSquare, Bookmark } from "lucide-react";
 import { TitleTag } from "../pills";
 import { SaveButton } from "../saveButton";
 
+type PanelDiscussion = {
+  id: string | number;
+  title: string;
+  content: string;
+  subject_tag?: string | null;
+  type_tag: string | null;
+  like_count: number;
+  reply_count: number;
+  created_at: string | Date;
+  author?: {
+    name?: string;
+    display_name?: string;
+    title?: string;
+    is_pro?: boolean;
+  };
+};
+
 type Props = {
-  discussion: Discussion;
+  discussion: PanelDiscussion;
 };
 
 export const typeTags: Tags = {
@@ -24,28 +40,24 @@ export default function Panel({ discussion }: Props) {
   let finalTime;
   let difference;
   const today = new Date();
+  const createdAt = new Date(discussion.created_at);
   const last_I = today.toISOString().lastIndexOf("-");
-  if (
-    today.toISOString().split("T")[0] ==
-    discussion.created_at.toISOString().split("T")[0]
-  ) {
-    finalTime = `${today.getHours() - discussion.created_at.getHours()}h`;
+  if (today.toISOString().split("T")[0] == createdAt.toISOString().split("T")[0]) {
+    finalTime = `${today.getHours() - createdAt.getHours()}h`;
   } else if (
     today.toISOString().slice(0, last_I) ==
-    discussion.created_at.toISOString().slice(0, last_I)
+    createdAt.toISOString().slice(0, last_I)
   ) {
-    difference = today.getDate() - discussion.created_at.getDate() === 1;
-    finalTime = `${today.getDate() - discussion.created_at.getDate()} ${difference ? "day" : "days"}`;
+    difference = today.getDate() - createdAt.getDate() === 1;
+    finalTime = `${today.getDate() - createdAt.getDate()} ${difference ? "day" : "days"}`;
   } else if (
-    today.toISOString().split("-")[0] ==
-    discussion.created_at.toISOString().split("-")[0]
+    today.toISOString().split("-")[0] == createdAt.toISOString().split("-")[0]
   ) {
-    difference = today.getMonth() - discussion.created_at.getMonth() === 1;
-    finalTime = `${today.getMonth() - discussion.created_at.getMonth()} ${difference ? "month" : "months"}`;
+    difference = today.getMonth() - createdAt.getMonth() === 1;
+    finalTime = `${today.getMonth() - createdAt.getMonth()} ${difference ? "month" : "months"}`;
   } else {
-    difference =
-      today.getFullYear() - discussion.created_at.getFullYear() === 1;
-    finalTime = `${today.getFullYear() - discussion.created_at.getFullYear()} ${difference ? "year" : "years"}`;
+    difference = today.getFullYear() - createdAt.getFullYear() === 1;
+    finalTime = `${today.getFullYear() - createdAt.getFullYear()} ${difference ? "year" : "years"}`;
   }
 
   return (
@@ -58,12 +70,12 @@ export default function Panel({ discussion }: Props) {
           <div className="flex flex-col">
             <div className="flex flex-row gap-sm items-center">
               <h1 className="text-body-md font-bold">
-                {discussion.author.name}
+                {discussion.author?.display_name ?? discussion.author?.name}
               </h1>{" "}
               <div className="flex flex-row gap-sm">
-                {TitleTag[discussion.author.title]}
+                {discussion.author?.title && TitleTag[discussion.author.title]}
                 <h1 className="text-on-primary-fixed-variant font-bold">
-                  {discussion.author.is_pro ? "Diploma Pro" : ""}
+                  {discussion.author?.is_pro ? "Diploma Pro" : ""}
                 </h1>
               </div>
             </div>
@@ -77,7 +89,9 @@ export default function Panel({ discussion }: Props) {
             </div>
           </div>
         </div>
-        <h1 className={typeTags[discussion.type_tag]}>{discussion.type_tag}</h1>
+        <h1 className={discussion.type_tag ? typeTags[discussion.type_tag] : ""}>
+          {discussion.type_tag}
+        </h1>
       </div>
 
       <div>
@@ -113,7 +127,11 @@ export default function Panel({ discussion }: Props) {
             {discussion.reply_count}
           </h1>
         </div>
-        <SaveButton />
+        <SaveButton
+          target={{ discussion_id: String(discussion.id) }}
+          initiallySaved={false}
+          path="/community"
+        />
       </div>
     </div>
   );

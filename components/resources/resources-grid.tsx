@@ -4,7 +4,7 @@ import SortDropdown from "../articles/drop-down";
 import Panel from "../home/article-section/article-panel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Resource } from "@/app/lib/types";
-import { SubjectTags, ActiveSubjectTags } from "../pills";
+import { SubjectTags, ActiveSubjectTags, ResourceTypeTag, YEAR_OPTIONS } from "../pills";
 
 export type FileType = "PDF" | "DOCX" | "PPTX" | "XLSX" | "Link" | "Other";
 
@@ -13,16 +13,8 @@ type Props = {
 };
 
 const options = ["Newest", "Oldest", "Most Liked", "Most Downloaded"];
-const opttionsType = [
-  "All Types",
-  "Template",
-  "Guide",
-  "Subject Notes",
-  "Past Paper Tips",
-  "External Link",
-  "Other",
-];
-const optionsYear = ["Any Year", "DP1", "DP2", "Pre IB", "Post IB"];
+const opttionsType = ["All Types", ...Object.keys(ResourceTypeTag)];
+const optionsYear = ["Any Year", ...YEAR_OPTIONS];
 
 export default function ResourceGrid({ data }: Props) {
   const [type, setType] = useState("All Types");
@@ -142,6 +134,7 @@ export default function ResourceGrid({ data }: Props) {
                 options={opttionsType}
                 selected={type}
                 handleClick={handleClickT}
+                placeholder="Select Type"
               />
             </div>
           </div>
@@ -152,6 +145,7 @@ export default function ResourceGrid({ data }: Props) {
                 options={optionsYear}
                 selected={year}
                 handleClick={handleClickY}
+                placeholder="Select Year"
               />
             </div>
           </div>
@@ -163,6 +157,7 @@ export default function ResourceGrid({ data }: Props) {
                 options={options}
                 selected={selected}
                 handleClick={handleClick}
+                placeholder="Sort by"
               />
             </div>
           </div>
