@@ -1,7 +1,6 @@
 "use client";
 
 import Panel from "./article-panel";
-import Link from "next/link";
 import type { Resource } from "@/app/lib/types";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";

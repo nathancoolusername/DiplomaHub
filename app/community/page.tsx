@@ -1,9 +1,17 @@
 import { Users } from "lucide-react";
 import CommunityPage from "@/components/community/community";
-import { SEED_DISCUSSIONS, Discussion } from "@/components/data";
+import { getDiscussions } from "@/app/lib/actions/discussions";
+import { createClient } from "@/app/lib/supabase/server";
 
-export default function Community() {
-  const data: Discussion[] = SEED_DISCUSSIONS;
+export default async function Community() {
+  const result = await getDiscussions();
+  const data = result.success ? result.data : [];
+
+  const supabase = await createClient();
+  const { count: memberCount } = await supabase
+    .from("users")
+    .select("*", { count: "exact", head: true });
+
   return (
     <div className="flex flex-col">
       <div className="flex flex-row bg-primary-container h-100 py-margin px-30 justify-between items-center">
@@ -21,13 +29,21 @@ export default function Community() {
             <Users className="w-6 h-6 text-white" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-white">###,###+</p>
+            <p className="text-2xl font-bold text-white">
+              {memberCount ?? 0}+
+            </p>
             <p className="text-xs font-semibold tracking-wide text-blue-100/80 uppercase">
               Active IB Students
             </p>
           </div>
         </div>
       </div>
+
+      {!result.success && (
+        <p className="text-red-500 px-30 py-margin">
+          Failed to load discussions: {result.error}
+        </p>
+      )}
 
       <CommunityPage data={data} />
     </div>

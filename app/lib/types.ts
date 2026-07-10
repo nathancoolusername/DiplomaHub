@@ -49,6 +49,10 @@ export type Discussion = {
   like_count: number;
   created_at: string;
   top_reply: string | null;
+  author?: {
+    display_name: string;
+    is_pro: boolean;
+  };
 };
 
 export type ActionResult<T> =

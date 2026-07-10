@@ -1,14 +1,13 @@
 import Item from "./trending-item"
 import { MoveUpRight } from "lucide-react"
-import { Discussion } from "../data";
+import type { Discussion } from "@/app/lib/types";
 import Link from "next/link";
 
 export default function Trending({discussions} : {discussions:Discussion[]}) {
   let i=0;
-  discussions.sort((a, b) => {
-    return a.like_count - b.like_count
-  })
-  const shown = discussions.slice(0, 3)
+  const shown = [...discussions]
+    .sort((a, b) => b.like_count - a.like_count)
+    .slice(0, 3)
     return ( <div className='bg-surface-container-low h-[700px] flex flex-row justify-content-center px-lg pt-[150px] pb-[100px]'>
       <div className='flex flex-col basis-3/8 px-md gap-lg'>
         <div className='bg-primary text-on-primary px-sm py-sm rounded text-label-md w-30'><h1>Now Trending</h1></div>

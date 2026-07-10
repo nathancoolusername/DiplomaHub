@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SEED_DISCUSSIONS } from "@/components/data";
+import { getDiscussion } from "@/app/lib/actions/discussions";
+import { getCurrentUser } from "@/app/lib/get-current-user";
+import { isAdmin } from "@/app/lib/admin";
 import {
   ChevronRight,
   CircleUser,
@@ -8,13 +10,11 @@ import {
   Bookmark,
   Heart,
   Share2,
-  FileText,
-  Download,
-  BadgeCheck,
+  Pencil,
 } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
 import { typeTags } from "@/components/community/discussion-panel";
-import { TitleTag } from "@/components/pills";
+import { DeleteDiscussionButton } from "@/components/community/DeleteDiscussionButton";
 
 export default async function DiscussionPage({
   params,
@@ -22,10 +22,14 @@ export default async function DiscussionPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const discussion = SEED_DISCUSSIONS.find((a) => a.id === id);
-  if (!discussion) {
-    notFound();
-  }
+  const result = await getDiscussion(id);
+  if (!result.success) notFound();
+  const { discussion, replies } = result.data;
+
+  const currentUser = await getCurrentUser();
+  const isOwner =
+    currentUser?.id === discussion.author_id || isAdmin(currentUser?.id);
+
   const final_like =
     discussion.like_count >= 1000
       ? (() => {
@@ -34,31 +38,29 @@ export default async function DiscussionPage({
         })()
       : discussion.like_count;
 
+  const today = new Date();
+  const createdAt = new Date(discussion.created_at);
   let finalTime;
   let difference;
-  const today = new Date();
   const last_I = today.toISOString().lastIndexOf("-");
   if (
-    today.toISOString().split("T")[0] ==
-    discussion.created_at.toISOString().split("T")[0]
+    today.toISOString().split("T")[0] == createdAt.toISOString().split("T")[0]
   ) {
-    finalTime = `${today.getHours() - discussion.created_at.getHours()}h`;
+    finalTime = `${today.getHours() - createdAt.getHours()}h`;
   } else if (
     today.toISOString().slice(0, last_I) ==
-    discussion.created_at.toISOString().slice(0, last_I)
+    createdAt.toISOString().slice(0, last_I)
   ) {
-    difference = today.getDate() - discussion.created_at.getDate() === 1;
-    finalTime = `${today.getDate() - discussion.created_at.getDate()} ${difference ? "day" : "days"}`;
+    difference = today.getDate() - createdAt.getDate() === 1;
+    finalTime = `${today.getDate() - createdAt.getDate()} ${difference ? "day" : "days"}`;
   } else if (
-    today.toISOString().split("-")[0] ==
-    discussion.created_at.toISOString().split("-")[0]
+    today.toISOString().split("-")[0] == createdAt.toISOString().split("-")[0]
   ) {
-    difference = today.getMonth() - discussion.created_at.getMonth() === 1;
-    finalTime = `${today.getMonth() - discussion.created_at.getMonth()} ${difference ? "month" : "months"}`;
+    difference = today.getMonth() - createdAt.getMonth() === 1;
+    finalTime = `${today.getMonth() - createdAt.getMonth()} ${difference ? "month" : "months"}`;
   } else {
-    difference =
-      today.getFullYear() - discussion.created_at.getFullYear() === 1;
-    finalTime = `${today.getFullYear() - discussion.created_at.getFullYear()} ${difference ? "year" : "years"}`;
+    difference = today.getFullYear() - createdAt.getFullYear() === 1;
+    finalTime = `${today.getFullYear() - createdAt.getFullYear()} ${difference ? "year" : "years"}`;
   }
 
   return (
@@ -77,7 +79,11 @@ export default async function DiscussionPage({
       <div className="flex flex-row gap-margin">
         <div className="flex flex-col gap-margin  basis-2/3">
           <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant gap-lg">
-            <h1 className={typeTags[discussion.type_tag]}>
+            <h1
+              className={
+                discussion.type_tag ? typeTags[discussion.type_tag] : ""
+              }
+            >
               {discussion.type_tag}
             </h1>
 
@@ -89,17 +95,16 @@ export default async function DiscussionPage({
               <div className="flex flex-row items-center gap-sm">
                 <CircleUser />
                 <div className="flex flex-col">
-                  <h1 className="text-body-lg">{discussion.author.name}</h1>
-                  <div className="flex flex-row gap-sm">
-                    {TitleTag[discussion.author.title]}
-                    <h1 className="text-on-primary-fixed-variant font-bold">
-                      {discussion.author.is_pro ? "IB Pro" : ""}
-                    </h1>
-                  </div>
+                  <h1 className="text-body-lg">
+                    {discussion.author?.display_name}
+                  </h1>
+                  <h1 className="text-on-primary-fixed-variant font-bold">
+                    {discussion.author?.is_pro ? "Diploma Pro" : ""}
+                  </h1>
                 </div>
               </div>
               <div className="flex flex-col gap-sm">
-                <h1 className="text-body-lg">Uploaded</h1>
+                <h1 className="text-body-lg">Posted</h1>
                 <div className="flex flex-row items-center gap-sm">
                   <Calendar className="text-on-surface-variant" />
                   <h1 className="text-on-surface-variant text-label-md">
@@ -131,6 +136,16 @@ export default async function DiscussionPage({
                     size={46}
                     className="rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
                   />
+                  {isOwner && (
+                    <Link href={`/community/${discussion.id}/edit`}>
+                      <div className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer">
+                        <Pencil size={30} />
+                      </div>
+                    </Link>
+                  )}
+                  {isOwner && (
+                    <DeleteDiscussionButton discussionId={discussion.id} />
+                  )}
                 </div>
               </div>
             </div>
@@ -146,14 +161,16 @@ export default async function DiscussionPage({
               <CircleUser size={50} />
               <div className="flex flex-col">
                 <h1 className="text-headline-lg font-serif">
-                  {discussion.author.name}
+                  {discussion.author?.display_name}
                 </h1>
-                <h1 className="text-body-md text-primary">IB Educator</h1>
+                <h1 className="text-body-md text-primary">
+                  {discussion.author?.is_pro ? "Diploma Pro" : ""}
+                </h1>
               </div>
             </div>
             <h1 className="text-body-md text-on-surface-variant">
-              {discussion.author.name} has contributed to over 20 high-scoring
-              examplars to the IBPeople community.
+              {discussion.author?.display_name} has contributed to the
+              IBPeople community.
             </h1>
             <button className="bg-surface-variant-lowest text-primary border-1 border-primary py-sm hover:bg-surface-container cursor-pointer">
               View Full Profile
@@ -161,12 +178,14 @@ export default async function DiscussionPage({
           </div>
 
           <div className="h-60 w-full bg-surface-container-lowest p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-            <h1 className="font-serif text-headline-md">Top Contributors</h1>
-            <div className="bg-surface-container-low w-full h-24 rounded-xl flex items-center justify-center">
-              <h1 className="font-semibold text-headline-md font-serif text-on-primary-fixed">
-                Coming Soon...
+            <h1 className="font-serif text-headline-md">
+              {replies.length} {replies.length === 1 ? "Reply" : "Replies"}
+            </h1>
+            {replies.length === 0 && (
+              <h1 className="text-on-surface-variant text-body-md">
+                No replies yet.
               </h1>
-            </div>
+            )}
           </div>
         </div>
       </div>

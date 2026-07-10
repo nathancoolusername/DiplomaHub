@@ -3,13 +3,13 @@
 
 import { useState } from "react";
 import { updateProfile } from "@/app/auth/actions";
-import type { User } from "@/app/lib/types";
+import type { UserProfile } from "@/app/lib/types";
 
 export function ProfileForm({
   profile,
   email,
 }: {
-  profile: User;
+  profile: UserProfile;
   email: string;
 }) {
   const [error, setError] = useState<string | null>(null);

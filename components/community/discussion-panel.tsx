@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Users, Heart, MessageSquare, Bookmark } from "lucide-react";
 import { TitleTag } from "../pills";
 import { SaveButton } from "../saveButton";
@@ -11,6 +12,7 @@ type PanelDiscussion = {
   like_count: number;
   reply_count: number;
   created_at: string | Date;
+  top_reply?: string | null;
   author?: {
     name?: string;
     display_name?: string;
@@ -21,6 +23,7 @@ type PanelDiscussion = {
 
 type Props = {
   discussion: PanelDiscussion;
+  href?: string;
 };
 
 export const typeTags: Tags = {
@@ -36,7 +39,8 @@ type Tags = {
   [key: string]: string;
 };
 
-export default function Panel({ discussion }: Props) {
+export default function Panel({ discussion, href }: Props) {
+  const linkHref = href ?? `/community/${discussion.id}`;
   let finalTime;
   let difference;
   const today = new Date();
@@ -62,55 +66,58 @@ export default function Panel({ discussion }: Props) {
 
   return (
     <div className="cursor-pointer hover:drop-shadow-xl/10 transition flex flex-col bg-surface-container-lowest border-1 border-outline-variant p-md rounded-md gap-lg">
-      <div className="flex flex-row justify-between">
-        <div className="flex flex-row items-center gap-md">
-          <div className="border-1 border-outline-variant rounded-[50%] h-15 w-15 items-center justify-items-center pt-2">
-            <Users size={40} />
-          </div>
-          <div className="flex flex-col">
-            <div className="flex flex-row gap-sm items-center">
-              <h1 className="text-body-md font-bold">
-                {discussion.author?.display_name ?? discussion.author?.name}
-              </h1>{" "}
-              <div className="flex flex-row gap-sm">
-                {discussion.author?.title && TitleTag[discussion.author.title]}
-                <h1 className="text-on-primary-fixed-variant font-bold">
-                  {discussion.author?.is_pro ? "Diploma Pro" : ""}
+      <Link href={linkHref} className="flex flex-col gap-lg">
+        <div className="flex flex-row justify-between">
+          <div className="flex flex-row items-center gap-md">
+            <div className="border-1 border-outline-variant rounded-[50%] h-15 w-15 items-center justify-items-center pt-2">
+              <Users size={40} />
+            </div>
+            <div className="flex flex-col">
+              <div className="flex flex-row gap-sm items-center">
+                <h1 className="text-body-md font-bold">
+                  {discussion.author?.display_name ?? discussion.author?.name}
+                </h1>{" "}
+                <div className="flex flex-row gap-sm">
+                  {discussion.author?.title &&
+                    TitleTag[discussion.author.title]}
+                  <h1 className="text-on-primary-fixed-variant font-bold">
+                    {discussion.author?.is_pro ? "Diploma Pro" : ""}
+                  </h1>
+                </div>
+              </div>
+              <div className="flex flex-row gap-sm items-center">
+                <h1 className="text-on-surface-variant text-label-md">
+                  Posted {finalTime} ago in{" "}
+                </h1>{" "}
+                <h1 className="text-on-primary-fixed-variant">
+                  {discussion.subject_tag}
                 </h1>
               </div>
             </div>
-            <div className="flex flex-row gap-sm items-center">
-              <h1 className="text-on-surface-variant text-label-md">
-                Posted {finalTime} ago in{" "}
-              </h1>{" "}
-              <h1 className="text-on-primary-fixed-variant">
-                {discussion.subject_tag}
-              </h1>
-            </div>
           </div>
+          <h1
+            className={discussion.type_tag ? typeTags[discussion.type_tag] : ""}
+          >
+            {discussion.type_tag}
+          </h1>
         </div>
-        <h1 className={discussion.type_tag ? typeTags[discussion.type_tag] : ""}>
-          {discussion.type_tag}
-        </h1>
-      </div>
 
-      <div>
-        <h1 className="text-headline-md font-serif">{discussion.title}</h1>
-      </div>
-
-      <h1 className="text-on-surface-variant text-body-lg">
-        {discussion.content}
-      </h1>
-
-      <div className="flex flex-row gap-md bg-surface-container-low py-md px-sm rounded-xl items-center">
-        <div className="border-1 border-outline-variant rounded-[50%] h-8 w-8 items-center justify-items-center pt-1 bg-secondary-container">
-          <h1>NP</h1>
+        <div>
+          <h1 className="text-headline-md font-serif">{discussion.title}</h1>
         </div>
-        <h1 className="italic text-on-surface-variant text-body-sm">
-          "Had the exact same problem, please help🙏🙏"
+
+        <h1 className="text-on-surface-variant text-body-lg">
+          {discussion.content}
         </h1>
-        <h1 className="text-primary text-body-sm font-bold">- Nathan P.</h1>
-      </div>
+
+        {discussion.top_reply && (
+          <div className="flex flex-row gap-md bg-surface-container-low py-md px-sm rounded-xl items-center">
+            <h1 className="italic text-on-surface-variant text-body-sm">
+              &ldquo;{discussion.top_reply}&rdquo;
+            </h1>
+          </div>
+        )}
+      </Link>
 
       <div className="border-t-1 border-outline-variant mt-auto pt-md flex flex-row">
         <div className="flex flex-row items-center">

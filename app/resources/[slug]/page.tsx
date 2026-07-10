@@ -192,9 +192,7 @@ export default async function resourcePage({
                       </div>
                     </Link>
                   )}
-                  {isOwner && (
-                    <DeleteResourceButton resourceId={resource.id} />
-                  )}
+                  {isOwner && <DeleteResourceButton resourceId={resource.id} />}
                 </div>
               </div>
             </div>
@@ -234,7 +232,7 @@ export default async function resourcePage({
             </h1>
             <div className="flex flex-row justify-between">
               <h1 className="text-body-lg text-on-primary border-b-1 pb-5 border-outline-variant">
-                Obtained from peer reviews and administrator checks.
+                Obtained from author activity and user engagement.
               </h1>
               <BadgeCheck className="text-secondary-container" size={50} />
             </div>

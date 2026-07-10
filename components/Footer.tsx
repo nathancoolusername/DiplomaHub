@@ -12,10 +12,36 @@ export default function Footer() {
             Where IB students never graduate alone
           </h1>
         </div>
-        <h1 className="text-on-surface-variant text-body-lg ml-auto">
-          DiplomaHub has been developed independently from and is not endorsed
-          by the International Baccalaureate Organization.
-        </h1>
+        <div className="flex flex-col items-center justify-content-center gap-xs ml-auto">
+          <h1 className="text-on-surface-variant text-body-lg">
+            DiplomaHub has been developed independently from and is not endorsed
+            by the International Baccalaureate Organization.
+          </h1>
+          <div className="flex flex-row gap-margin">
+            <Link
+              href="/legal/impressum"
+              className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
+            >
+              Impressum
+            </Link>
+            <Link
+              href="/legal/privacy-policy.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/legal/terms-of-service.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
+            >
+              Terms of Service
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

@@ -1,5 +1,5 @@
 import { Dot, TrendingUp } from "lucide-react"
-import { Discussion } from "../data"
+import type { Discussion } from "@/app/lib/types"
 
 export default function Item({discussion, num}:{discussion:Discussion, num:number}) {
     return (<div className="group bg-surface-container-lowest rounded py-md px-lg flex-1 flex flex-row  items-center justify-content-center cursor-pointer hover:border-primary hover:drop-shadow-xl/10 transition hover:border-1 gap-gutter justify-between">

@@ -4,11 +4,9 @@ import Trending from "../components/home/trending";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "./lib/supabase/server";
-import { SEED_DISCUSSIONS, Discussion } from "@/components/data";
+import { getDiscussions } from "@/app/lib/actions/discussions";
 
 export default async function Home() {
-  const discussions: Discussion[] = SEED_DISCUSSIONS;
-
   const supabase = await createClient();
   const { data: resourceRows } = await supabase
     .from("resources")
@@ -21,6 +19,9 @@ export default async function Home() {
     ...r,
     author: Array.isArray(r.author) ? r.author[0] : r.author,
   }));
+
+  const discussionsResult = await getDiscussions();
+  const discussions = discussionsResult.success ? discussionsResult.data : [];
 
   return (
     <div className="flex flex-col">

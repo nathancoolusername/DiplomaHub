@@ -34,7 +34,7 @@ export default function RootLayout({
       className={`${inter.variable} ${merriweather.variable} h-1/1`}
     >
       <body>
-        <div className="min-h-[100vh] relative flex flex-col bg-surface-container-lowest h-full">
+        <div className="min-h-[100vh] relative flex flex-col bg-surface-container-lowest h-full notranslate">
           <Navbar
             authSlot={
               <Suspense
