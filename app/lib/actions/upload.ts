@@ -73,13 +73,18 @@ export async function uploadAvatar(
     .from("avatars")
     .getPublicUrl(filePath);
 
+  // The filename is fixed (upsert overwrites in place), so the URL never
+  // changes across re-uploads — append a cache-busting query param or every
+  // browser/CDN/Next Image cache just keeps serving the old bytes.
+  const avatarUrl = `${urlData.publicUrl}?v=${Date.now()}`;
+
   // save the URL onto the user's row immediately
   const { error: updateError } = await supabase
     .from("users")
-    .update({ avatar_url: urlData.publicUrl })
+    .update({ avatar_url: avatarUrl })
     .eq("id", user.id);
 
   if (updateError) return { success: false, error: updateError.message };
 
-  return { success: true, data: { avatarUrl: urlData.publicUrl } };
+  return { success: true, data: { avatarUrl } };
 }

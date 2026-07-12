@@ -1,9 +1,10 @@
-import { Download, FileText, Users, Target } from "lucide-react";
+import { Download, FileText, Target } from "lucide-react";
 import type { Resource } from "@/app/lib/types";
 import { SubjectTags, ResourceTypeTag } from "@/components/pills";
 import { DownloadButton } from "@/components/resources/DownloadButton";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
+import { Avatar } from "@/components/avatar";
 import Link from "next/link";
 
 type Props = {
@@ -44,9 +45,11 @@ export default function Panel({ resource }: Props) {
             </div>
             <div className="flex flex-row gap-md">
               <div className="flex flex-row items-center gap-md">
-                <div className="border-1 border-outline-variant rounded-[50%] h-15 w-15 items-center justify-items-center pt-2">
-                  <Users size={40} />
-                </div>
+                <Avatar
+                  src={resource.author.avatar_url}
+                  name={resource.author.display_name}
+                  size={60}
+                />
                 <div className="flex flex-col">
                   <h1 className="text-body-md font-bold">
                     {resource.author.display_name}

@@ -5,19 +5,13 @@ import { getArticle } from "@/app/lib/actions/articles";
 import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
-import {
-  ChevronRight,
-  CircleUser,
-  Calendar,
-  Eye,
-  Share2,
-  Pencil,
-} from "lucide-react";
+import { ChevronRight, Calendar, Eye, Share2, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
 import { DeleteArticleButton } from "@/components/articles/DeleteArticleButton";
 import { estimateReadTime } from "@/app/lib/readTime";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
+import { Avatar } from "@/components/avatar";
 
 const months = [
   "Jan",
@@ -88,7 +82,11 @@ export default async function ArticlePage({
 
       <div className="border-b-1 border-outline-variant flex flex-row pb-md gap-gutter">
         <div className="flex flex-row items-center gap-sm">
-          <CircleUser />
+          <Avatar
+            src={article.author?.avatar_url}
+            name={article.author?.display_name ?? "?"}
+            size={40}
+          />
           <div className="flex flex-col">
             <h1 className="text-body-lg">{article.author?.display_name}</h1>
             <h1 className="text-label-md text-on-surface-variant">

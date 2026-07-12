@@ -1,21 +1,38 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import FilterDropdown from "./drop-down";
 import { useState } from "react";
-import { TrendingUp, Dot, SquarePen, ChevronLeft, ChevronRight } from "lucide-react";
-import type { Discussion } from "@/app/lib/types";
+import {
+  TrendingUp,
+  Dot,
+  SquarePen,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import type { Discussion, UserProfile } from "@/app/lib/types";
+import type { TopContributor } from "@/app/lib/actions/profile";
 import Panel, { typeTags } from "./discussion-panel";
 import { SubjectTags, YEAR_OPTIONS } from "../pills";
+import { initialsFor } from "@/app/lib/initials";
 
 const optionsSubject = ["All Subjects", ...Object.keys(SubjectTags)];
 const opttionsType = ["All Types", ...Object.keys(typeTags)];
 const optionsYear = ["Any Year", ...YEAR_OPTIONS];
 
+const DIPLOMA_PRO_THRESHOLD = 1000;
+
 type Props = {
   data: Discussion[];
+  currentUserProfile: UserProfile | null;
+  topContributors: TopContributor[];
 };
 
-export default function CommunityPage({ data }: Props) {
+export default function CommunityPage({
+  data,
+  currentUserProfile,
+  topContributors,
+}: Props) {
   const [selectedS, setSelectedS] = useState(optionsSubject[0]);
   const [selectedT, setSelectedT] = useState(opttionsType[0]);
   const [selectedY, setSelectedY] = useState(optionsYear[0]);
@@ -40,12 +57,18 @@ export default function CommunityPage({ data }: Props) {
     const hours =
       (new Date().getTime() - new Date(discussion.created_at).getTime()) /
       (1000 * 60 * 60 * 24);
-    return discussion.like_count + discussion.reply_count / Math.pow(hours + 2, 1.5);
+    return (
+      discussion.like_count + discussion.reply_count / Math.pow(hours + 2, 1.5)
+    );
   }
 
   const trending = [...data].sort((a, b) => hotScore(b) - hotScore(a));
-  const actual = trending.filter((discussion) => discussion.type_tag != "Resource");
-  const essential = trending.find((discussion) => discussion.type_tag == "Resource");
+  const actual = trending.filter(
+    (discussion) => discussion.type_tag != "Resource",
+  );
+  const essential = trending.find(
+    (discussion) => discussion.type_tag == "Resource",
+  );
 
   const filteredS = data.filter((discussion) => {
     if (selectedS == optionsSubject[0]) return true;
@@ -99,9 +122,7 @@ export default function CommunityPage({ data }: Props) {
           <h1 className="font-serif text-headline-md">Filter Discussions</h1>
           <div className="flex flex-row mt-margin gap-margin">
             <div className="flex flex-col gap-sm basis-2/7">
-              <h1 className="text-on-surface-variant text-body-md">
-                Subject
-              </h1>
+              <h1 className="text-on-surface-variant text-body-md">Subject</h1>
               <FilterDropdown
                 options={optionsSubject}
                 selected={selectedS}
@@ -260,19 +281,84 @@ export default function CommunityPage({ data }: Props) {
       </div>
 
       <div className="basis-1/3 flex flex-col ml-margin gap-margin">
-        <div className="h-60 w-full bg-surface-container-lowest place-content-center justify-center items-center p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
-          <h1 className="font-serif text-headline-md">Your Status</h1>
-          <h1 className="flex text-primary-container p-md bg-surface-container-low font-serif text-headline-md rounded-full items-center justify-center border-surface-container-highest border-1 hover:border-primary cursor-pointer transition">
-            Login to see your status
-          </h1>
-        </div>
+        {currentUserProfile ? (
+          <div className="w-full bg-surface-container-lowest p-md border-1 border-outline-variant rounded-xl flex flex-col gap-md">
+            <h1 className="font-serif text-headline-md">Your Status</h1>
+            <div className="flex flex-row items-center gap-md">
+              {currentUserProfile.avatar_url ? (
+                <Image
+                  src={currentUserProfile.avatar_url}
+                  width={56}
+                  height={56}
+                  alt={currentUserProfile.display_name}
+                  className="h-14 w-14 rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-14 w-14 rounded-full bg-surface-container-low border-1 border-outline-variant flex items-center justify-center text-primary font-bold text-headline-md">
+                  {initialsFor(currentUserProfile.display_name)}
+                </div>
+              )}
+              <div className="flex flex-col">
+                <h1 className="font-bold text-body-lg">
+                  {currentUserProfile.display_name}
+                </h1>
+                <h1 className="text-on-surface-variant text-label-md">
+                  {currentUserProfile.ib_year}
+                </h1>
+              </div>
+            </div>
+
+            {currentUserProfile.is_pro ? (
+              <div className="flex flex-row items-center justify-center bg-surface-container-low text-primary rounded-xl py-sm font-bold">
+                Diploma Pro
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-row justify-between text-label-md text-on-surface-variant">
+                  <span>
+                    {currentUserProfile.points} / {DIPLOMA_PRO_THRESHOLD} points
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full"
+                    style={{
+                      width: `${Math.min(100, (currentUserProfile.points / DIPLOMA_PRO_THRESHOLD) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <h1 className="text-on-surface-variant text-label-md italic">
+                  {Math.max(
+                    0,
+                    DIPLOMA_PRO_THRESHOLD - currentUserProfile.points,
+                  )}{" "}
+                  points until Diploma Pro
+                </h1>
+              </>
+            )}
+
+            <Link href={`/profile/${currentUserProfile.id}`}>
+              <div className="bg-primary text-on-primary rounded-xl py-sm text-center font-semibold cursor-pointer hover:opacity-90 transition">
+                View Profile
+              </div>
+            </Link>
+          </div>
+        ) : (
+          <div className="h-60 w-full bg-surface-container-lowest place-content-center justify-center items-center p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
+            <h1 className="font-serif text-headline-md">Your Status</h1>
+            <Link href={"/login"}>
+              <h1 className="flex text-primary-container p-md bg-surface-container-low font-serif text-headline-md rounded-full items-center justify-center border-surface-container-highest border-1 hover:border-primary cursor-pointer transition">
+                Login to see your status
+              </h1>
+            </Link>
+          </div>
+        )}
 
         <Link href={"/community/write"}>
           <div className="h-60 w-full bg-surface-container-lowest p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
             <h1 className="font-serif text-headline-md">Have a question?</h1>
             <h1 className="text-on-surface-variant text-body-lg">
-              Get Help with your IAs, EE, or subject doubts from the
-              community.
+              Get Help with your IAs, EE, or subject doubts from the community.
             </h1>
             <div className="bg-on-primary-fixed-variant w-full h-12 rounded-xl flex flex-row gap-md items-center justify-center mt-sm cursor-pointer hover:drop-shadow-xl/10">
               <SquarePen size={25} className="text-on-primary" />
@@ -283,13 +369,52 @@ export default function CommunityPage({ data }: Props) {
           </div>
         </Link>
 
-        <div className="h-60 w-full bg-surface-container-lowest p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
+        <div className="w-full bg-surface-container-lowest p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
           <h1 className="font-serif text-headline-md">Top Contributors</h1>
-          <div className="bg-surface-container-low w-full h-24 rounded-xl flex items-center justify-center">
-            <h1 className="font-semibold text-headline-md font-serif text-on-primary-fixed">
-              Coming Soon...
-            </h1>
-          </div>
+          {topContributors.length === 0 ? (
+            <div className="bg-surface-container-low w-full h-24 rounded-xl flex items-center justify-center">
+              <h1 className="font-semibold text-headline-md font-serif text-on-primary-fixed">
+                No contributors yet
+              </h1>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-md">
+              {topContributors.map((contributor, i) => (
+                <div
+                  key={contributor.id}
+                  className="flex flex-row items-center gap-md"
+                >
+                  <h1 className="text-primary font-bold w-6">{i + 1}</h1>
+                  {contributor.avatar_url ? (
+                    <Image
+                      src={contributor.avatar_url}
+                      width={36}
+                      height={36}
+                      alt={contributor.display_name}
+                      className="rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-9 w-9 rounded-full bg-surface-container-low flex items-center justify-center text-primary font-bold text-label-md">
+                      {initialsFor(contributor.display_name)}
+                    </div>
+                  )}
+                  <div className="flex flex-col flex-1">
+                    <h1 className="font-bold text-body-md">
+                      {contributor.display_name}
+                    </h1>
+                    <h1 className="text-on-surface-variant text-label-sm">
+                      {contributor.points.toLocaleString()} XP
+                    </h1>
+                  </div>
+                  {contributor.is_pro && (
+                    <span className="text-label-lg bg-primary-container text-on-primary px-sm py-1 rounded-md font-semibold">
+                      Diploma Pro
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -160,7 +160,7 @@ export async function getDiscussion(
 
   const { data: discussion, error: dErr } = await supabase
     .from("discussions")
-    .select("*, author:users(display_name, is_pro, ib_year)")
+    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
     .eq("id", discussionId)
     .single();
 
@@ -169,7 +169,7 @@ export async function getDiscussion(
 
   const { data: replies, error: rErr } = await supabase
     .from("discussion_replies")
-    .select("*, author:users(display_name, is_pro, ib_year)")
+    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
     .eq("discussion_id", discussionId)
     .order("created_at", { ascending: true });
 
@@ -245,7 +245,7 @@ export async function getDiscussionsWithUserState(): Promise<
 
   const { data: discussions, error } = await supabase
     .from("discussions")
-    .select("*, author:users(display_name, is_pro, ib_year)")
+    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
     .order("created_at", { ascending: false });
 
   if (error) return { success: false, error: error.message };
@@ -317,7 +317,7 @@ export async function getDiscussionForEdit(
 
   const { data, error } = await supabase
     .from("discussions")
-    .select("*, author:users(display_name, is_pro)")
+    .select("*, author:users(display_name, is_pro, avatar_url)")
     .eq("id", discussionId)
     .single();
 
@@ -343,7 +343,7 @@ export async function getDiscussions(): Promise<ActionResult<Discussion[]>> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("discussions")
-    .select("*, author:users(display_name, is_pro)")
+    .select("*, author:users(display_name, is_pro, avatar_url)")
     .order("created_at", { ascending: false });
 
   if (error) return { success: false, error: error.message };

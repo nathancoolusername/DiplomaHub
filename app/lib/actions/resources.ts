@@ -45,7 +45,7 @@ export async function getResourceForEdit(
 
   const { data, error } = await supabase
     .from("resources")
-    .select("*, author:users(display_name, is_pro, ib_year)")
+    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
     .eq("id", resourceId)
     .single();
 
@@ -110,7 +110,7 @@ export async function getResourceDetail(
 
   const { data, error } = await supabase
     .from("resources")
-    .select("*, author:users(display_name, is_pro, ib_year)")
+    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
     .eq("id", resourceId)
     .eq("published", true)
     .single();
@@ -153,7 +153,7 @@ export async function getResources(filters?: {
 
   let query = supabase
     .from("resources")
-    .select("*, author:users(display_name, is_pro)")
+    .select("*, author:users(display_name, is_pro, avatar_url)")
     .eq("published", true)
     .order("created_at", { ascending: false });
 
@@ -245,7 +245,7 @@ export async function getResourcesWithUserState(filters?: {
     .select(
       `
       *,
-      author:users(display_name, is_pro, ib_year)
+      author:users(display_name, is_pro, ib_year, avatar_url)
     `,
     )
     .eq("published", true)

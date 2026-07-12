@@ -11,6 +11,7 @@ export default async function ProfilePage() {
   const profile = await getCurrentUserProfile();
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  if (!profile) redirect("/login");
 
   const emailConfirmed = !!user.email_confirmed_at;
 
@@ -25,14 +26,14 @@ export default async function ProfilePage() {
               Confirm your email
             </p>
             <p className="text-sm text-amber-700">
-              We sent a link to {profile?.email}. Check your inbox to confirm.
+              We sent a link to {profile.email}. Check your inbox to confirm.
             </p>
           </div>
-          <ResendConfirmationButton email={profile?.email!} />
+          <ResendConfirmationButton email={profile.email} />
         </div>
       )}
 
-      <ProfileForm profile={profile} email={profile?.email!} />
+      <ProfileForm profile={profile} email={profile.email} />
     </div>
   );
 }

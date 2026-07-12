@@ -6,7 +6,6 @@ import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
 import {
   ChevronRight,
-  CircleUser,
   Calendar,
   Share2,
   FileText,
@@ -19,6 +18,7 @@ import { DownloadButton } from "@/components/resources/DownloadButton";
 import { DeleteResourceButton } from "@/components/resources/DeleteResourceButton";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
+import { Avatar } from "@/components/avatar";
 
 const months = [
   "Jan",
@@ -118,7 +118,11 @@ export default async function resourcePage({
 
           <div className="border-b-1 border-outline-variant flex flex-row pb-md gap-20">
             <div className="flex flex-row items-center gap-sm">
-              <CircleUser />
+              <Avatar
+                src={resource.author.avatar_url}
+                name={resource.author.display_name}
+                size={40}
+              />
               <div className="flex flex-col">
                 <h1 className="text-body-lg">{resource.author.display_name}</h1>
                 <h1 className="text-label-md text-on-surface-variant">
@@ -218,7 +222,11 @@ export default async function resourcePage({
               About the Author
             </h1>
             <div className="flex flex-row items-center gap-md">
-              <CircleUser size={50} />
+              <Avatar
+                src={resource.author.avatar_url}
+                name={resource.author.display_name}
+                size={50}
+              />
               <div className="flex flex-col">
                 <h1 className="text-headline-lg font-serif">
                   {resource.author.display_name}

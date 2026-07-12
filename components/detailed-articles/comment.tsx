@@ -1,12 +1,14 @@
-import { User, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { ibYearTitleTag } from "../pills";
 import { LikeButton } from "../likeButton";
+import { Avatar } from "../avatar";
 import { formatRelativeTime } from "@/app/lib/relativeTime";
 
 type Author = {
   display_name: string;
   is_pro: boolean;
   ib_year?: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+  avatar_url?: string | null;
 } | null;
 
 type LikeProps = {
@@ -35,9 +37,10 @@ export default function Comment({
 }: Props) {
   return (
     <div className="flex flex-row gap-md w-full">
-      <User
+      <Avatar
+        src={author?.avatar_url}
+        name={author?.display_name ?? "Deleted user"}
         size={50}
-        className="p-sm border-1 border-outline-variant rounded-xl"
       />
       <div className="flex flex-col gap-sm w-full">
         <div className="flex flex-col px-lg py-6 border-1 border-outline-variant rounded-xl w-full gap-lg bg-surface-container-lowest">

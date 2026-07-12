@@ -11,7 +11,7 @@ export async function getComments(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("comments")
-    .select("*, author:users(display_name, is_pro, ib_year)")
+    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
     .match(target)
     .order("created_at", { ascending: true });
 

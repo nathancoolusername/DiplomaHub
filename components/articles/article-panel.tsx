@@ -1,9 +1,10 @@
-import { Eye, CircleUser } from "lucide-react";
+import { Eye } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { stripHtml } from "@/app/lib/stripHtml";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
+import { Avatar } from "@/components/avatar";
 
 type PanelArticle = {
   id: string | number;
@@ -20,6 +21,7 @@ type PanelArticle = {
     name?: string;
     display_name?: string;
     is_pro?: boolean;
+    avatar_url?: string | null;
   };
 };
 
@@ -74,7 +76,11 @@ export default function Panel({
         </Link>
         <div className="border-t-1 border-outline-variant mt-auto pt-md flex flex-row">
           <div className="flex flex-row items-center gap-sm">
-            <CircleUser />
+            <Avatar
+              src={article.author?.avatar_url}
+              name={article.author?.display_name ?? article.author?.name ?? "?"}
+              size={36}
+            />
             <div className="flex flex-col">
               <h1 className="text-body-md">
                 {article.author?.display_name ?? article.author?.name}

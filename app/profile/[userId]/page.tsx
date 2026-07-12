@@ -6,6 +6,7 @@ import { Medal, Calendar, Share2 } from "lucide-react";
 import Link from "next/link";
 import ProfileInfo from "@/components/profile/ProfileInfo";
 import { getSavedItems } from "@/app/lib/actions/saved-items";
+import { initialsFor } from "@/app/lib/initials";
 
 const months = [
   "January",
@@ -52,13 +53,19 @@ export default async function ProfilePage({
   return (
     <div className="flex flex-col">
       <div className="bg-surface-container-lowest flex flex-row gap-lg items-center py-[50px] border-b-1 border-outline-variant px-md md:px-10 xl:px-30">
-        <Image
-          src={user.avatar_url}
-          height={200}
-          width={200}
-          alt="User Profile"
-          className="rounded-[50%] border-1 border-outline-variant"
-        />
+        {user.avatar_url ? (
+          <Image
+            src={user.avatar_url}
+            height={200}
+            width={200}
+            alt="User Profile"
+            className="h-[200px] w-[200px] rounded-full object-cover"
+          />
+        ) : (
+          <div className="h-[200px] w-[200px] rounded-full bg-surface-container border-1 border-outline-variant flex items-center justify-center text-primary font-bold text-display-lg">
+            {initialsFor(user.display_name)}
+          </div>
+        )}
         <div className="flex flex-row self-end justify-between flex-1">
           <div className="flex flex-col gap-md">
             <div className="flex flex-row gap-md">

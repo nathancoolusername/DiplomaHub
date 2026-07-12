@@ -39,26 +39,26 @@ export async function getPublicProfile(userId: string): Promise<
   ] = await Promise.all([
     supabase
       .from("articles")
-      .select("*, author:users(display_name, is_pro)")
+      .select("*, author:users(display_name, is_pro, avatar_url)")
       .eq("author_id", userId)
       .eq("published", true)
       .order("created_at", { ascending: false }),
     supabase
       .from("resources")
-      .select("*, author:users(display_name, is_pro, ib_year)")
+      .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
       .eq("author_id", userId)
       .eq("published", true)
       .order("created_at", { ascending: false }),
     supabase
       .from("discussions")
-      .select("*, author:users(display_name, is_pro)")
+      .select("*, author:users(display_name, is_pro, avatar_url)")
       .eq("author_id", userId)
       .order("created_at", { ascending: false }),
   ]);
 
   const { data: drafts, error: draftError } = await supabase
     .from("articles")
-    .select("*, author:users(display_name, is_pro)")
+    .select("*, author:users(display_name, is_pro, avatar_url)")
     .eq("author_id", userId)
     .eq("published", false)
     .order("created_at", { ascending: false });
@@ -217,4 +217,27 @@ export async function getPublicProfile(userId: string): Promise<
       drafts: normalizedDrafts ?? null,
     },
   };
+}
+
+export type TopContributor = {
+  id: string;
+  display_name: string;
+  points: number;
+  is_pro: boolean;
+  avatar_url: string | null;
+};
+
+export async function getTopContributors(
+  limit = 5,
+): Promise<ActionResult<TopContributor[]>> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, display_name, points, is_pro, avatar_url")
+    .order("points", { ascending: false })
+    .limit(limit);
+
+  if (error) return { success: false, error: error.message };
+  return { success: true, data };
 }

@@ -3,18 +3,13 @@ import { notFound } from "next/navigation";
 import { getDiscussion } from "@/app/lib/actions/discussions";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
-import {
-  ChevronRight,
-  CircleUser,
-  Calendar,
-  Share2,
-  Pencil,
-} from "lucide-react";
+import { ChevronRight, Calendar, Share2, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
 import { typeTags } from "@/components/community/discussion-panel";
 import { DeleteDiscussionButton } from "@/components/community/DeleteDiscussionButton";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
+import { Avatar } from "@/components/avatar";
 import { formatRelativeTime } from "@/app/lib/relativeTime";
 
 export default async function DiscussionPage({
@@ -72,7 +67,11 @@ export default async function DiscussionPage({
 
             <div className="border-b-1 border-outline-variant flex flex-row pb-md gap-20">
               <div className="flex flex-row items-center gap-sm">
-                <CircleUser />
+                <Avatar
+                  src={discussion.author?.avatar_url}
+                  name={discussion.author?.display_name ?? "?"}
+                  size={40}
+                />
                 <div className="flex flex-col">
                   <h1 className="text-body-lg">
                     {discussion.author?.display_name}
@@ -153,7 +152,11 @@ export default async function DiscussionPage({
               About the Author
             </h1>
             <div className="flex flex-row items-center gap-md">
-              <CircleUser size={50} />
+              <Avatar
+                src={discussion.author?.avatar_url}
+                name={discussion.author?.display_name ?? "?"}
+                size={50}
+              />
               <div className="flex flex-col">
                 <h1 className="text-headline-lg font-serif">
                   {discussion.author?.display_name}

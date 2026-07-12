@@ -18,6 +18,7 @@ export type Resource = {
     display_name: string;
     is_pro: boolean;
     ib_year: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+    avatar_url: string | null;
   };
 };
 
@@ -39,6 +40,7 @@ export type Article = {
     display_name: string;
     is_pro: boolean;
     ib_year?: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+    avatar_url?: string | null;
   };
 };
 
@@ -60,6 +62,7 @@ export type Discussion = {
     display_name: string;
     is_pro: boolean;
     ib_year?: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+    avatar_url?: string | null;
   };
 };
 
@@ -76,6 +79,7 @@ export type DiscussionReply = {
     display_name: string;
     is_pro: boolean;
     ib_year?: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+    avatar_url?: string | null;
   };
 };
 
@@ -90,6 +94,7 @@ export type Comment = {
     display_name: string;
     is_pro: boolean;
     ib_year: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+    avatar_url: string | null;
   };
 };
 

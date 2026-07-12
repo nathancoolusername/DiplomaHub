@@ -44,7 +44,7 @@ export async function getArticle(slug: string): Promise<ActionResult<Article>> {
 
   const { data, error } = await supabase
     .from("articles")
-    .select("*, author:users(display_name, is_pro, ib_year)")
+    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
     .eq("slug", slug)
     .eq("published", true)
     .single();
@@ -92,7 +92,7 @@ export async function getArticlesWithUserState(): Promise<
 
   const { data: articles, error } = await supabase
     .from("articles")
-    .select("*, author:users(display_name, is_pro, ib_year)")
+    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
     .eq("published", true)
     .order("created_at", { ascending: false });
 
@@ -149,7 +149,7 @@ export async function getArticleForEdit(
 
   const { data, error } = await supabase
     .from("articles")
-    .select("*, author:users(display_name, is_pro)")
+    .select("*, author:users(display_name, is_pro, avatar_url)")
     .eq("slug", slug)
     .single();
 
@@ -171,7 +171,7 @@ export async function getArticles(): Promise<ActionResult<Article[]>> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("articles")
-    .select("*, author:users(display_name, is_pro)")
+    .select("*, author:users(display_name, is_pro, avatar_url)")
     .eq("published", true)
     .order("created_at", { ascending: false });
 
