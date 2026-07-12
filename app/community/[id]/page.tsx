@@ -170,9 +170,11 @@ export default async function DiscussionPage({
               {discussion.author?.display_name} has contributed to the IBPeople
               community.
             </h1>
-            <button className="bg-surface-variant-lowest text-primary border-1 border-primary py-sm hover:bg-surface-container cursor-pointer">
-              View Full Profile
-            </button>
+            <Link href={`/profile/${discussion.author_id}`}>
+              <button className="bg-surface-variant-lowest text-primary border-1 border-primary py-sm hover:bg-surface-container cursor-pointer w-full">
+                View Full Profile
+              </button>
+            </Link>
           </div>
         </div>
       </div>

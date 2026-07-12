@@ -2,6 +2,7 @@
 import { createClient } from "@/app/lib/supabase/server";
 import { getCurrentUserProfile } from "@/app/lib/get-current-user";
 import { signOut } from "@/app/auth/actions";
+import { isAdmin } from "@/app/lib/admin";
 import Button from "./button";
 import Link from "next/link";
 import ProfileDropdown from "./profileMenu";
@@ -31,6 +32,7 @@ export async function AuthNav() {
         points={profile?.points}
         sign_out={signOut}
         id={user.id}
+        isAdmin={isAdmin(user.id)}
       />
     </div>
   );

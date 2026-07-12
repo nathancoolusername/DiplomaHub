@@ -219,10 +219,14 @@ export async function createArticle(
   if (!user) return { success: false, error: "Not logged in" };
 
   const title = formData.get("title") as string;
-  const slug = title
+  const baseSlug = title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+  // Two articles with the same (or similarly-normalized) title would
+  // otherwise collide on the `slug unique` constraint — append a short
+  // random suffix so that can't happen.
+  const slug = `${baseSlug}-${crypto.randomUUID().slice(0, 8)}`;
 
   const rawContent = formData.get("content") as string;
   const content = sanitizeHtml(rawContent, ARTICLE_HTML_OPTIONS);

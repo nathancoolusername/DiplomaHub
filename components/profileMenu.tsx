@@ -11,12 +11,14 @@ export default function ProfileDropdown({
   is_pro,
   sign_out,
   id,
+  isAdmin,
 }: {
   display_name: string;
   id: string;
   points: number;
   is_pro: boolean;
   sign_out: Function;
+  isAdmin?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -64,6 +66,18 @@ export default function ProfileDropdown({
               See profile
             </button>
           </Link>
+          {isAdmin && (
+            <Link href="/admin">
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                }}
+                className={`cursor-pointer w-full text-left px-md py-sm text-body-lg transition-colors hover:bg-surface-container text-primary font-serif`}
+              >
+                Admin
+              </button>
+            </Link>
+          )}
           <button
             onClick={() => {
               setIsOpen(false);

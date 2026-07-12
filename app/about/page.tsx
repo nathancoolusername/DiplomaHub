@@ -39,10 +39,10 @@ export default async function About() {
         </div>
         <div className="flex flex-col gap-lg bg-surface-container-lowest border-1 border-outline-variant rounded-xl basis-3/5 p-[60px]  hover:drop-shadow-xl/10 transition hover:border-primary">
           <h1 className="text-sm/8 tracking-wide">
-            We know what it feels like to work late nights, to try the "perfect"
-            EE question, to withstand the pressure of IAs. DiplomaHub was
-            founded by a group of top IB students who realized that while the IB
-            is tough, nobody should have to navigate it alone.
+            We know what it feels like to work late nights, to try to find the
+            "perfect" EE question, to withstand the pressure of IAs. DiplomaHub
+            was founded by a group of top IB students who realized that while
+            the IB is tough, nobody should have to navigate it alone.
           </h1>
           <p className="font-serif text-headline-lg text-primary px-6 py-4 bg-surface-container border-l-4 border-primary rounded-lg mb-4 italic">
             "The IB teaches you to think independently, but nobody said you have
