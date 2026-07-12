@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { Users, Heart, MessageSquare, Bookmark } from "lucide-react";
-import { TitleTag } from "../pills";
+import { Users, MessageSquare } from "lucide-react";
+import { ibYearTitleTag } from "../pills";
 import { SaveButton } from "../saveButton";
+import { LikeButton } from "../likeButton";
+import { formatRelativeTime } from "@/app/lib/relativeTime";
 
 type PanelDiscussion = {
   id: string | number;
@@ -13,10 +15,12 @@ type PanelDiscussion = {
   reply_count: number;
   created_at: string | Date;
   top_reply?: string | null;
+  isLiked?: boolean;
+  isSaved?: boolean;
   author?: {
     name?: string;
     display_name?: string;
-    title?: string;
+    ib_year?: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
     is_pro?: boolean;
   };
 };
@@ -41,28 +45,7 @@ type Tags = {
 
 export default function Panel({ discussion, href }: Props) {
   const linkHref = href ?? `/community/${discussion.id}`;
-  let finalTime;
-  let difference;
-  const today = new Date();
-  const createdAt = new Date(discussion.created_at);
-  const last_I = today.toISOString().lastIndexOf("-");
-  if (today.toISOString().split("T")[0] == createdAt.toISOString().split("T")[0]) {
-    finalTime = `${today.getHours() - createdAt.getHours()}h`;
-  } else if (
-    today.toISOString().slice(0, last_I) ==
-    createdAt.toISOString().slice(0, last_I)
-  ) {
-    difference = today.getDate() - createdAt.getDate() === 1;
-    finalTime = `${today.getDate() - createdAt.getDate()} ${difference ? "day" : "days"}`;
-  } else if (
-    today.toISOString().split("-")[0] == createdAt.toISOString().split("-")[0]
-  ) {
-    difference = today.getMonth() - createdAt.getMonth() === 1;
-    finalTime = `${today.getMonth() - createdAt.getMonth()} ${difference ? "month" : "months"}`;
-  } else {
-    difference = today.getFullYear() - createdAt.getFullYear() === 1;
-    finalTime = `${today.getFullYear() - createdAt.getFullYear()} ${difference ? "year" : "years"}`;
-  }
+  const finalTime = formatRelativeTime(discussion.created_at);
 
   return (
     <div className="cursor-pointer hover:drop-shadow-xl/10 transition flex flex-col bg-surface-container-lowest border-1 border-outline-variant p-md rounded-md gap-lg">
@@ -78,8 +61,7 @@ export default function Panel({ discussion, href }: Props) {
                   {discussion.author?.display_name ?? discussion.author?.name}
                 </h1>{" "}
                 <div className="flex flex-row gap-sm">
-                  {discussion.author?.title &&
-                    TitleTag[discussion.author.title]}
+                  {ibYearTitleTag(discussion.author?.ib_year)}
                   <h1 className="text-on-primary-fixed-variant font-bold">
                     {discussion.author?.is_pro ? "Diploma Pro" : ""}
                   </h1>
@@ -87,7 +69,7 @@ export default function Panel({ discussion, href }: Props) {
               </div>
               <div className="flex flex-row gap-sm items-center">
                 <h1 className="text-on-surface-variant text-label-md">
-                  Posted {finalTime} ago in{" "}
+                  Posted {finalTime} in{" "}
                 </h1>{" "}
                 <h1 className="text-on-primary-fixed-variant">
                   {discussion.subject_tag}
@@ -121,12 +103,12 @@ export default function Panel({ discussion, href }: Props) {
 
       <div className="border-t-1 border-outline-variant mt-auto pt-md flex flex-row">
         <div className="flex flex-row items-center">
-          <div className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl">
-            <Heart />
-          </div>
-          <h1 className="text-on-surface-variant text-body-lg ml-sm mr-md">
-            {discussion.like_count}
-          </h1>
+          <LikeButton
+            target={{ discussion_id: String(discussion.id) }}
+            initiallyLiked={discussion.isLiked ?? false}
+            initialCount={discussion.like_count}
+            path="/community"
+          />
           <div className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl">
             <MessageSquare />
           </div>
@@ -136,7 +118,7 @@ export default function Panel({ discussion, href }: Props) {
         </div>
         <SaveButton
           target={{ discussion_id: String(discussion.id) }}
-          initiallySaved={false}
+          initiallySaved={discussion.isSaved ?? false}
           path="/community"
         />
       </div>

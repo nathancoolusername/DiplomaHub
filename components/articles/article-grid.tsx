@@ -41,11 +41,13 @@ export default function ArticleGrid({ data }: Props) {
   });
   if (selected == "Newest") {
     filtered.sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
   } else if (selected == "Oldest") {
     filtered.sort(
-      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     );
   } else if (selected == "Most Viewed") {
     filtered.sort((a, b) => b.view_count - a.view_count);
@@ -88,7 +90,7 @@ export default function ArticleGrid({ data }: Props) {
   return (
     <div className="flex flex-col gap-gutter">
       <div className="flex flex-col gap-margin">
-        <div className="flex flex-row gap-sm">
+        <div className="flex flex-row gap-sm flex-wrap">
           <button
             onClick={() => {
               setActive("All");
@@ -119,7 +121,7 @@ export default function ArticleGrid({ data }: Props) {
                   setNum("1");
                 }}
                 key={pill}
-                className="cursor-pointer"
+                className="cursor-pointer my-1"
               >
                 {isActive ? ActiveSubjectTags[pill] : SubjectTags[pill]}
               </button>

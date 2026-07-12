@@ -3,22 +3,12 @@ import ResourceHome from "../components/home/article-section/article-home";
 import Trending from "../components/home/trending";
 import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "./lib/supabase/server";
+import { getResourcesWithUserState } from "@/app/lib/actions/resources";
 import { getDiscussions } from "@/app/lib/actions/discussions";
 
 export default async function Home() {
-  const supabase = await createClient();
-  const { data: resourceRows } = await supabase
-    .from("resources")
-    .select("*, author:users(display_name, is_pro, ib_year)")
-    .eq("published", true)
-    .order("created_at", { ascending: false })
-    .limit(6);
-
-  const resources = (resourceRows ?? []).map((r) => ({
-    ...r,
-    author: Array.isArray(r.author) ? r.author[0] : r.author,
-  }));
+  const resourcesResult = await getResourcesWithUserState({ limit: 6 });
+  const resources = resourcesResult.success ? resourcesResult.data : [];
 
   const discussionsResult = await getDiscussions();
   const discussions = discussionsResult.success ? discussionsResult.data : [];

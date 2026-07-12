@@ -3,7 +3,7 @@
 import { createClient } from "../supabase/server";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "../admin";
-import type { ActionResult, Discussion } from "../types";
+import type { ActionResult, Discussion, DiscussionReply } from "../types";
 
 export async function createDiscussion(
   formData: FormData,
@@ -124,14 +124,43 @@ export async function replyToDiscussion(
   return { success: true, data };
 }
 
+export async function deleteReply(
+  replyId: string,
+  discussionId: string,
+): Promise<ActionResult<null>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not logged in" };
+
+  let query = supabase.from("discussion_replies").delete().eq("id", replyId);
+  if (!isAdmin(user.id)) {
+    query = query.eq("author_id", user.id);
+  }
+  const { data, error } = await query.select("id");
+
+  if (error) return { success: false, error: error.message };
+  if (!data || data.length === 0)
+    return { success: false, error: "You can only delete your own replies" };
+
+  revalidatePath(`/community/${discussionId}`);
+  return { success: true, data: null };
+}
+
 export async function getDiscussion(
   discussionId: string,
-): Promise<ActionResult<{ discussion: Discussion; replies: any[] }>> {
+): Promise<
+  ActionResult<{ discussion: Discussion; replies: DiscussionReply[] }>
+> {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { data: discussion, error: dErr } = await supabase
     .from("discussions")
-    .select("*, author:users(display_name, is_pro)")
+    .select("*, author:users(display_name, is_pro, ib_year)")
     .eq("id", discussionId)
     .single();
 
@@ -140,26 +169,140 @@ export async function getDiscussion(
 
   const { data: replies, error: rErr } = await supabase
     .from("discussion_replies")
-    .select("*, author:users(display_name, is_pro)")
+    .select("*, author:users(display_name, is_pro, ib_year)")
     .eq("discussion_id", discussionId)
-    .order("like_count", { ascending: false });
+    .order("created_at", { ascending: true });
 
   if (rErr) return { success: false, error: rErr.message };
+
+  const normalizedDiscussion = {
+    ...discussion,
+    author: Array.isArray(discussion.author)
+      ? discussion.author[0]
+      : discussion.author,
+  };
+  const normalizedReplies = (replies ?? []).map((r) => ({
+    ...r,
+    author: Array.isArray(r.author) ? r.author[0] : r.author,
+  }));
+
+  if (!user) {
+    return {
+      success: true,
+      data: {
+        discussion: { ...normalizedDiscussion, isLiked: false, isSaved: false },
+        replies: normalizedReplies.map((r) => ({ ...r, isLiked: false })),
+      },
+    };
+  }
+
+  const replyIds = normalizedReplies.map((r) => r.id);
+
+  const [{ data: discussionLike }, { data: discussionSave }, { data: replyLikes }] =
+    await Promise.all([
+      supabase
+        .from("likes")
+        .select("id")
+        .match({ user_id: user.id, discussion_id: discussionId })
+        .maybeSingle(),
+      supabase
+        .from("saved_items")
+        .select("id")
+        .match({ user_id: user.id, discussion_id: discussionId })
+        .maybeSingle(),
+      supabase
+        .from("likes")
+        .select("discussion_reply_id")
+        .eq("user_id", user.id)
+        .in("discussion_reply_id", replyIds),
+    ]);
+
+  const likedReplyIds = new Set(replyLikes?.map((l) => l.discussion_reply_id));
 
   return {
     success: true,
     data: {
       discussion: {
-        ...discussion,
-        author: Array.isArray(discussion.author)
-          ? discussion.author[0]
-          : discussion.author,
+        ...normalizedDiscussion,
+        isLiked: !!discussionLike,
+        isSaved: !!discussionSave,
       },
-      replies: (replies ?? []).map((r) => ({
+      replies: normalizedReplies.map((r) => ({
         ...r,
-        author: Array.isArray(r.author) ? r.author[0] : r.author,
+        isLiked: likedReplyIds.has(r.id),
       })),
     },
+  };
+}
+
+export async function getDiscussionsWithUserState(): Promise<
+  ActionResult<Discussion[]>
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: discussions, error } = await supabase
+    .from("discussions")
+    .select("*, author:users(display_name, is_pro, ib_year)")
+    .order("created_at", { ascending: false });
+
+  if (error) return { success: false, error: error.message };
+
+  // `top_reply` is a FK (uuid) pointing at discussion_replies.id, not the
+  // reply text itself — resolve it to actual content for display.
+  const topReplyIds = discussions
+    .map((d) => d.top_reply)
+    .filter((id): id is string => !!id);
+
+  const { data: topReplies } = topReplyIds.length
+    ? await supabase
+        .from("discussion_replies")
+        .select("id, content")
+        .in("id", topReplyIds)
+    : { data: [] as { id: string; content: string }[] };
+
+  const topReplyContent = new Map(topReplies?.map((r) => [r.id, r.content]));
+
+  const normalized = discussions.map((d) => ({
+    ...d,
+    author: Array.isArray(d.author) ? d.author[0] : d.author,
+    top_reply: d.top_reply ? (topReplyContent.get(d.top_reply) ?? null) : null,
+  }));
+
+  if (!user) {
+    return {
+      success: true,
+      data: normalized.map((d) => ({ ...d, isLiked: false, isSaved: false })),
+    };
+  }
+
+  const discussionIds = normalized.map((d) => d.id);
+
+  const [{ data: likes }, { data: saves }] = await Promise.all([
+    supabase
+      .from("likes")
+      .select("discussion_id")
+      .eq("user_id", user.id)
+      .in("discussion_id", discussionIds),
+    supabase
+      .from("saved_items")
+      .select("discussion_id")
+      .eq("user_id", user.id)
+      .in("discussion_id", discussionIds),
+  ]);
+
+  const likedIds = new Set(likes?.map((l) => l.discussion_id));
+  const savedIds = new Set(saves?.map((s) => s.discussion_id));
+
+  return {
+    success: true,
+    data: normalized.map((d) => ({
+      ...d,
+      isLiked: likedIds.has(d.id),
+      isSaved: savedIds.has(d.id),
+    })),
   };
 }
 

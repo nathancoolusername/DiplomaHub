@@ -32,6 +32,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${merriweather.variable} h-1/1`}
+      suppressHydrationWarning
     >
       <body>
         <div className="min-h-[100vh] relative flex flex-col bg-surface-container-lowest h-full notranslate">

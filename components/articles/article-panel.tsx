@@ -1,7 +1,9 @@
-import { Heart, Eye, CircleUser } from "lucide-react";
+import { Eye, CircleUser } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { stripHtml } from "@/app/lib/stripHtml";
+import { LikeButton } from "@/components/likeButton";
+import { SaveButton } from "@/components/saveButton";
 
 type PanelArticle = {
   id: string | number;
@@ -12,6 +14,8 @@ type PanelArticle = {
   cover_image_url?: string | null;
   like_count: number;
   view_count: number;
+  isLiked?: boolean;
+  isSaved?: boolean;
   author?: {
     name?: string;
     display_name?: string;
@@ -81,14 +85,21 @@ export default function Panel({
             </div>
           </div>
           <div className="flex flex-row items-center ml-auto text-primary">
-            <Heart />
-            <h1 className="text-on-surface-variant text-body-lg ml-sm mr-md">
-              {article.like_count}
-            </h1>
+            <LikeButton
+              target={{ article_id: String(article.id) }}
+              initiallyLiked={article.isLiked ?? false}
+              initialCount={article.like_count}
+              path="/articles"
+            />
             <Eye />
             <h1 className="text-on-surface-variant text-body-lg ml-sm">
               {article.view_count}
             </h1>
+            <SaveButton
+              target={{ article_id: String(article.id) }}
+              initiallySaved={article.isSaved ?? false}
+              path="/articles"
+            />
           </div>
         </div>
       </div>

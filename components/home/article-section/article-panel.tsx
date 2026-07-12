@@ -1,7 +1,9 @@
-import { Heart, Download, FileText, Users, Target } from "lucide-react";
+import { Download, FileText, Users, Target } from "lucide-react";
 import type { Resource } from "@/app/lib/types";
 import { SubjectTags, ResourceTypeTag } from "@/components/pills";
 import { DownloadButton } from "@/components/resources/DownloadButton";
+import { LikeButton } from "@/components/likeButton";
+import { SaveButton } from "@/components/saveButton";
 import Link from "next/link";
 
 type Props = {
@@ -10,18 +12,11 @@ type Props = {
 
 export default function Panel({ resource }: Props) {
   let final_download;
-  let final_like;
   if (resource.download_count >= 1000) {
     const shortened = resource.download_count / 1000;
     final_download = `${shortened % 1 === 0 ? shortened : shortened.toFixed(1)}k`;
   } else {
     final_download = resource.download_count;
-  }
-  if (resource.like_count >= 1000) {
-    const shortened = resource.like_count / 1000;
-    final_like = `${shortened % 1 === 0 ? shortened : shortened.toFixed(1)}k`;
-  } else {
-    final_like = resource.like_count;
   }
   return (
     <div className="group flex flex-col bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden h-100 hover:border-primary hover:drop-shadow-xl/25 transition p-lg">
@@ -71,16 +66,25 @@ export default function Panel({ resource }: Props) {
         </Link>
         <div className="border-t-1 border-outline-variant mt-auto pt-md flex flex-row">
           <div className="flex flex-row items-center">
-            <Heart className="hover:text-[#f50707] cursor-pointer" />
-            <h1 className="text-on-surface-variant text-body-lg ml-sm mr-md">
-              {final_like}
-            </h1>
+            <LikeButton
+              target={{ resource_id: resource.id }}
+              initiallyLiked={resource.isLiked ?? false}
+              initialCount={resource.like_count}
+              path="/resources"
+              className="flex flex-row items-center hover:text-[#f50707] cursor-pointer"
+              activeColor="#f50707"
+            />
             <Download />
             <h1 className="text-on-surface-variant text-body-lg ml-sm">
               {final_download}
             </h1>
           </div>
-          <div className="ml-auto text-primary">
+          <div className="ml-auto text-primary flex flex-row items-center">
+            <SaveButton
+              target={{ resource_id: resource.id }}
+              initiallySaved={resource.isSaved ?? false}
+              path="/resources"
+            />
             <DownloadButton
               resourceId={resource.id}
               fileName={resource.title}

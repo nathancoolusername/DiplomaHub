@@ -2,10 +2,10 @@ import { Pencil } from "lucide-react";
 import Link from "next/link";
 import Button from "../../components/button";
 import ArticleGrid from "../../components/articles/article-grid";
-import { getArticles } from "@/app/lib/actions/articles";
+import { getArticlesWithUserState } from "@/app/lib/actions/articles";
 
 export default async function Articles() {
-  const result = await getArticles();
+  const result = await getArticlesWithUserState();
 
   if (!result.success) {
     return (

@@ -90,7 +90,7 @@ export default function WriteDiscussionForm({
   }
 
   return (
-    <div className="flex flex-col px-45 py-10 gap-gutter bg-surface-container-low">
+    <div className="flex flex-col px-md md:px-10 xl:px-45 py-10 gap-gutter bg-surface-container-low">
       <div className="flex flex-row gap-sm items-center">
         <Link href={"/community"}>
           <h1 className={`text-on-surface-variant text-headline-md uppercase`}>

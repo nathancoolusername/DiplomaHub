@@ -2,9 +2,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { resolveOrigin } from "@/app/lib/resolveOrigin";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin = resolveOrigin(request.headers);
   const code = searchParams.get("code");
 
   if (code) {

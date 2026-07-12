@@ -7,14 +7,15 @@ import {
   ChevronRight,
   CircleUser,
   Calendar,
-  Bookmark,
-  Heart,
   Share2,
   Pencil,
 } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
 import { typeTags } from "@/components/community/discussion-panel";
 import { DeleteDiscussionButton } from "@/components/community/DeleteDiscussionButton";
+import { LikeButton } from "@/components/likeButton";
+import { SaveButton } from "@/components/saveButton";
+import { formatRelativeTime } from "@/app/lib/relativeTime";
 
 export default async function DiscussionPage({
   params,
@@ -22,14 +23,17 @@ export default async function DiscussionPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const result = await getDiscussion(id);
+  const [result, currentUser] = await Promise.all([
+    getDiscussion(id),
+    getCurrentUser(),
+  ]);
   if (!result.success) notFound();
   const { discussion, replies } = result.data;
 
-  const currentUser = await getCurrentUser();
   const isOwner =
     currentUser?.id === discussion.author_id || isAdmin(currentUser?.id);
 
+  const finalTime = formatRelativeTime(discussion.created_at);
   const final_like =
     discussion.like_count >= 1000
       ? (() => {
@@ -38,33 +42,8 @@ export default async function DiscussionPage({
         })()
       : discussion.like_count;
 
-  const today = new Date();
-  const createdAt = new Date(discussion.created_at);
-  let finalTime;
-  let difference;
-  const last_I = today.toISOString().lastIndexOf("-");
-  if (
-    today.toISOString().split("T")[0] == createdAt.toISOString().split("T")[0]
-  ) {
-    finalTime = `${today.getHours() - createdAt.getHours()}h`;
-  } else if (
-    today.toISOString().slice(0, last_I) ==
-    createdAt.toISOString().slice(0, last_I)
-  ) {
-    difference = today.getDate() - createdAt.getDate() === 1;
-    finalTime = `${today.getDate() - createdAt.getDate()} ${difference ? "day" : "days"}`;
-  } else if (
-    today.toISOString().split("-")[0] == createdAt.toISOString().split("-")[0]
-  ) {
-    difference = today.getMonth() - createdAt.getMonth() === 1;
-    finalTime = `${today.getMonth() - createdAt.getMonth()} ${difference ? "month" : "months"}`;
-  } else {
-    difference = today.getFullYear() - createdAt.getFullYear() === 1;
-    finalTime = `${today.getFullYear() - createdAt.getFullYear()} ${difference ? "year" : "years"}`;
-  }
-
   return (
-    <div className="flex flex-col px-50 py-10  gap-gutter bg-surface-container-low">
+    <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
       <div className="flex flex-row gap-sm items-center">
         <Link href={"/community"}>
           <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
@@ -108,7 +87,7 @@ export default async function DiscussionPage({
                 <div className="flex flex-row items-center gap-sm">
                   <Calendar className="text-on-surface-variant" />
                   <h1 className="text-on-surface-variant text-label-md">
-                    {finalTime} ago
+                    {finalTime}
                   </h1>
                 </div>
               </div>
@@ -124,12 +103,21 @@ export default async function DiscussionPage({
                 {discussion.content}
               </h1>
               <div className="ml-auto text-primary flex flex-row">
-                <div className="text-on-surface-variant transition hover:text-[#f50707] hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1">
-                  <Heart size={30} />
-                </div>
+                <LikeButton
+                  target={{ discussion_id: discussion.id }}
+                  initiallyLiked={discussion.isLiked ?? false}
+                  initialCount={discussion.like_count}
+                  path={`/community/${discussion.id}`}
+                  size={30}
+                  className="text-on-surface-variant transition hover:text-[#f50707] hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1 flex flex-row items-center"
+                  activeColor="#f50707"
+                />
                 <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row  items-center">
-                  <Bookmark
-                    size={46}
+                  <SaveButton
+                    target={{ discussion_id: discussion.id }}
+                    initiallySaved={discussion.isSaved ?? false}
+                    path={`/community/${discussion.id}`}
+                    size={36}
                     className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
                   />
                   <Share2
@@ -150,7 +138,14 @@ export default async function DiscussionPage({
               </div>
             </div>
           </div>
-          <Comments />
+          <Comments
+            kind="reply"
+            target={{ discussion_id: discussion.id }}
+            initialItems={replies}
+            path={`/community/${discussion.id}`}
+            isLoggedIn={!!currentUser}
+            currentUserId={currentUser?.id ?? null}
+          />
         </div>
         <div className="basis-1/3 flex flex-col gap-margin">
           <div className="h-65 w-full bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-md">
@@ -169,23 +164,12 @@ export default async function DiscussionPage({
               </div>
             </div>
             <h1 className="text-body-md text-on-surface-variant">
-              {discussion.author?.display_name} has contributed to the
-              IBPeople community.
+              {discussion.author?.display_name} has contributed to the IBPeople
+              community.
             </h1>
             <button className="bg-surface-variant-lowest text-primary border-1 border-primary py-sm hover:bg-surface-container cursor-pointer">
               View Full Profile
             </button>
-          </div>
-
-          <div className="h-60 w-full bg-surface-container-lowest p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-            <h1 className="font-serif text-headline-md">
-              {replies.length} {replies.length === 1 ? "Reply" : "Replies"}
-            </h1>
-            {replies.length === 0 && (
-              <h1 className="text-on-surface-variant text-body-md">
-                No replies yet.
-              </h1>
-            )}
           </div>
         </div>
       </div>

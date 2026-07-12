@@ -38,9 +38,13 @@ const ARTICLE_HTML_OPTIONS: sanitizeHtml.IOptions = {
 
 export async function getArticle(slug: string): Promise<ActionResult<Article>> {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data, error } = await supabase
     .from("articles")
-    .select("*, author:users(display_name, is_pro)")
+    .select("*, author:users(display_name, is_pro, ib_year)")
     .eq("slug", slug)
     .eq("published", true)
     .single();
@@ -50,12 +54,87 @@ export async function getArticle(slug: string): Promise<ActionResult<Article>> {
   const admin = createAdminClient();
   admin.rpc("increment_view_count", { target_article_id: data.id }).then();
 
+  const article = {
+    ...data,
+    author: Array.isArray(data.author) ? data.author[0] : data.author,
+  };
+
+  if (!user) {
+    return { success: true, data: { ...article, isLiked: false, isSaved: false } };
+  }
+
+  const [{ data: like }, { data: save }] = await Promise.all([
+    supabase
+      .from("likes")
+      .select("id")
+      .match({ user_id: user.id, article_id: data.id })
+      .maybeSingle(),
+    supabase
+      .from("saved_items")
+      .select("id")
+      .match({ user_id: user.id, article_id: data.id })
+      .maybeSingle(),
+  ]);
+
   return {
     success: true,
-    data: {
-      ...data,
-      author: Array.isArray(data.author) ? data.author[0] : data.author,
-    },
+    data: { ...article, isLiked: !!like, isSaved: !!save },
+  };
+}
+
+export async function getArticlesWithUserState(): Promise<
+  ActionResult<Article[]>
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: articles, error } = await supabase
+    .from("articles")
+    .select("*, author:users(display_name, is_pro, ib_year)")
+    .eq("published", true)
+    .order("created_at", { ascending: false });
+
+  if (error) return { success: false, error: error.message };
+
+  const normalized = articles.map((a) => ({
+    ...a,
+    author: Array.isArray(a.author) ? a.author[0] : a.author,
+  }));
+
+  if (!user) {
+    return {
+      success: true,
+      data: normalized.map((a) => ({ ...a, isLiked: false, isSaved: false })),
+    };
+  }
+
+  const articleIds = normalized.map((a) => a.id);
+
+  const [{ data: likes }, { data: saves }] = await Promise.all([
+    supabase
+      .from("likes")
+      .select("article_id")
+      .eq("user_id", user.id)
+      .in("article_id", articleIds),
+    supabase
+      .from("saved_items")
+      .select("article_id")
+      .eq("user_id", user.id)
+      .in("article_id", articleIds),
+  ]);
+
+  const likedIds = new Set(likes?.map((l) => l.article_id));
+  const savedIds = new Set(saves?.map((s) => s.article_id));
+
+  return {
+    success: true,
+    data: normalized.map((a) => ({
+      ...a,
+      isLiked: likedIds.has(a.id),
+      isSaved: savedIds.has(a.id),
+    })),
   };
 }
 

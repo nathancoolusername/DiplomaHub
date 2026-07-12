@@ -93,7 +93,7 @@ export default function CommunityPage({ data }: Props) {
   }
 
   return (
-    <div className="bg-surface-container-low flex flex-row py-margin px-30">
+    <div className="bg-surface-container-low flex flex-row py-margin px-md md:px-10 xl:px-30">
       <div className="flex flex-col gap-margin basis-2/3">
         <div className="flex-col flex w-full">
           <h1 className="font-serif text-headline-md">Filter Discussions</h1>

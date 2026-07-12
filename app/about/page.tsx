@@ -1,6 +1,10 @@
-import Button from "@/components/button";
+import Link from "next/link";
+import { getCurrentUser } from "@/app/lib/get-current-user";
 
-export default function About() {
+export default async function About() {
+  const user = await getCurrentUser();
+  const ctaHref = user ? "/" : "/login";
+
   return (
     <div className="flex flex-col gap-[70px] bg-surface-container-low ">
       <div className="flex flex-col gap-margin justify-content-center items-center place-content-center h-[700px] px-[60px] ">
@@ -16,11 +20,13 @@ export default function About() {
           transforming the lifelong IB learner journey into a collaborative
           adventure defined by warmth, clarity, and mutual support.
         </h1>
-        <button
-          className={`bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer flex flex-row gap-sm text-headline-md px-20 py-lg`}
-        >
-          Join the Community
-        </button>
+        <Link href={ctaHref}>
+          <button
+            className={`bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer flex flex-row gap-sm text-headline-md px-20 py-lg`}
+          >
+            Join the Community
+          </button>
+        </Link>
       </div>
 
       <div className="flex flex-row justify-between h-min-[600px] px-[50px] py-[30px] gap-margin bg-surface-container-low">
@@ -138,11 +144,13 @@ export default function About() {
           Join other students and teachers who are redefining academic
           excellence through collaboration..
         </h1>
-        <button
-          className={`bg-on-primary text-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer flex flex-row gap-sm text-headline-md px-20 py-lg`}
-        >
-          Join the Community
-        </button>
+        <Link href={ctaHref}>
+          <button
+            className={`bg-on-primary text-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer flex flex-row gap-sm text-headline-md px-20 py-lg`}
+          >
+            Join the Community
+          </button>
+        </Link>
       </div>
     </div>
   );

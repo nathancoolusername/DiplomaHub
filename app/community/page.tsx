@@ -1,10 +1,10 @@
 import { Users } from "lucide-react";
 import CommunityPage from "@/components/community/community";
-import { getDiscussions } from "@/app/lib/actions/discussions";
+import { getDiscussionsWithUserState } from "@/app/lib/actions/discussions";
 import { createClient } from "@/app/lib/supabase/server";
 
 export default async function Community() {
-  const result = await getDiscussions();
+  const result = await getDiscussionsWithUserState();
   const data = result.success ? result.data : [];
 
   const supabase = await createClient();
@@ -14,7 +14,7 @@ export default async function Community() {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row bg-primary-container h-100 py-margin px-30 justify-between items-center">
+      <div className="flex flex-row bg-primary-container h-100 py-margin px-md md:px-10 xl:px-30 justify-between items-center">
         <div className="flex flex-col w-200">
           <h1 className="text-display-lg font-serif text-on-primary">
             Discuss, Share, and Connect with IB students worldwide
@@ -40,7 +40,7 @@ export default async function Community() {
       </div>
 
       {!result.success && (
-        <p className="text-red-500 px-30 py-margin">
+        <p className="text-red-500 px-md md:px-10 xl:px-30 py-margin">
           Failed to load discussions: {result.error}
         </p>
       )}

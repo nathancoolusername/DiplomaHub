@@ -51,7 +51,7 @@ export default async function ProfilePage({
   }
   return (
     <div className="flex flex-col">
-      <div className="bg-surface-container-lowest flex flex-row gap-lg items-center py-[50px] border-b-1 border-outline-variant px-30">
+      <div className="bg-surface-container-lowest flex flex-row gap-lg items-center py-[50px] border-b-1 border-outline-variant px-md md:px-10 xl:px-30">
         <Image
           src={user.avatar_url}
           height={200}
@@ -114,6 +114,12 @@ export default async function ProfilePage({
         self={isOwnProfile}
         savedItems={savedItems}
         drafts={drafts}
+        profileUserId={userId}
+        author={{
+          display_name: user.display_name,
+          is_pro: user.is_pro,
+          ib_year: user.ib_year,
+        }}
       />
     </div>
   );

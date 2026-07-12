@@ -1,25 +1,17 @@
 import { Upload } from "lucide-react";
 import Button from "../../components/button";
 import ResourceGrid from "@/components/resources/resources-grid";
-import { createClient } from "../lib/supabase/server";
+import { getResourcesWithUserState } from "../lib/actions/resources";
 import Link from "next/link";
 
 export default async function ResourcesPage() {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("resources")
-    .select("*, author:users(display_name, is_pro, ib_year)")
-    .eq("published", true);
+  const result = await getResourcesWithUserState();
 
-  if (error) {
+  if (!result.success) {
     return (
-      <p className="text-red-500">Failed to load resources: {error.message}</p>
+      <p className="text-red-500">Failed to load resources: {result.error}</p>
     );
   }
-  const normalized = data.map((r) => ({
-    ...r,
-    author: Array.isArray(r.author) ? r.author[0] : r.author,
-  }));
   return (
     <div className="flex flex-col bg-surface-bright px-margin py-lg gap-margin">
       <div className="flex flex-row justify-between py-margin">
@@ -42,7 +34,7 @@ export default async function ResourcesPage() {
         </Link>
       </div>
 
-      <ResourceGrid data={normalized} />
+      <ResourceGrid data={result.data} />
     </div>
   );
 }

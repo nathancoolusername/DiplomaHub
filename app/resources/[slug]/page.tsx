@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/app/lib/supabase/server";
+import { getResourceDetail } from "@/app/lib/actions/resources";
+import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
-import type { Resource } from "@/app/lib/types";
 import {
   ChevronRight,
   CircleUser,
   Calendar,
-  Bookmark,
-  Heart,
   Share2,
   FileText,
   BadgeCheck,
@@ -19,6 +17,8 @@ import Comments from "@/components/detailed-articles/comments";
 import { SubjectTags, ResourceTypeTag } from "@/components/pills";
 import { DownloadButton } from "@/components/resources/DownloadButton";
 import { DeleteResourceButton } from "@/components/resources/DeleteResourceButton";
+import { LikeButton } from "@/components/likeButton";
+import { SaveButton } from "@/components/saveButton";
 
 const months = [
   "Jan",
@@ -42,24 +42,19 @@ export default async function resourcePage({
 }) {
   const { slug } = await params;
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("resources")
-    .select("*, author:users(display_name, is_pro, ib_year)")
-    .eq("id", slug)
-    .eq("published", true)
-    .single();
+  const [result, currentUser] = await Promise.all([
+    getResourceDetail(slug),
+    getCurrentUser(),
+  ]);
 
-  if (error || !data) {
+  if (!result.success) {
     notFound();
   }
+  const resource = result.data;
 
-  const resource: Resource = {
-    ...data,
-    author: Array.isArray(data.author) ? data.author[0] : data.author,
-  };
+  const commentsResult = await getComments({ resource_id: resource.id });
+  const comments = commentsResult.success ? commentsResult.data : [];
 
-  const currentUser = await getCurrentUser();
   const isOwner =
     currentUser?.id === resource.author_id || isAdmin(currentUser?.id);
 
@@ -95,7 +90,7 @@ export default async function resourcePage({
   })();
 
   return (
-    <div className="flex flex-col px-50 py-10  gap-gutter bg-surface-container-low">
+    <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
       <div className="flex flex-row gap-sm items-center">
         <Link href={"/resources"}>
           <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
@@ -172,12 +167,21 @@ export default async function resourcePage({
                     fileName={resource.title}
                     isExternalLink={isExternalLink}
                   />
-                  <div className="text-on-surface-variant transition hover:text-[#f50707] hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1">
-                    <Heart size={30} />
-                  </div>
+                  <LikeButton
+                    target={{ resource_id: resource.id }}
+                    initiallyLiked={resource.isLiked ?? false}
+                    initialCount={resource.like_count}
+                    path={`/resources/${resource.id}`}
+                    size={30}
+                    className="text-on-surface-variant transition hover:text-[#f50707] hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1 flex flex-row items-center"
+                    activeColor="#f50707"
+                  />
                   <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row  items-center ">
-                    <Bookmark
-                      size={46}
+                    <SaveButton
+                      target={{ resource_id: resource.id }}
+                      initiallySaved={resource.isSaved ?? false}
+                      path={`/resources/${resource.id}`}
+                      size={36}
                       className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
                     />
                     <Share2
@@ -198,7 +202,14 @@ export default async function resourcePage({
             </div>
           </div>
 
-          <Comments />
+          <Comments
+            kind="comment"
+            target={{ resource_id: resource.id }}
+            initialItems={comments}
+            path={`/resources/${resource.id}`}
+            isLoggedIn={!!currentUser}
+            currentUserId={currentUser?.id ?? null}
+          />
         </div>
 
         <div className="basis-1/3 flex flex-col gap-margin">

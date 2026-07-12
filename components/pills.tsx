@@ -278,3 +278,10 @@ export const TitleTag: Record<string, JSX.Element> = {
 };
 
 export const YEAR_OPTIONS = ["DP1", "DP2", "Whole DP", "Pre IB", "Post IB"];
+
+export function ibYearTitleTag(ib_year: string | null | undefined) {
+  if (!ib_year) return null;
+  if (ib_year === "Educator") return TitleTag["IB Educator"];
+  if (ib_year === "Alumni") return TitleTag["Alumni"];
+  return TitleTag["IB Student"];
+}

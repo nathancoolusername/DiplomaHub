@@ -1,43 +1,87 @@
-import { CornerUpLeft, ThumbsUp, User } from "lucide-react";
-import { TitleTag } from "../pills";
+import { User, Trash2 } from "lucide-react";
+import { ibYearTitleTag } from "../pills";
+import { LikeButton } from "../likeButton";
+import { formatRelativeTime } from "@/app/lib/relativeTime";
 
-export default function Comment() {
+type Author = {
+  display_name: string;
+  is_pro: boolean;
+  ib_year?: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+} | null;
+
+type LikeProps = {
+  target: { discussion_reply_id: string };
+  initiallyLiked: boolean;
+  initialCount: number;
+  path: string;
+};
+
+type Props = {
+  content: string;
+  createdAt: string;
+  author?: Author;
+  like?: LikeProps;
+  canDelete?: boolean;
+  onDelete?: () => void;
+};
+
+export default function Comment({
+  content,
+  createdAt,
+  author,
+  like,
+  canDelete,
+  onDelete,
+}: Props) {
   return (
     <div className="flex flex-row gap-md w-full">
       <User
         size={50}
-        className="p-sm border-1 border-outline-variamt rounded-xl"
+        className="p-sm border-1 border-outline-variant rounded-xl"
       />
       <div className="flex flex-col gap-sm w-full">
         <div className="flex flex-col px-lg py-6 border-1 border-outline-variant rounded-xl w-full gap-lg bg-surface-container-lowest">
           <div className="flex flex-row justify-between">
-            <div className="flex flex-row gap-sm">
-              <h1 className="text-primary text-body-lg">Arnav Kapoor</h1>
-              {TitleTag["Alumni"]}
-              <h1 className="text-on-primary-fixed-variant font-bold">
-                Diploma Pro
+            <div className="flex flex-row gap-sm items-center">
+              <h1 className="text-primary text-body-lg">
+                {author?.display_name ?? "Deleted user"}
               </h1>
+              {ibYearTitleTag(author?.ib_year)}
+              {author?.is_pro && (
+                <h1 className="text-on-primary-fixed-variant font-bold">
+                  Diploma Pro
+                </h1>
+              )}
             </div>
-            <h1 className="text-on-surface-container text-body-md">
-              3 hours ago
-            </h1>
+            <div className="flex flex-row items-center gap-sm">
+              <h1 className="text-on-surface-container text-body-md">
+                {formatRelativeTime(createdAt)}
+              </h1>
+              {canDelete && (
+                <button
+                  onClick={onDelete}
+                  className="text-on-surface-variant transition hover:text-red-500 cursor-pointer"
+                  aria-label="Delete"
+                >
+                  <Trash2 size={18} />
+                </button>
+              )}
+            </div>
           </div>
-          <h1 className="text-body-lg">
-            As someone who finished my EE last year, I'd emphasize the
-            literature review part. It’s what separates a C from an A! Keep
-            digging into those academic databases. Thank you for this, genuinely
-            a lifesaver.
-          </h1>
+          <h1 className="text-body-lg">{content}</h1>
         </div>
-        <div className="flex flex-row w-full gap-md">
-          <div className="text-primary flex flex-row items-center gap-sm text-label-md border-b-1 border-white hover:border-primary cursor-pointer">
-            <CornerUpLeft /> <h1 className="font-bold">Reply</h1>
+        {like && (
+          <div className="flex flex-row w-full gap-md">
+            <LikeButton
+              target={like.target}
+              initiallyLiked={like.initiallyLiked}
+              initialCount={like.initialCount}
+              path={like.path}
+              size={20}
+              className="text-on-surface-container flex flex-row items-center gap-sm text-label-md hover:text-primary transition cursor-pointer"
+            />
           </div>
-          <div className="text-on-surface-container flex flex-row items-center gap-sm text-label-md">
-            <ThumbsUp className="hover:text-primary transition cursor-pointer" />{" "}
-            <h1 className="text-body-md">67</h1>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -12,6 +12,8 @@ export type Resource = {
   created_at: string;
   published: boolean;
   community_trust: number;
+  isLiked?: boolean;
+  isSaved?: boolean;
   author: {
     display_name: string;
     is_pro: boolean;
@@ -31,9 +33,12 @@ export type Article = {
   like_count: number;
   created_at: string;
   published: boolean;
+  isLiked?: boolean;
+  isSaved?: boolean;
   author?: {
     display_name: string;
     is_pro: boolean;
+    ib_year?: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
   };
 };
 
@@ -49,9 +54,42 @@ export type Discussion = {
   like_count: number;
   created_at: string;
   top_reply: string | null;
+  isLiked?: boolean;
+  isSaved?: boolean;
   author?: {
     display_name: string;
     is_pro: boolean;
+    ib_year?: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+  };
+};
+
+export type DiscussionReply = {
+  id: string;
+  discussion_id: string;
+  author_id: string;
+  content: string;
+  like_count: number;
+  created_at: string;
+  parent_reply_id: string | null;
+  isLiked?: boolean;
+  author?: {
+    display_name: string;
+    is_pro: boolean;
+    ib_year?: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+  };
+};
+
+export type Comment = {
+  id: string;
+  user_id: string;
+  resource_id: string | null;
+  article_id: string | null;
+  content: string;
+  created_at: string;
+  author: {
+    display_name: string;
+    is_pro: boolean;
+    ib_year: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
   };
 };
 

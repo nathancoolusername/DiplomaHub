@@ -14,28 +14,48 @@ export function SaveButton({
   target,
   initiallySaved,
   path,
+  className,
+  activeColor,
+  size,
 }: {
   target: SaveTarget;
   initiallySaved: boolean;
   path: string;
+  className?: string;
+  activeColor?: string;
+  size?: number;
 }) {
   const [saved, setSaved] = useState(initiallySaved);
-  const [loading, setLoading] = useState(false);
 
   async function handleClick() {
-    setLoading(true);
+    const prevSaved = saved;
+    const nextSaved = !prevSaved;
+
+    // Optimistic update — reflect the click instantly, revert if the
+    // server call fails.
+    setSaved(nextSaved);
+
     const result = await toggleSave(target, path);
-    if (result.success) setSaved(result.data.saved);
-    setLoading(false);
+    if (!result.success) {
+      setSaved(prevSaved);
+    } else if (result.data.saved !== nextSaved) {
+      // Local state was stale — reconcile with what the server actually did.
+      setSaved(result.data.saved);
+    }
   }
 
   return (
     <button
       onClick={handleClick}
-      disabled={loading}
-      className="ml-auto text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl disabled:opacity-50 "
+      className={
+        className ??
+        "ml-auto text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl"
+      }
+      style={
+        saved ? { color: activeColor ?? "var(--color-primary)" } : undefined
+      }
     >
-      <Bookmark fill={saved ? "currentColor" : "none"} />
+      <Bookmark size={30} fill={saved ? "currentColor" : "none"} />
     </button>
   );
 }

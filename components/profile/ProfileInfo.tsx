@@ -1,11 +1,24 @@
 "use client";
 import type { Article, Resource, Discussion } from "@/app/lib/types";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import ResourcePanel from "../home/article-section/article-panel";
 import DiscussionPanel from "../community/discussion-panel";
 import ArticlePanel from "../articles/article-panel";
 import Comment from "../detailed-articles/comment";
 import { LoadMoreList } from "./LoadMoreList";
+import { deleteComment } from "@/app/lib/actions/comments";
+
+type CommentWritten = {
+  id: string;
+  content: string;
+  created_at: string;
+  resource_id: string | null;
+  article_id: string | null;
+  resource?: { title: string } | { title: string }[] | null;
+  article?: { title: string; slug: string } | { title: string; slug: string }[] | null;
+};
 
 export default function ProfileInfo({
   articles,
@@ -19,11 +32,13 @@ export default function ProfileInfo({
   self,
   savedItems,
   drafts,
+  author,
+  profileUserId,
 }: {
   articles: Article[];
   resources: Resource[];
   discussions: Discussion[];
-  commentsWritten: any[];
+  commentsWritten: CommentWritten[];
   totalLikes: number;
   total_downloads: number;
   bio: string | null;
@@ -35,7 +50,21 @@ export default function ProfileInfo({
     discussions: Discussion[];
   } | null;
   drafts: Article[] | null;
+  author: {
+    display_name: string;
+    is_pro: boolean;
+    ib_year: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+  };
+  profileUserId: string;
 }) {
+  const router = useRouter();
+
+  async function handleDeleteComment(commentId: string) {
+    if (!confirm("Delete this comment?")) return;
+    const result = await deleteComment(commentId, `/profile/${profileUserId}`);
+    if (result.success) router.refresh();
+  }
+
   const final_like =
     totalLikes >= 1000
       ? (() => {
@@ -49,7 +78,7 @@ export default function ProfileInfo({
   }
 
   return (
-    <div className="flex flex-row bg-surface-container-low grow h-full py-10 px-30 gap-margin">
+    <div className="flex flex-row bg-surface-container-low grow h-full py-10 px-md md:px-10 xl:px-30 gap-margin">
       <div className="flex flex-col basis-1/4 gap-lg">
         <div className="bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
           <h1 className="font-serif text-headline-lg font-bold">Analytics</h1>
@@ -227,11 +256,39 @@ export default function ProfileInfo({
             items={commentsWritten}
             listClassName="flex flex-col gap-gutter items-cener"
             emptyMessage="No published comments yet."
-            renderItem={(comment) => (
-              <div key={comment.id}>
-                <Comment />
-              </div>
-            )}
+            renderItem={(comment) => {
+              const resource = Array.isArray(comment.resource)
+                ? comment.resource[0]
+                : comment.resource;
+              const article = Array.isArray(comment.article)
+                ? comment.article[0]
+                : comment.article;
+              const targetHref = resource
+                ? `/resources/${comment.resource_id}`
+                : article
+                  ? `/articles/${article.slug}`
+                  : null;
+              const targetTitle = resource?.title ?? article?.title;
+              return (
+                <div key={comment.id} className="flex flex-col gap-sm">
+                  {targetHref && targetTitle && (
+                    <Link
+                      href={targetHref}
+                      className="text-on-surface-variant text-body-sm hover:text-primary"
+                    >
+                      Commented on <span className="font-bold">{targetTitle}</span>
+                    </Link>
+                  )}
+                  <Comment
+                    content={comment.content}
+                    createdAt={comment.created_at}
+                    author={author}
+                    canDelete={self}
+                    onDelete={() => handleDeleteComment(comment.id)}
+                  />
+                </div>
+              );
+            }}
           />
         )}
         {section == "Saves" && (

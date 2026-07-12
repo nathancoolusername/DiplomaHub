@@ -2,14 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getArticle } from "@/app/lib/actions/articles";
+import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
 import {
   ChevronRight,
   CircleUser,
   Calendar,
-  Bookmark,
-  Heart,
   Eye,
   Share2,
   Pencil,
@@ -17,6 +16,8 @@ import {
 import Comments from "@/components/detailed-articles/comments";
 import { DeleteArticleButton } from "@/components/articles/DeleteArticleButton";
 import { estimateReadTime } from "@/app/lib/readTime";
+import { LikeButton } from "@/components/likeButton";
+import { SaveButton } from "@/components/saveButton";
 
 const months = [
   "Jan",
@@ -39,12 +40,17 @@ export default async function ArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const result = await getArticle(slug);
+  const [result, currentUser] = await Promise.all([
+    getArticle(slug),
+    getCurrentUser(),
+  ]);
 
   if (!result.success) notFound();
   const article = result.data;
 
-  const currentUser = await getCurrentUser();
+  const commentsResult = await getComments({ article_id: article.id });
+  const comments = commentsResult.success ? commentsResult.data : [];
+
   const isOwner =
     currentUser?.id === article.author_id || isAdmin(currentUser?.id);
 
@@ -60,17 +66,10 @@ export default async function ArticlePage({
           return `${shortened % 1 === 0 ? shortened : shortened.toFixed(1)}k`;
         })()
       : article.view_count;
-  const final_like =
-    article.like_count >= 1000
-      ? (() => {
-          const shortened = article.like_count / 1000;
-          return `${shortened % 1 === 0 ? shortened : shortened.toFixed(1)}k`;
-        })()
-      : article.like_count;
   const readTime = estimateReadTime(article.content);
 
   return (
-    <div className="flex flex-col px-100 py-10  gap-gutter bg-surface-container-lowest">
+    <div className="flex flex-col px-md md:px-10 xl:px-100 py-10  gap-gutter bg-surface-container-lowest">
       <div className="flex flex-row gap-sm items-center">
         <Link href={"/articles"}>
           <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
@@ -129,12 +128,14 @@ export default async function ArticlePage({
 
       <div className=" pt-md flex flex-row">
         <div className="flex flex-row items-center">
-          <div className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1">
-            <Heart size={30} />
-          </div>
-          <h1 className="text-on-surface-variant text-body-lg ml-sm mr-md">
-            {final_like} likes
-          </h1>
+          <LikeButton
+            target={{ article_id: article.id }}
+            initiallyLiked={article.isLiked ?? false}
+            initialCount={article.like_count}
+            path={`/articles/${article.slug}`}
+            size={30}
+            className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1 flex flex-row items-center"
+          />
           <div className="text-on-surface-variant transition hover:text-primary p-sm">
             <Eye size={30} />
           </div>
@@ -143,7 +144,10 @@ export default async function ArticlePage({
           </h1>
         </div>
         <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row gap-md items-center">
-          <Bookmark
+          <SaveButton
+            target={{ article_id: article.id }}
+            initiallySaved={article.isSaved ?? false}
+            path={`/articles/${article.slug}`}
             size={50}
             className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
           />
@@ -162,7 +166,14 @@ export default async function ArticlePage({
         </div>
       </div>
 
-      <Comments />
+      <Comments
+        kind="comment"
+        target={{ article_id: article.id }}
+        initialItems={comments}
+        path={`/articles/${article.slug}`}
+        isLoggedIn={!!currentUser}
+        currentUserId={currentUser?.id ?? null}
+      />
     </div>
   );
 }
