@@ -82,6 +82,27 @@ body {
   background: var(--color-background);
   color: var(--color-on-surface);
   font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* The type scale above was sized for desktop — on phones the largest
+   headings visually dwarf the content. Target the utility classes directly
+   (rather than overriding the --text-* variables) since @theme inline bakes
+   the resolved values into each generated utility instead of referencing
+   the variable at render time. */
+@media (max-width: 640px) {
+  .text-display-lg {
+    font-size: 2rem;
+    line-height: 2.5rem;
+  }
+  .text-headline-lg {
+    font-size: 1.375rem;
+    line-height: 1.875rem;
+  }
+  .text-headline-md {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
 }
 
 /* Shared typography for both the write-article editor and rendered article content */

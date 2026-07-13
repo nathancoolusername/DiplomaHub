@@ -141,7 +141,7 @@ export default function ArticleGrid({ data }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-gutter">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
         {currentItems.map((article) => {
           if (active == "All" || active == article.subject_tag) {
             return (

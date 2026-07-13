@@ -23,8 +23,8 @@ export default async function Community() {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row bg-primary-container h-100 py-margin px-md md:px-10 xl:px-30 justify-between items-center">
-        <div className="flex flex-col w-200">
+      <div className="flex flex-col md:flex-row bg-primary-container md:h-100 py-margin gap-lg px-md md:px-10 xl:px-30 justify-between items-center">
+        <div className="flex flex-col w-full md:w-200">
           <h1 className="text-display-lg font-serif text-on-primary">
             Discuss, Share, and Connect with IB students worldwide
           </h1>
@@ -33,7 +33,7 @@ export default async function Community() {
             together.
           </h1>
         </div>
-        <div className="bg-white/10 border border-white/20 rounded-md pt-lg px-lg pb-xl flex items-center gap-4 backdrop-blur-sm mr-40">
+        <div className="bg-white/10 border border-white/20 rounded-md pt-lg px-lg pb-xl flex items-center gap-4 backdrop-blur-sm md:mr-40">
           <div className="bg-white/15 rounded-xl p-3">
             <Users className="w-6 h-6 text-white" />
           </div>

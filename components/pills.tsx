@@ -256,21 +256,21 @@ export const ResourceTypeTag: Record<string, JSX.Element> = {
 export const TitleTag: Record<string, JSX.Element> = {
   "IB Educator": (
     <span
-      className={`flex items-center justify-center  w-25 rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
+      className={`flex items-center justify-center whitespace-nowrap shrink-0 px-sm py-1 rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
     >
       IB Educator
     </span>
   ),
   "IB Student": (
     <span
-      className={`flex items-center justify-center  w-25 rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
+      className={`flex items-center justify-center whitespace-nowrap shrink-0 px-sm py-1 rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
     >
       IB Student
     </span>
   ),
   Alumni: (
     <span
-      className={`flex items-center justify-center w-25 rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
+      className={`flex items-center justify-center whitespace-nowrap shrink-0 px-sm py-1 rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
     >
       Alumni
     </span>

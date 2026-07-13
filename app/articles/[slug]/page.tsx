@@ -5,12 +5,13 @@ import { getArticle } from "@/app/lib/actions/articles";
 import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
-import { ChevronRight, Calendar, Eye, Share2, Pencil } from "lucide-react";
+import { ChevronRight, Calendar, Eye, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
 import { DeleteArticleButton } from "@/components/articles/DeleteArticleButton";
 import { estimateReadTime } from "@/app/lib/readTime";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
+import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
 
 const months = [
@@ -80,7 +81,7 @@ export default async function ArticlePage({
         {article.title}
       </h1>
 
-      <div className="border-b-1 border-outline-variant flex flex-row pb-md gap-gutter">
+      <div className="border-b-1 border-outline-variant flex flex-row flex-wrap gap-y-sm pb-md gap-gutter">
         <div className="flex flex-row items-center gap-sm">
           <Avatar
             src={article.author?.avatar_url}
@@ -124,7 +125,7 @@ export default async function ArticlePage({
         />
       </div>
 
-      <div className=" pt-md flex flex-row">
+      <div className=" pt-md flex flex-row flex-wrap gap-y-sm">
         <div className="flex flex-row items-center">
           <LikeButton
             target={{ article_id: article.id }}
@@ -149,7 +150,7 @@ export default async function ArticlePage({
             size={50}
             className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
           />
-          <Share2
+          <ShareButton
             size={50}
             className="rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
           />

@@ -32,13 +32,13 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="w-full justify-content-center items-center py-20 bg-surface-container h-full flex flex-col gap-margin">
+    <div className="w-full justify-content-center items-center py-20 px-md bg-surface-container h-full flex flex-col gap-margin">
       <Link href="/">
         <span className="font-serif text-display-lg self-center justify-center font-bold flex flex-row">
           Diploma<h1 className="text-primary">Hub</h1>
         </span>
       </Link>
-      <div className="bg-surface-container-lowest p-margin border-1 border-outline-variant rounded-xl flex flex-col gap-margin w-120">
+      <div className="bg-surface-container-lowest p-margin border-1 border-outline-variant rounded-xl flex flex-col gap-margin w-full max-w-120">
         <h1 className="text-headline-lg font-semibold font-serif">Log in</h1>
 
         <form action={handleSubmit} className="space-y-4">
@@ -50,7 +50,7 @@ export default function LoginForm() {
               name="email"
               type="email"
               required
-              className="w-95 border rounded-lg px-3 py-2"
+              className="w-full border rounded-lg px-3 py-2"
             />
           </div>
           <div>

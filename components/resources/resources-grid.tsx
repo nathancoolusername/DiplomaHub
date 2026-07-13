@@ -126,8 +126,8 @@ export default function ResourceGrid({ data }: Props) {
           </div>
         </div>
 
-        <div className="flex flex-row gap-margin w-full">
-          <div className="flex flex-col gap-sm basis-1/3">
+        <div className="flex flex-col sm:flex-row gap-margin w-full">
+          <div className="flex flex-col gap-sm sm:basis-1/3">
             <h1 className="text-on-surface-variant">Resource Type</h1>
             <div>
               <SortDropdown
@@ -138,7 +138,7 @@ export default function ResourceGrid({ data }: Props) {
               />
             </div>
           </div>
-          <div className="flex flex-col gap-sm basis-1/3">
+          <div className="flex flex-col gap-sm sm:basis-1/3">
             <h1 className="text-on-surface-variant">Year</h1>
             <div>
               <SortDropdown
@@ -150,7 +150,7 @@ export default function ResourceGrid({ data }: Props) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-sm basis-1/3">
+          <div className="flex flex-col gap-sm sm:basis-1/3">
             <h1 className="text-on-surface-variant">Sort by</h1>
             <div>
               <SortDropdown
@@ -175,7 +175,7 @@ export default function ResourceGrid({ data }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-gutter">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
         {currentItems.map((resource) => (
           <div key={resource.id}>
             <Panel resource={resource} />

@@ -153,8 +153,8 @@ export default function UploadResourceForm({
           {isEditing ? "edit" : "upload"}
         </h1>
       </div>
-      <div className="flex-1 flex flex-row gap-margin">
-        <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant basis-4/5 gap-lg">
+      <div className="flex-1 flex flex-col lg:flex-row gap-margin">
+        <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant lg:basis-4/5 gap-lg">
           <h1 className="text-primary font-serif text-display-lg font-bold">
             {isEditing ? "Edit Your Resource" : "Share your Knowledge"}
           </h1>
@@ -189,7 +189,7 @@ export default function UploadResourceForm({
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
                   Subject Tag
@@ -344,7 +344,7 @@ export default function UploadResourceForm({
             </button>
           </form>
         </div>
-        <div className="basis-1/3 flex flex-col gap-margin">
+        <div className="lg:basis-1/3 flex flex-col gap-margin">
           <div className="w-full bg-surface-container-lowest p-lg  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
             <div className="flex flex-row gap-sm items-center">
               <Verified fill="#002c98" className="text-on-primary" size={40} />

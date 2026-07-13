@@ -186,8 +186,8 @@ export default function WriteArticleForm({
           {isEditing ? "edit" : "write"}
         </h1>
       </div>
-      <div className="flex-1 flex flex-row gap-margin">
-        <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant basis-4/5 gap-lg">
+      <div className="flex-1 flex flex-col lg:flex-row gap-margin">
+        <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant lg:basis-4/5 gap-lg">
           <h1 className="text-primary font-serif text-display-lg font-bold">
             {isEditing ? "Continue Your Draft" : "Share Your Expertise"}
           </h1>
@@ -380,7 +380,7 @@ export default function WriteArticleForm({
           </form>
         </div>
 
-        <div className="basis-1/3 flex flex-col gap-margin">
+        <div className="lg:basis-1/3 flex flex-col gap-margin">
           <div className="w-full bg-surface-container-lowest p-md border-1 border-outline-variant rounded-xl flex flex-col gap-md">
             <h1 className="font-serif text-headline-lg font-bold text-primary">
               Submission Guidelines

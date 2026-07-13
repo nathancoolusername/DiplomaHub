@@ -116,12 +116,12 @@ export default function CommunityPage({
   }
 
   return (
-    <div className="bg-surface-container-low flex flex-row py-margin px-md md:px-10 xl:px-30">
-      <div className="flex flex-col gap-margin basis-2/3">
+    <div className="bg-surface-container-low flex flex-col lg:flex-row py-margin px-md md:px-10 xl:px-30">
+      <div className="flex flex-col gap-margin lg:basis-2/3">
         <div className="flex-col flex w-full">
           <h1 className="font-serif text-headline-md">Filter Discussions</h1>
-          <div className="flex flex-row mt-margin gap-margin">
-            <div className="flex flex-col gap-sm basis-2/7">
+          <div className="flex flex-col sm:flex-row mt-margin gap-margin">
+            <div className="flex flex-col gap-sm sm:basis-2/7">
               <h1 className="text-on-surface-variant text-body-md">Subject</h1>
               <FilterDropdown
                 options={optionsSubject}
@@ -129,7 +129,7 @@ export default function CommunityPage({
                 handleClick={handleClickS}
               />
             </div>
-            <div className="flex flex-col gap-sm basis-2/7">
+            <div className="flex flex-col gap-sm sm:basis-2/7">
               <h1 className="text-on-surface-variant text-body-md">Type</h1>
               <FilterDropdown
                 options={opttionsType}
@@ -137,7 +137,7 @@ export default function CommunityPage({
                 handleClick={handleClickT}
               />
             </div>
-            <div className="flex flex-col gap-sm basis-2/7">
+            <div className="flex flex-col gap-sm sm:basis-2/7">
               <h1 className="text-on-surface-variant text-body-md">Year</h1>
               <FilterDropdown
                 options={optionsYear}
@@ -169,7 +169,7 @@ export default function CommunityPage({
                 Trending This Week
               </h1>
             </div>
-            <div className="flex flex-row mt-margin gap-lg">
+            <div className="flex flex-col sm:flex-row mt-margin gap-lg">
               {actual.length > 0 && (
                 <Link
                   href={`/community/${actual[0].id}`}
@@ -280,7 +280,7 @@ export default function CommunityPage({
         )}
       </div>
 
-      <div className="basis-1/3 flex flex-col ml-margin gap-margin">
+      <div className="lg:basis-1/3 flex flex-col mt-margin lg:mt-0 lg:ml-margin gap-margin">
         {currentUserProfile ? (
           <div className="w-full bg-surface-container-lowest p-md border-1 border-outline-variant rounded-xl flex flex-col gap-md">
             <h1 className="font-serif text-headline-md">Your Status</h1>

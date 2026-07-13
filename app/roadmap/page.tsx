@@ -6,23 +6,24 @@ import {
   Podium,
   BadgeCheck,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function Roadmap() {
   return (
-    <div className="flex flex-col px-[60px] py-margin bg-surface-container-low gap-gutter">
+    <div className="flex flex-col px-md lg:px-[60px] py-margin bg-surface-container-low gap-gutter">
       <div className="pb-20 border-b-1 border-outline-variant flex flex-col gap-gutter">
         <h1 className="text-display-lg font-serif text-primary font-bold">
           Our Direction
         </h1>
-        <h1 className="text-on-surface-variant text-body-lg w-170">
+        <h1 className="text-on-surface-variant text-body-lg w-full lg:w-170">
           Transparency and shared purpose drive DiplomaHub. Explore our public
           roadmap to see how we are evolving the platform for the international
           community.{" "}
         </h1>
       </div>
 
-      <div className="flex flex-row gap-margin">
-        <div className="w-90 flex flex-col gap-margin">
+      <div className="flex flex-col lg:flex-row gap-margin">
+        <div className="w-full lg:w-90 flex flex-col gap-margin">
           <div className="flex flex-col bg-surface-container-lowest border-1 border-outline-variant p-lg rounded-xl gap-5">
             <h1 className="font-serif text-headline-md font-bold border-b-1 border-outline-variant pb-5">
               Milestone Keys
@@ -61,13 +62,15 @@ export default function Roadmap() {
               DiplomaHub is built by the community. Share your ideas for new
               features or tools you'd love to see.
             </h1>
-            <button className="py-sm px-lg bg-surface-container-lowest text-primary rounded-xl text-body-lg cursor-pointer hover:border-primary">
-              Submit Feedback
-            </button>
+            <Link href="/feedback">
+              <button className="py-sm px-lg bg-surface-container-lowest text-primary rounded-xl text-body-lg cursor-pointer hover:border-primary">
+                Submit Feedback
+              </button>
+            </Link>
           </div>
         </div>
         <div className="flex flex-row gap-margin grow">
-          <div className="flex flex-col gap-[300px]">
+          <div className="hidden lg:flex flex-col gap-[300px]">
             <Check
               size={30}
               className="p-1 bg-secondary rounded-xl text-on-primary"
@@ -81,7 +84,7 @@ export default function Roadmap() {
               className="p-1 bg-inverse-on-surface rounded-xl text-on-surface-variant"
             />
           </div>
-          <div className="w-0 border-l-5 border-outline-variant border-dotted h-240 " />
+          <div className="hidden lg:block w-0 border-l-5 border-outline-variant border-dotted h-240 " />
           <div className="flex flex-col gap-margin grow">
             <div className="flex flex-col w-full bg-surface-container-lowest p-lg rounded-xl border-1 border-outline-variant gap-md  hover:border-primary hover:drop-shadow-xl/10 transition">
               <div className="justify-between flex flex-row items-center ">
@@ -98,7 +101,7 @@ export default function Roadmap() {
                 Cred" for likes, views, or downloads on their comments,
                 discussions, or resources
               </h1>
-              <div className="gap-md flex flex-row items-center">
+              <div className="gap-md flex flex-row flex-wrap items-center">
                 <div className="rounded-xl p-md bg-secondary-container flex flex-row gap-sm items-center">
                   <h1 className="text-secondary text-body-lg">IB Pro badges</h1>
                   <Medal size={30} className="text-secondary" />
@@ -135,7 +138,7 @@ export default function Roadmap() {
                 </div>
               </div>
 
-              <div className="gap-md flex flex-row items-center">
+              <div className="gap-md flex flex-row flex-wrap items-center">
                 <div className="rounded-xl p-md bg-surface-container-low flex flex-row gap-sm items-center">
                   <h1 className="text-primary text-body-lg">Verifed Sources</h1>
                   <BadgeCheck size={30} className="text-primary" />

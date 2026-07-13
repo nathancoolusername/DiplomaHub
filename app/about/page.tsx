@@ -7,14 +7,14 @@ export default async function About() {
 
   return (
     <div className="flex flex-col gap-[70px] bg-surface-container-low ">
-      <div className="flex flex-col gap-margin justify-content-center items-center place-content-center h-[700px] px-[60px] ">
+      <div className="flex flex-col gap-margin justify-content-center items-center place-content-center min-h-[500px] md:h-[700px] px-md md:px-[60px] py-20">
         <h1 className="uppercase text-primary text-headline-md">
           Our community mission
         </h1>
         <h1 className="text-display-lg font-serif font-bold">
           Empowering every IB student through shared wisdom.
         </h1>
-        <h1 className="text-headline-md text-on-surface-variant text-center w-300">
+        <h1 className="text-headline-md text-on-surface-variant text-center w-full md:w-300">
           DiplomaHub is the home for the next generation of global thinkers.
           We've built a space where students and educators walk together,
           transforming the lifelong IB learner journey into a collaborative
@@ -29,15 +29,15 @@ export default async function About() {
         </Link>
       </div>
 
-      <div className="flex flex-row justify-between h-min-[600px] px-[50px] py-[30px] gap-margin bg-surface-container-low">
-        <div className="flex flex-col gap-lg basis-2/5">
+      <div className="flex flex-col md:flex-row justify-between md:min-h-[600px] px-md md:px-[50px] py-[30px] gap-margin bg-surface-container-low">
+        <div className="flex flex-col gap-lg md:basis-2/5">
           <h1 className="text-headline-lg font-serif font-bold">Our Journey</h1>
           <div className="h-1 w-15 border-t-5 border-primary rounded-xl " />
           <h1 className="text-body-lg text-on-surface-variant">
             From a simple idea to a polished <b>Free</b> website.
           </h1>
         </div>
-        <div className="flex flex-col gap-lg bg-surface-container-lowest border-1 border-outline-variant rounded-xl basis-3/5 p-[60px]  hover:drop-shadow-xl/10 transition hover:border-primary">
+        <div className="flex flex-col gap-lg bg-surface-container-lowest border-1 border-outline-variant rounded-xl md:basis-3/5 p-lg md:p-[60px]  hover:drop-shadow-xl/10 transition hover:border-primary">
           <h1 className="text-sm/8 tracking-wide">
             We know what it feels like to work late nights, to try to find the
             "perfect" EE question, to withstand the pressure of IAs. DiplomaHub
@@ -58,7 +58,7 @@ export default async function About() {
         </div>
       </div>
 
-      <div className="flex flex-col h-min-[700px] px-[50px] py-[30px] gap-lg">
+      <div className="flex flex-col px-md md:px-[50px] py-[30px] gap-lg">
         <h1 className="text-headline-lg font-serif font-bold self-center">
           The Hearts & Minds
         </h1>
@@ -68,8 +68,8 @@ export default async function About() {
         <h1 className="text-headline-md text-primary font-bold font-serif rounded-full bg-surface-container-lowest p-md self-center">
           DP2 Students at Bonn International School
         </h1>
-        <div className="flex flex-row justify-between gap-lg">
-          <div className="basis-3/5 flex flex-col rounded-xl justify-between px-lg py-lg bg-surface-container-lowest hover:drop-shadow-xl/10 transition">
+        <div className="flex flex-col md:flex-row justify-between gap-lg">
+          <div className="md:basis-3/5 flex flex-col rounded-xl justify-between px-lg py-lg bg-surface-container-lowest hover:drop-shadow-xl/10 transition">
             <div className="flex flex-col gap-lg self-center">
               <h1 className="uppercase text-primary text-headline-md">
                 Founder & CTO
@@ -90,7 +90,7 @@ export default async function About() {
               what I wish existed then"
             </p>
           </div>
-          <div className="basis-2/5 flex flex-col gap-lg rounded-xl gap-lg">
+          <div className="md:basis-2/5 flex flex-col gap-lg rounded-xl gap-lg">
             <div className="flex flex-col gap-lg rounded-xl p-lg bg-surface-container-lowest hover:drop-shadow-xl/10 transition">
               <h1 className="uppercase text-primary text-headline-md">
                 Administrator
@@ -136,11 +136,11 @@ export default async function About() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-margin justify-content-center items-center place-content-center bg-primary h-[400px] px-[60px] py-[40px] ">
+      <div className="flex flex-col gap-margin justify-content-center items-center place-content-center bg-primary min-h-[300px] md:h-[400px] px-md md:px-[60px] py-[40px] ">
         <h1 className="text-display-lg font-serif font-bold text-on-primary">
           Ready to start your journey?
         </h1>
-        <h1 className="text-headline-md text-on-primary text-center w-300">
+        <h1 className="text-headline-md text-on-primary text-center w-full md:w-300">
           Join other students and teachers who are redefining academic
           excellence through collaboration..
         </h1>

@@ -31,8 +31,8 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="py-20 bg-surface-container h-full flex flex-col gap-margin items-center">
-      <div className=" w-140 flex flex-col gap-gutter bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant">
+    <div className="py-20 px-md bg-surface-container h-full flex flex-col gap-margin items-center">
+      <div className="w-full max-w-140 flex flex-col gap-gutter bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant">
         <Link href="/">
           <span className="font-serif text-display-lg self-center justify-center font-bold flex flex-row">
             Join Diploma<h1 className="text-primary">Hub</h1>

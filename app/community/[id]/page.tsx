@@ -3,12 +3,13 @@ import { notFound } from "next/navigation";
 import { getDiscussion } from "@/app/lib/actions/discussions";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
-import { ChevronRight, Calendar, Share2, Pencil } from "lucide-react";
+import { ChevronRight, Calendar, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
 import { typeTags } from "@/components/community/discussion-panel";
 import { DeleteDiscussionButton } from "@/components/community/DeleteDiscussionButton";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
+import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
 import { formatRelativeTime } from "@/app/lib/relativeTime";
 
@@ -50,8 +51,8 @@ export default async function DiscussionPage({
           {discussion.subject_tag}
         </h1>
       </div>
-      <div className="flex flex-row gap-margin">
-        <div className="flex flex-col gap-margin  basis-2/3">
+      <div className="flex flex-col lg:flex-row gap-margin">
+        <div className="flex flex-col gap-margin lg:basis-2/3">
           <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant gap-lg">
             <h1
               className={
@@ -65,7 +66,7 @@ export default async function DiscussionPage({
               {discussion.title}
             </h1>
 
-            <div className="border-b-1 border-outline-variant flex flex-row pb-md gap-20">
+            <div className="border-b-1 border-outline-variant flex flex-row flex-wrap gap-y-md pb-md gap-20">
               <div className="flex flex-row items-center gap-sm">
                 <Avatar
                   src={discussion.author?.avatar_url}
@@ -101,7 +102,7 @@ export default async function DiscussionPage({
               <h1 className="text-on-surface-variant text-body-lg">
                 {discussion.content}
               </h1>
-              <div className="ml-auto text-primary flex flex-row">
+              <div className="ml-auto text-primary flex flex-row flex-wrap">
                 <LikeButton
                   target={{ discussion_id: discussion.id }}
                   initiallyLiked={discussion.isLiked ?? false}
@@ -119,7 +120,7 @@ export default async function DiscussionPage({
                     size={36}
                     className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
                   />
-                  <Share2
+                  <ShareButton
                     size={46}
                     className="rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
                   />
@@ -146,7 +147,7 @@ export default async function DiscussionPage({
             currentUserId={currentUser?.id ?? null}
           />
         </div>
-        <div className="basis-1/3 flex flex-col gap-margin">
+        <div className="lg:basis-1/3 flex flex-col gap-margin">
           <div className="h-65 w-full bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-md">
             <h1 className="text-body-lg uppercase text-primary">
               About the Author

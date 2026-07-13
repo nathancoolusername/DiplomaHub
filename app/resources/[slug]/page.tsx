@@ -7,7 +7,6 @@ import { isAdmin } from "@/app/lib/admin";
 import {
   ChevronRight,
   Calendar,
-  Share2,
   FileText,
   BadgeCheck,
   Pencil,
@@ -18,6 +17,7 @@ import { DownloadButton } from "@/components/resources/DownloadButton";
 import { DeleteResourceButton } from "@/components/resources/DeleteResourceButton";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
+import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
 
 const months = [
@@ -102,8 +102,8 @@ export default async function resourcePage({
           {resource.subject_tag}
         </h1>
       </div>
-      <div className="flex flex-row gap-margin">
-        <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant basis-2/3 gap-lg">
+      <div className="flex flex-col lg:flex-row gap-margin">
+        <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant lg:basis-2/3 gap-lg">
           <div className="flex flex-row justify-between">
             <div>
               {SubjectTags[resource.subject_tag]}{" "}
@@ -116,7 +116,7 @@ export default async function resourcePage({
             {resource.title}
           </h1>
 
-          <div className="border-b-1 border-outline-variant flex flex-row pb-md gap-20">
+          <div className="border-b-1 border-outline-variant flex flex-row flex-wrap gap-y-md pb-md gap-20">
             <div className="flex flex-row items-center gap-sm">
               <Avatar
                 src={resource.author.avatar_url}
@@ -155,7 +155,7 @@ export default async function resourcePage({
             <h1 className="text-on-surface-variant text-body-lg">
               {resource.description}
             </h1>
-            <div className="flex flex-row p-margin rounded-xl bg-surface-container-low border-1 border-outline-variant gap-lg">
+            <div className="flex flex-row flex-wrap p-margin rounded-xl bg-surface-container-low border-1 border-outline-variant gap-lg">
               <FileText size={100} />
               <div className="flex flex-col gap-lg self-start">
                 <div className="flex flex-col">
@@ -165,7 +165,7 @@ export default async function resourcePage({
                       : `Resource ${fileExtension ?? "File"}`}
                   </h1>
                 </div>
-                <div className="ml-auto text-primary flex flex-row items-center">
+                <div className="ml-auto text-primary flex flex-row flex-wrap items-center">
                   <DownloadButton
                     resourceId={resource.id}
                     fileName={resource.title}
@@ -188,7 +188,7 @@ export default async function resourcePage({
                       size={36}
                       className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
                     />
-                    <Share2
+                    <ShareButton
                       size={46}
                       className="rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
                     />
@@ -216,7 +216,7 @@ export default async function resourcePage({
           />
         </div>
 
-        <div className="basis-1/3 flex flex-col gap-margin">
+        <div className="lg:basis-1/3 flex flex-col gap-margin">
           <div className="h-65 w-full bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-md">
             <h1 className="text-body-lg uppercase text-primary">
               About the Author

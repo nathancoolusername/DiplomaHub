@@ -33,6 +33,12 @@ export default async function AdminLayout({
         >
           Content
         </Link>
+        <Link
+          href="/admin/feedback"
+          className="px-lg py-sm text-body-lg font-semibold hover:text-primary transition"
+        >
+          Feedback
+        </Link>
       </div>
       {children}
     </div>

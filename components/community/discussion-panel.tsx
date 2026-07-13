@@ -52,18 +52,18 @@ export default function Panel({ discussion, href }: Props) {
   return (
     <div className="cursor-pointer hover:drop-shadow-xl/10 transition flex flex-col bg-surface-container-lowest border-1 border-outline-variant p-md rounded-md gap-lg">
       <Link href={linkHref} className="flex flex-col gap-lg">
-        <div className="flex flex-row justify-between">
-          <div className="flex flex-row items-center gap-md">
+        <div className="flex flex-row flex-wrap justify-between gap-sm">
+          <div className="flex flex-row items-center gap-md min-w-0">
             <Avatar
               src={discussion.author?.avatar_url}
               name={discussion.author?.display_name ?? discussion.author?.name ?? "?"}
-              size={60}
+              size={44}
             />
-            <div className="flex flex-col">
-              <div className="flex flex-row gap-sm items-center">
-                <h1 className="text-body-md font-bold">
+            <div className="flex flex-col min-w-0">
+              <div className="flex flex-row flex-wrap gap-sm items-center">
+                <h1 className="text-body-md font-bold break-words">
                   {discussion.author?.display_name ?? discussion.author?.name}
-                </h1>{" "}
+                </h1>
                 <div className="flex flex-row gap-sm">
                   {ibYearTitleTag(discussion.author?.ib_year)}
                   <h1 className="text-on-primary-fixed-variant font-bold">
@@ -71,7 +71,7 @@ export default function Panel({ discussion, href }: Props) {
                   </h1>
                 </div>
               </div>
-              <div className="flex flex-row gap-sm items-center">
+              <div className="flex flex-row flex-wrap gap-sm items-center">
                 <h1 className="text-on-surface-variant text-label-md">
                   Posted {finalTime} in{" "}
                 </h1>{" "}
@@ -82,7 +82,7 @@ export default function Panel({ discussion, href }: Props) {
             </div>
           </div>
           <h1
-            className={discussion.type_tag ? typeTags[discussion.type_tag] : ""}
+            className={`shrink-0 ${discussion.type_tag ? typeTags[discussion.type_tag] : ""}`}
           >
             {discussion.type_tag}
           </h1>
@@ -105,7 +105,7 @@ export default function Panel({ discussion, href }: Props) {
         )}
       </Link>
 
-      <div className="border-t-1 border-outline-variant mt-auto pt-md flex flex-row">
+      <div className="border-t-1 border-outline-variant mt-auto pt-md flex flex-row flex-wrap gap-y-sm">
         <div className="flex flex-row items-center">
           <LikeButton
             target={{ discussion_id: String(discussion.id) }}

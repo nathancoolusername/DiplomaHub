@@ -123,7 +123,7 @@ export default function WriteDiscussionForm({
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
                 Subject

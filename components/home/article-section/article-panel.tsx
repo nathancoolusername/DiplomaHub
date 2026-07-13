@@ -20,7 +20,7 @@ export default function Panel({ resource }: Props) {
     final_download = resource.download_count;
   }
   return (
-    <div className="group flex flex-col bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden h-100 hover:border-primary hover:drop-shadow-xl/25 transition p-lg">
+    <div className="group flex flex-col bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden min-h-100 hover:border-primary hover:drop-shadow-xl/25 transition p-lg">
       <div className="flex flex-col justify-between flex-1 gap-lg">
         <Link href={`/resources/${resource.id}`}>
           <div className="flex flex-col flex-1 gap-lg">
@@ -67,7 +67,7 @@ export default function Panel({ resource }: Props) {
             </div>
           </div>
         </Link>
-        <div className="border-t-1 border-outline-variant mt-auto pt-md flex flex-row">
+        <div className="border-t-1 border-outline-variant mt-auto pt-md flex flex-row flex-wrap gap-y-sm">
           <div className="flex flex-row items-center">
             <LikeButton
               target={{ resource_id: resource.id }}

@@ -78,8 +78,8 @@ export default function ProfileInfo({
   }
 
   return (
-    <div className="flex flex-row bg-surface-container-low grow h-full py-10 px-md md:px-10 xl:px-30 gap-margin">
-      <div className="flex flex-col basis-1/4 gap-lg">
+    <div className="flex flex-col lg:flex-row bg-surface-container-low grow h-full py-10 px-md md:px-10 xl:px-30 gap-margin">
+      <div className="flex flex-col lg:basis-1/4 gap-lg">
         <div className="bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
           <h1 className="font-serif text-headline-lg font-bold">Analytics</h1>
           <div className="flex flex-row justify-between border-b-1 border-outline-variant pb-3 cursor-pointer">
@@ -146,8 +146,8 @@ export default function ProfileInfo({
           </h1>
         </div>
       </div>
-      <div className="flex-col flex basis-3/5 gap-margin">
-        <div className="flex flex-row gap-margin border-b-1 border-outline-variant">
+      <div className="flex-col flex lg:basis-3/5 gap-margin">
+        <div className="flex flex-row flex-wrap gap-margin border-b-1 border-outline-variant">
           <button
             onClick={() => handleClick("Resources")}
             className={`text-headline-md transition-colors pb-3 cursor-pointer ${
@@ -216,7 +216,7 @@ export default function ProfileInfo({
         {section == "Resources" && (
           <LoadMoreList
             items={resources}
-            listClassName="grid grid-cols-2 gap-gutter items-center"
+            listClassName="grid grid-cols-1 sm:grid-cols-2 gap-gutter items-center"
             emptyMessage="No published resources yet."
             renderItem={(resource) => (
               <div key={resource.id}>
@@ -242,7 +242,7 @@ export default function ProfileInfo({
         {section == "Articles" && (
           <LoadMoreList
             items={articles}
-            listClassName="grid grid-cols-2 gap-gutter"
+            listClassName="grid grid-cols-1 sm:grid-cols-2 gap-gutter"
             emptyMessage="No published articles yet."
             renderItem={(article) => (
               <div key={article.id}>
@@ -296,7 +296,7 @@ export default function ProfileInfo({
             <h1 className="text-headline-md font-serif">Saved Resources</h1>
             <LoadMoreList
               items={savedItems?.resources ?? []}
-              listClassName="grid grid-cols-2 gap-gutter"
+              listClassName="grid grid-cols-1 sm:grid-cols-2 gap-gutter"
               emptyMessage="No saved resources"
               renderItem={(resource) => (
                 <div key={resource.id}>
@@ -318,7 +318,7 @@ export default function ProfileInfo({
             <h1 className="text-headline-md font-serif">Saved Articles</h1>
             <LoadMoreList
               items={savedItems?.articles ?? []}
-              listClassName="grid grid-cols-2 gap-gutter items-center"
+              listClassName="grid grid-cols-1 sm:grid-cols-2 gap-gutter items-center"
               emptyMessage="No saved articles"
               renderItem={(article) => (
                 <div key={article.id}>
@@ -331,7 +331,7 @@ export default function ProfileInfo({
         {section == "Draft" && (
           <LoadMoreList
             items={drafts ?? []}
-            listClassName="grid grid-cols-2 gap-gutter"
+            listClassName="grid grid-cols-1 sm:grid-cols-2 gap-gutter"
             emptyMessage="No drafts"
             renderItem={(article) => (
               <div key={article.id}>

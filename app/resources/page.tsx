@@ -14,12 +14,12 @@ export default async function ResourcesPage() {
   }
   return (
     <div className="flex flex-col bg-surface-bright px-margin py-lg gap-margin">
-      <div className="flex flex-row justify-between py-margin">
+      <div className="flex flex-col md:flex-row justify-between gap-md py-margin">
         <div>
           <h1 className="text-display-lg font-serif font-bold">
             Resources Vault
           </h1>
-          <h1 className="text-on-surface-variant text-body-lg w-170">
+          <h1 className="text-on-surface-variant text-body-lg w-full md:w-170">
             Practical IB materials, exemplars, revision guides, and much more
             curated for the rigorous academic journey.
           </h1>

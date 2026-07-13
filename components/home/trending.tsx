@@ -8,8 +8,8 @@ export default function Trending({discussions} : {discussions:Discussion[]}) {
   const shown = [...discussions]
     .sort((a, b) => b.like_count - a.like_count)
     .slice(0, 3)
-    return ( <div className='bg-surface-container-low h-[700px] flex flex-row justify-content-center px-lg pt-[150px] pb-[100px]'>
-      <div className='flex flex-col basis-3/8 px-md gap-lg'>
+    return ( <div className='bg-surface-container-low min-h-fit lg:h-[700px] flex flex-col lg:flex-row justify-content-center px-lg py-lg lg:pt-[150px] lg:pb-[100px] gap-gutter'>
+      <div className='flex flex-col lg:basis-3/8 px-md gap-lg'>
         <div className='bg-primary text-on-primary px-sm py-sm rounded text-label-md w-30'><h1>Now Trending</h1></div>
         <div><h1 className='text-headline-lg font-serif font-bold'>Community Pulse</h1></div>
         <div>
@@ -23,7 +23,7 @@ export default function Trending({discussions} : {discussions:Discussion[]}) {
           })}
         </div>
       </div>
-      <div className='basis-5/8 flex flex-col gap-gutter'>
+      <div className='lg:basis-5/8 flex flex-col gap-gutter'>
       {shown.map((discussion)=> {
         i++;
         if (i<=3) {

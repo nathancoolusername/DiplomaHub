@@ -1,5 +1,5 @@
 import { Inter, Merriweather } from "next/font/google";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { AuthNav } from "@/components/NavAuth";
@@ -10,6 +10,11 @@ import { Suspense } from "react";
 export const metadata: Metadata = {
   title: "DiplomaHub",
   description: "Where IB students never graduate alone.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 const inter = Inter({

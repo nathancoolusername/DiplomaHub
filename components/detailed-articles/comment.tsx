@@ -44,9 +44,9 @@ export default function Comment({
       />
       <div className="flex flex-col gap-sm w-full">
         <div className="flex flex-col px-lg py-6 border-1 border-outline-variant rounded-xl w-full gap-lg bg-surface-container-lowest">
-          <div className="flex flex-row justify-between">
-            <div className="flex flex-row gap-sm items-center">
-              <h1 className="text-primary text-body-lg">
+          <div className="flex flex-row flex-wrap justify-between gap-sm">
+            <div className="flex flex-row flex-wrap gap-sm items-center">
+              <h1 className="text-primary text-body-lg break-words">
                 {author?.display_name ?? "Deleted user"}
               </h1>
               {ibYearTitleTag(author?.ib_year)}
@@ -56,7 +56,7 @@ export default function Comment({
                 </h1>
               )}
             </div>
-            <div className="flex flex-row items-center gap-sm">
+            <div className="flex flex-row items-center gap-sm shrink-0">
               <h1 className="text-on-surface-container text-body-md">
                 {formatRelativeTime(createdAt)}
               </h1>

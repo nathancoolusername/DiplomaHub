@@ -2,11 +2,12 @@ import { getCurrentUser } from "@/app/lib/get-current-user";
 import { notFound } from "next/navigation";
 import { getPublicProfile } from "@/app/lib/actions/profile";
 import Image from "next/image";
-import { Medal, Calendar, Share2 } from "lucide-react";
+import { Medal, Calendar } from "lucide-react";
 import Link from "next/link";
 import ProfileInfo from "@/components/profile/ProfileInfo";
 import { getSavedItems } from "@/app/lib/actions/saved-items";
 import { initialsFor } from "@/app/lib/initials";
+import { ShareButton } from "@/components/shareButton";
 
 const months = [
   "January",
@@ -52,23 +53,23 @@ export default async function ProfilePage({
   }
   return (
     <div className="flex flex-col">
-      <div className="bg-surface-container-lowest flex flex-row gap-lg items-center py-[50px] border-b-1 border-outline-variant px-md md:px-10 xl:px-30">
+      <div className="bg-surface-container-lowest flex flex-col md:flex-row gap-lg items-center py-[50px] border-b-1 border-outline-variant px-md md:px-10 xl:px-30">
         {user.avatar_url ? (
           <Image
             src={user.avatar_url}
             height={200}
             width={200}
             alt="User Profile"
-            className="h-[200px] w-[200px] rounded-full object-cover"
+            className="h-[90px] w-[90px] md:h-[200px] md:w-[200px] rounded-full object-cover"
           />
         ) : (
-          <div className="h-[200px] w-[200px] rounded-full bg-surface-container border-1 border-outline-variant flex items-center justify-center text-primary font-bold text-display-lg">
+          <div className="h-[90px] w-[90px] md:h-[200px] md:w-[200px] rounded-full bg-surface-container border-1 border-outline-variant flex items-center justify-center text-primary font-bold text-display-lg">
             {initialsFor(user.display_name)}
           </div>
         )}
-        <div className="flex flex-row self-end justify-between flex-1">
-          <div className="flex flex-col gap-md">
-            <div className="flex flex-row gap-md">
+        <div className="flex flex-col md:flex-row md:self-end justify-between flex-1 w-full gap-md">
+          <div className="flex flex-col gap-md items-center md:items-start text-center md:text-left">
+            <div className="flex flex-row flex-wrap gap-md justify-center md:justify-start">
               <h1 className="text-display-lg font-serif font-bold">
                 {user.display_name}
               </h1>
@@ -76,7 +77,7 @@ export default async function ProfilePage({
                 {user.is_pro ? "Diploma Pro" : ""}
               </h1>
             </div>
-            <div className="flex flex-row gap-md">
+            <div className="flex flex-row flex-wrap gap-md justify-center md:justify-start">
               <div className="flex flex-row gap-sm">
                 <Medal className="text-primary" />
                 <h1 className="text-body-lg text-on-surface-variant font-bold">
@@ -91,7 +92,7 @@ export default async function ProfilePage({
               </div>
             </div>
           </div>
-          <div className="flex flex-row ml-auto gap-sm">
+          <div className="flex flex-row md:ml-auto gap-sm justify-center">
             {isOwnProfile && (
               <Link href={"/profile/edit"}>
                 <div className="px-lg py-md bg-primary rounded-xl">
@@ -99,7 +100,7 @@ export default async function ProfilePage({
                 </div>
               </Link>
             )}
-            <Share2
+            <ShareButton
               size={55}
               className="p-sm border-1 border-outline-variant rounded-xl text-primary cursor-pointer hover:bg-surface-container-low"
             />
