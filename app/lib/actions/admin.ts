@@ -248,3 +248,64 @@ export async function setArticlePublished(
   revalidatePath("/articles");
   return { success: true, data: null };
 }
+
+export type AdminFeedbackRow = {
+  id: string;
+  user_id: string | null;
+  content: string;
+  created_at: string;
+  author_display_name: string | null;
+};
+
+export async function getAllFeedback(): Promise<
+  ActionResult<AdminFeedbackRow[]>
+> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { success: false, error: "Not authorized" };
+
+  // `feedback` has no select policy at all (submitters shouldn't be able to
+  // read each other's feedback) — the regular session client would just get
+  // an empty result under RLS, so this needs the service-role client.
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("feedback")
+    .select("id, user_id, content, created_at, author:users(display_name)")
+    .order("created_at", { ascending: false });
+
+  if (error) return { success: false, error: error.message };
+
+  type RawFeedbackRow = {
+    id: string;
+    user_id: string | null;
+    content: string;
+    created_at: string;
+    author: { display_name: string } | { display_name: string }[] | null;
+  };
+
+  return {
+    success: true,
+    data: (data as RawFeedbackRow[]).map((f) => ({
+      id: f.id,
+      user_id: f.user_id,
+      content: f.content,
+      created_at: f.created_at,
+      author_display_name: Array.isArray(f.author)
+        ? (f.author[0]?.display_name ?? null)
+        : (f.author?.display_name ?? null),
+    })),
+  };
+}
+
+export async function deleteFeedback(
+  feedbackId: string,
+): Promise<ActionResult<null>> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { success: false, error: "Not authorized" };
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("feedback").delete().eq("id", feedbackId);
+
+  if (error) return { success: false, error: error.message };
+  revalidatePath("/admin/feedback");
+  return { success: true, data: null };
+}
