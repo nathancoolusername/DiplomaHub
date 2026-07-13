@@ -3,6 +3,7 @@
 import { createClient } from "../supabase/server";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "../admin";
+import { createNotification } from "./notifications";
 import type { ActionResult, Comment } from "../types";
 
 export async function getComments(
@@ -44,6 +45,46 @@ export async function addComment(
     .single();
 
   if (error) return { success: false, error: error.message };
+
+  const { data: actor } = await supabase
+    .from("users")
+    .select("display_name")
+    .eq("id", user.id)
+    .single();
+  if (actor) {
+    if ("resource_id" in target) {
+      const { data: resource } = await supabase
+        .from("resources")
+        .select("title, author_id")
+        .eq("id", target.resource_id)
+        .single();
+      if (resource) {
+        await createNotification({
+          userId: resource.author_id,
+          actorId: user.id,
+          type: "comment_resource",
+          message: `${actor.display_name} commented on your resource "${resource.title}"`,
+          link: `/resources/${target.resource_id}`,
+        });
+      }
+    } else {
+      const { data: article } = await supabase
+        .from("articles")
+        .select("title, slug, author_id")
+        .eq("id", target.article_id)
+        .single();
+      if (article) {
+        await createNotification({
+          userId: article.author_id,
+          actorId: user.id,
+          type: "comment_article",
+          message: `${actor.display_name} commented on your article "${article.title}"`,
+          link: `/articles/${article.slug}`,
+        });
+      }
+    }
+  }
+
   revalidatePath(path);
   return { success: true, data };
 }

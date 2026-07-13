@@ -39,6 +39,12 @@ export default async function AdminLayout({
         >
           Feedback
         </Link>
+        <Link
+          href="/admin/roadmap"
+          className="px-lg py-sm text-body-lg font-semibold hover:text-primary transition"
+        >
+          Roadmap
+        </Link>
       </div>
       {children}
     </div>

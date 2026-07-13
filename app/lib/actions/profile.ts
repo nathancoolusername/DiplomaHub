@@ -228,7 +228,7 @@ export type TopContributor = {
 };
 
 export async function getTopContributors(
-  limit = 5,
+  limit = 3,
 ): Promise<ActionResult<TopContributor[]>> {
   const supabase = await createClient();
 

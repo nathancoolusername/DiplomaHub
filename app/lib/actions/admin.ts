@@ -4,7 +4,8 @@ import { createClient } from "../supabase/server";
 import { createAdminClient } from "../supabase/admin";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "../admin";
-import type { ActionResult } from "../types";
+import { createNotification } from "./notifications";
+import type { ActionResult, RoadmapStatus } from "../types";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -115,6 +116,15 @@ export async function updateAuthorTrustScore(
     .eq("id", userId);
 
   if (error) return { success: false, error: error.message };
+
+  await createNotification({
+    userId,
+    actorId: ctx.user.id,
+    type: "admin_trust_score",
+    message: `Your author trust score was updated to ${score}`,
+    link: `/profile/${userId}`,
+  });
+
   revalidatePath("/admin/users");
   return { success: true, data: null };
 }
@@ -135,6 +145,17 @@ export async function setUserPro(
     .eq("id", userId);
 
   if (error) return { success: false, error: error.message };
+
+  if (isPro) {
+    await createNotification({
+      userId,
+      actorId: ctx.user.id,
+      type: "admin_pro_upgrade",
+      message: "You've been upgraded to Diploma Pro!",
+      link: `/profile/${userId}`,
+    });
+  }
+
   revalidatePath("/admin/users");
   return { success: true, data: null };
 }
@@ -142,6 +163,7 @@ export async function setUserPro(
 export type AdminContentRow = {
   id: string;
   title: string;
+  slug?: string;
   author_id: string;
   author_display_name: string;
   created_at: string;
@@ -175,7 +197,7 @@ export async function getAllContentForAdmin(): Promise<
     supabase
       .from("articles")
       .select(
-        "id, title, author_id, created_at, published, like_count, author:users(display_name)",
+        "id, title, slug, author_id, created_at, published, like_count, author:users(display_name)",
       )
       .order("created_at", { ascending: false }),
     supabase
@@ -307,5 +329,40 @@ export async function deleteFeedback(
 
   if (error) return { success: false, error: error.message };
   revalidatePath("/admin/feedback");
+  return { success: true, data: null };
+}
+
+export async function updateRoadmapItem(
+  id: string,
+  status: RoadmapStatus,
+  completionPercentage: number | null,
+): Promise<ActionResult<null>> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { success: false, error: "Not authorized" };
+
+  if (
+    completionPercentage !== null &&
+    (!Number.isInteger(completionPercentage) ||
+      completionPercentage < 0 ||
+      completionPercentage > 100)
+  ) {
+    return {
+      success: false,
+      error: "Percentage must be an integer between 0 and 100",
+    };
+  }
+
+  // roadmap_items has no client-writable grant at all (it's public-read,
+  // admin-write with no author to scope RLS to) — same shape as the
+  // feedback table, so writes go through the service-role client.
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("roadmap_items")
+    .update({ status, completion_percentage: completionPercentage })
+    .eq("id", id);
+
+  if (error) return { success: false, error: error.message };
+  revalidatePath("/admin/roadmap");
+  revalidatePath("/roadmap");
   return { success: true, data: null };
 }

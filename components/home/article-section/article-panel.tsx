@@ -21,12 +21,12 @@ export default function Panel({ resource }: Props) {
   }
   return (
     <div className="group flex flex-col bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden min-h-100 hover:border-primary hover:drop-shadow-xl/25 transition p-lg">
-      <div className="flex flex-col justify-between flex-1 gap-lg">
+      <div className="flex flex-col justify-between flex-1 gap-lg w-full">
         <Link href={`/resources/${resource.id}`}>
           <div className="flex flex-col flex-1 gap-lg">
             <div className="flex flex-row justify-between">
               <FileText size={30} />{" "}
-              <div>
+              <div className="flex flex-row flex-wrap gap-sm">
                 {SubjectTags[resource.subject_tag]}{" "}
                 {ResourceTypeTag[resource.type_tag]}
               </div>

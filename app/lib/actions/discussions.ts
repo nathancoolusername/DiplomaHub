@@ -3,6 +3,7 @@
 import { createClient } from "../supabase/server";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "../admin";
+import { createNotification } from "./notifications";
 import type { ActionResult, Discussion, DiscussionReply } from "../types";
 
 export async function createDiscussion(
@@ -120,6 +121,25 @@ export async function replyToDiscussion(
     .single();
 
   if (error) return { success: false, error: error.message };
+
+  const [{ data: actor }, { data: discussion }] = await Promise.all([
+    supabase.from("users").select("display_name").eq("id", user.id).single(),
+    supabase
+      .from("discussions")
+      .select("title, author_id")
+      .eq("id", discussionId)
+      .single(),
+  ]);
+  if (actor && discussion) {
+    await createNotification({
+      userId: discussion.author_id,
+      actorId: user.id,
+      type: "reply_discussion",
+      message: `${actor.display_name} replied to your discussion "${discussion.title}"`,
+      link: `/community/${discussionId}`,
+    });
+  }
+
   revalidatePath(`/community/${discussionId}`);
   return { success: true, data };
 }

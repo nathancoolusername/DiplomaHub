@@ -22,6 +22,7 @@
     "react": "19.2.4",
     "react-bootstrap": "^2.10.10",
     "react-dom": "19.2.4",
+    "resend": "^6.17.2",
     "sanitize-html": "^2.17.5"
   },
   "devDependencies": {

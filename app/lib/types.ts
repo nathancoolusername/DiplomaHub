@@ -102,6 +102,16 @@ export type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
 
+export type RoadmapStatus = "completed" | "in_progress" | "planned";
+
+export type RoadmapItem = {
+  id: string;
+  title: string;
+  status: RoadmapStatus;
+  completion_percentage: number | null;
+  sort_order: number;
+};
+
 export type UserProfile = {
   id: string;
   email: string;

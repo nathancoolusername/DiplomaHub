@@ -51,7 +51,7 @@ export default function SortDropdown({
       </button>
       {isOpen && (
         <div
-          className={`absolute right-0 top-full mt-xs bg-surface-container-lowest border border-outline-variant rounded-xl shadow-md z-10 min-w-full overflow-hidden ${optionL ? "overflow-y-scroll" : ""} h-40`}
+          className={`absolute right-0 top-full mt-xs bg-surface-container-lowest border border-outline-variant rounded-xl shadow-md z-100 min-w-full overflow-hidden ${optionL ? "overflow-y-scroll" : ""} h-40`}
         >
           {options.map((option) => (
             <button

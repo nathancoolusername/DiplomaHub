@@ -6,6 +6,7 @@ import { isAdmin } from "@/app/lib/admin";
 import Button from "./button";
 import Link from "next/link";
 import ProfileDropdown from "./profileMenu";
+import { NotificationBell } from "./notifications/NotificationBell";
 
 export async function AuthNav() {
   const supabase = await createClient();
@@ -26,6 +27,7 @@ export async function AuthNav() {
 
   return (
     <div className="flex items-center gap-3">
+      <NotificationBell />
       <ProfileDropdown
         display_name={profile?.display_name}
         is_pro={profile?.is_pro}

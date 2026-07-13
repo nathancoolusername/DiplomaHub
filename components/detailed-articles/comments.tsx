@@ -62,7 +62,10 @@ export default function Comments(props: Props) {
     const result =
       kind === "comment"
         ? await addComment(target as CommentTarget, content, path)
-        : await replyToDiscussion((target as ReplyTarget).discussion_id, content);
+        : await replyToDiscussion(
+            (target as ReplyTarget).discussion_id,
+            content,
+          );
 
     if (result.success) {
       setContent("");
@@ -77,7 +80,7 @@ export default function Comments(props: Props) {
     <div className="mt-25 flex flex-col gap-gutter">
       <div className="flex flex-row flex-wrap items-center gap-md">
         <h1 className="text-headline-lg font-serif font-bold">
-          {kind === "comment" ? "Scholarly Conversation" : "Community Replies"}
+          {kind === "comment" ? "Conversation" : "Community Replies"}
         </h1>
         <div className="shrink-0 border-1 border-outline-variant px-sm rounded-xl uppercase text-on-surface-variant">
           {initialItems.length} {noun}
@@ -97,14 +100,18 @@ export default function Comments(props: Props) {
                 onChange={(e) => setContent(e.target.value)}
                 className="h-30 w-full bg-surface-container-lowest border-1 border-outline-variant rounded-xl p-md mb-5"
                 placeholder={
-                  kind === "comment" ? "Add to the Discussion ..." : "Write a reply ..."
+                  kind === "comment"
+                    ? "Add to the Discussion ..."
+                    : "Write a reply ..."
                 }
               />
               {error && (
                 <p className="text-red-500 text-body-sm mb-sm">{error}</p>
               )}
               <div className="mr-0 ml-auto float-right">
-                <Button className={posting ? "opacity-50 pointer-events-none" : ""}>
+                <Button
+                  className={posting ? "opacity-50 pointer-events-none" : ""}
+                >
                   {posting
                     ? "Posting..."
                     : kind === "comment"
@@ -133,7 +140,8 @@ export default function Comments(props: Props) {
               ? (item as CommentType).user_id
               : (item as DiscussionReply).author_id;
           const canDelete =
-            !!currentUserId && (currentUserId === ownerId || isAdmin(currentUserId));
+            !!currentUserId &&
+            (currentUserId === ownerId || isAdmin(currentUserId));
 
           return (
             <div key={item.id} className="w-full">
@@ -147,7 +155,8 @@ export default function Comments(props: Props) {
                   kind === "reply"
                     ? {
                         target: { discussion_reply_id: item.id },
-                        initiallyLiked: (item as DiscussionReply).isLiked ?? false,
+                        initiallyLiked:
+                          (item as DiscussionReply).isLiked ?? false,
                         initialCount: (item as DiscussionReply).like_count,
                         path,
                       }

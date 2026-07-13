@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { deleteResource } from "@/app/lib/actions/resources";
 import { deleteArticle } from "@/app/lib/actions/articles";
 import { deleteDiscussion } from "@/app/lib/actions/discussions";
@@ -11,6 +12,12 @@ import {
 } from "@/app/lib/actions/admin";
 
 type Tab = "resources" | "articles" | "discussions";
+
+function contentLink(tab: Tab, item: AdminContentRow): string {
+  if (tab === "resources") return `/resources/${item.id}`;
+  if (tab === "articles") return `/articles/${item.slug}`;
+  return `/community/${item.id}`;
+}
 
 export function ContentTable({
   resources,
@@ -112,8 +119,22 @@ export function ContentTable({
                 key={item.id}
                 className="border-b-1 border-outline-variant last:border-b-0"
               >
-                <td className="p-md font-bold">{item.title}</td>
-                <td className="p-md">{item.author_display_name}</td>
+                <td className="p-md font-bold">
+                  <Link
+                    href={contentLink(tab, item)}
+                    className="text-primary hover:underline"
+                  >
+                    {item.title}
+                  </Link>
+                </td>
+                <td className="p-md">
+                  <Link
+                    href={`/profile/${item.author_id}`}
+                    className="text-primary hover:underline"
+                  >
+                    {item.author_display_name}
+                  </Link>
+                </td>
                 <td className="p-md">{item.like_count}</td>
                 {tab === "resources" && (
                   <td className="p-md">{item.community_trust}%</td>

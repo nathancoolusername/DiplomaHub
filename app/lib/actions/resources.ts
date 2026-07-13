@@ -4,7 +4,12 @@ import { createClient } from "../supabase/server";
 import { createAdminClient } from "../supabase/admin";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "../admin";
+import { createNotification } from "./notifications";
 import type { ActionResult, Resource } from "../types";
+
+// Notify the resource owner once total downloads first cross one of these
+// thresholds, rather than on every single download.
+const DOWNLOAD_MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
 export async function createResource(
   formData: FormData,
@@ -210,7 +215,7 @@ export async function downloadResource(
 
   const { data: resource, error: fetchError } = await admin
     .from("resources")
-    .select("file_url")
+    .select("file_url, title, author_id, download_count")
     .eq("id", resourceId)
     .single();
 
@@ -223,6 +228,20 @@ export async function downloadResource(
     target_resource_id: resourceId,
   });
   if (rpcError) return { success: false, error: rpcError.message };
+
+  const previousCount = resource.download_count;
+  const newCount = previousCount + 1;
+  const crossedMilestone = DOWNLOAD_MILESTONES.find(
+    (m) => previousCount < m && newCount >= m,
+  );
+  if (crossedMilestone) {
+    await createNotification({
+      userId: resource.author_id,
+      type: "download_milestone",
+      message: `Your resource "${resource.title}" just passed ${crossedMilestone} downloads!`,
+      link: `/resources/${resourceId}`,
+    });
+  }
 
   revalidatePath("/resources");
   return { success: true, data: { fileUrl: resource.file_url } };

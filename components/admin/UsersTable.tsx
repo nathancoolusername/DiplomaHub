@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   updateAuthorTrustScore,
   setUserPro,
@@ -75,15 +76,20 @@ function UserRow({ user }: { user: AdminUserRow }) {
   return (
     <tr className="border-b-1 border-outline-variant last:border-b-0 align-top">
       <td className="p-md">
-        <div className="flex flex-row items-center gap-sm">
+        <Link
+          href={`/profile/${user.id}`}
+          className="flex flex-row items-center gap-sm hover:underline w-fit"
+        >
           <Avatar src={user.avatar_url} name={user.display_name} size={32} />
           <div className="flex flex-col">
-            <h1 className="font-bold text-body-md">{user.display_name}</h1>
+            <h1 className="font-bold text-body-md text-primary">
+              {user.display_name}
+            </h1>
             <h1 className="text-on-surface-variant text-label-sm">
               {user.email}
             </h1>
           </div>
-        </div>
+        </Link>
       </td>
       <td className="p-md">{user.points.toLocaleString()}</td>
       <td className="p-md">
