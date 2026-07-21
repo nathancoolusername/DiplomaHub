@@ -1,4 +1,4 @@
-import { Download, FileText, Target } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import type { Resource } from "@/app/lib/types";
 import { SubjectTags, ResourceTypeTag } from "@/components/pills";
 import { DownloadButton } from "@/components/resources/DownloadButton";

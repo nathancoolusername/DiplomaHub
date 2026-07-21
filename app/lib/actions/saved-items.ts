@@ -3,7 +3,8 @@
 
 import { createClient } from "../supabase/server";
 import { revalidatePath } from "next/cache";
-import type { ActionResult } from "../types";
+import { checkRateLimit } from "../ratelimit";
+import type { ActionResult, Resource, Article, Discussion } from "../types";
 
 type SaveTarget =
   | { resource_id: string }
@@ -19,6 +20,9 @@ export async function toggleSave(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Log in to save items" };
+
+  const rateLimit = await checkRateLimit("toggle", user.id);
+  if (!rateLimit.allowed) return { success: false, error: rateLimit.error };
 
   const { data: existing } = await supabase
     .from("saved_items")
@@ -46,9 +50,9 @@ export async function toggleSave(
 
 export async function getSavedItems(): Promise<
   ActionResult<{
-    resources: any[];
-    articles: any[];
-    discussions: any[];
+    resources: Resource[];
+    articles: Article[];
+    discussions: Discussion[];
   }>
 > {
   const supabase = await createClient();
@@ -82,10 +86,12 @@ export async function getSavedItems(): Promise<
     .filter((d) => d.discussion)
     .map((d) => (Array.isArray(d.discussion) ? d.discussion[0] : d.discussion));
 
-  const normalize = (row: any) => ({
-    ...row,
-    author: Array.isArray(row.author) ? row.author[0] : row.author,
-  });
+  function normalize<T extends { author: unknown }>(row: T) {
+    return {
+      ...row,
+      author: Array.isArray(row.author) ? row.author[0] : row.author,
+    };
+  }
 
   // `top_reply` is a FK (uuid) pointing at discussion_replies.id, not the
   // reply text itself — resolve it to actual content for display.

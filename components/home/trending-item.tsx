@@ -1,4 +1,4 @@
-import { Dot, TrendingUp } from "lucide-react"
+import { TrendingUp } from "lucide-react"
 import type { Discussion } from "@/app/lib/types"
 
 export default function Item({discussion, num}:{discussion:Discussion, num:number}) {

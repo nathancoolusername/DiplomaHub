@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
-import { strict } from "assert";
 
 export default function ProfileDropdown({
   display_name,
@@ -17,7 +16,7 @@ export default function ProfileDropdown({
   id: string;
   points: number;
   is_pro: boolean;
-  sign_out: Function;
+  sign_out: () => void;
   isAdmin?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);

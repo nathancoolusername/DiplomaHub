@@ -16,7 +16,7 @@ export default async function About() {
         </h1>
         <h1 className="text-headline-md text-on-surface-variant text-center w-full md:w-300">
           DiplomaHub is the home for the next generation of global thinkers.
-          We've built a space where students and educators walk together,
+          We&apos;ve built a space where students and educators walk together,
           transforming the lifelong IB learner journey into a collaborative
           adventure defined by warmth, clarity, and mutual support.
         </h1>
@@ -40,18 +40,18 @@ export default async function About() {
         <div className="flex flex-col gap-lg bg-surface-container-lowest border-1 border-outline-variant rounded-xl md:basis-3/5 p-lg md:p-[60px]  hover:drop-shadow-xl/10 transition hover:border-primary">
           <h1 className="text-sm/8 tracking-wide">
             We know what it feels like to work late nights, to try to find the
-            "perfect" EE question, to withstand the pressure of IAs. DiplomaHub
+            &quot;perfect&quot; EE question, to withstand the pressure of IAs. DiplomaHub
             was founded by a group of top IB students who realized that while
             the IB is tough, nobody should have to navigate it alone.
           </h1>
           <p className="font-serif text-headline-lg text-primary px-6 py-4 bg-surface-container border-l-4 border-primary rounded-lg mb-4 italic">
-            "The IB teaches you to think independently, but nobody said you have
-            to figure it out alone."
+            &quot;The IB teaches you to think independently, but nobody said you have
+            to figure it out alone.&quot;
           </p>
           <h1 className="text-sm/8 tracking-wide">
             Today, DiplomaHub is a thriving ecosystem. By blending modern
-            technology with a clean design and academic values, we've created a
-            digital sanctuary where every student can find the "calm competence"
+            technology with a clean design and academic values, we&apos;ve created a
+            digital sanctuary where every student can find the &quot;calm competence&quot;
             they need to excel and, more importantly, to enjoy the process of
             learning.
           </h1>
@@ -86,8 +86,8 @@ export default async function About() {
               </h1>
             </div>
             <p className="font-serif text-headline-lg text-primary px-6 py-4 bg-surface-container border-l-4 border-primary rounded-lg mb-4 italic">
-              "I was a DP1 student with no idea what I was doing. DiplomaHub is
-              what I wish existed then"
+              &quot;I was a DP1 student with no idea what I was doing. DiplomaHub is
+              what I wish existed then&quot;
             </p>
           </div>
           <div className="md:basis-2/5 flex flex-col gap-lg rounded-xl gap-lg">
@@ -100,7 +100,7 @@ export default async function About() {
               </h1>
               <h1>
                 Sidharth was one of the first people Nathan brought into
-                DiplomaHub, contributing some of the platform's earliest
+                DiplomaHub, contributing some of the platform&apos;s earliest
                 articles and resources.
               </h1>
             </div>
@@ -113,8 +113,8 @@ export default async function About() {
               </h1>
               <h1>
                 Arnav contributed articles and resources that became some of
-                DiplomaHub's first content at launch. He brought a top student's
-                eye to the platform's direction, pushing for things that would
+                DiplomaHub&apos;s first content at launch. He brought a top student&apos;s
+                eye to the platform&apos;s direction, pushing for things that would
                 actually matter to the people using it.
               </h1>
             </div>

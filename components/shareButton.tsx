@@ -5,7 +5,7 @@ import { Share2 } from "lucide-react";
 
 export function ShareButton({
   className,
-  size,
+  size = 30,
 }: {
   className?: string;
   size?: number;
@@ -32,7 +32,7 @@ export function ShareButton({
           "rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
         }
       >
-        <Share2 size={30} />
+        <Share2 size={size} />
       </button>
       {copied && (
         <span className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap bg-secondary-container text-secondary text-label-sm font-semibold px-md py-1 rounded-full shadow-md">

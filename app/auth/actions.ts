@@ -84,6 +84,48 @@ export async function signOut() {
   redirect("/login");
 }
 
+export async function requestPasswordReset(
+  email: string,
+): Promise<ActionResult<null>> {
+  const rateLimit = await checkRateLimit("auth", await getClientIp());
+  if (!rateLimit.allowed) return { success: false, error: rateLimit.error };
+
+  const supabase = await createClient();
+  const origin = resolveOrigin(await headers());
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/reset-password`,
+  });
+
+  // Always report success regardless of whether the email is registered —
+  // revealing that here would let anyone enumerate real accounts by email.
+  if (error) console.error("Password reset request failed:", error.message);
+  return { success: true, data: null };
+}
+
+export async function updatePassword(
+  password: string,
+): Promise<ActionResult<null>> {
+  if (password.length < 6) {
+    return { success: false, error: "Password must be at least 6 characters" };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return {
+      success: false,
+      error: "Reset link expired or invalid — request a new one.",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { success: false, error: error.message };
+  return { success: true, data: null };
+}
+
 // app/actions.ts — add this
 export async function resendConfirmation(
   email: string,

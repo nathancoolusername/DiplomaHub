@@ -16,7 +16,7 @@ export function SaveButton({
   path,
   className,
   activeColor,
-  size,
+  size = 30,
 }: {
   target: SaveTarget;
   initiallySaved: boolean;
@@ -55,7 +55,7 @@ export function SaveButton({
         saved ? { color: activeColor ?? "var(--color-primary)" } : undefined
       }
     >
-      <Bookmark size={30} fill={saved ? "currentColor" : "none"} />
+      <Bookmark size={size} fill={saved ? "currentColor" : "none"} />
     </button>
   );
 }
