@@ -42,6 +42,13 @@ export const SubjectTags: Record<string, JSX.Element> = {
       english
     </span>
   ),
+  French: (
+    <span
+      className={`px-md py-sm rounded-xl text-label-md bg-tertiary-container text-tertiary font-bold uppercase`}
+    >
+      french
+    </span>
+  ),
   History: (
     <span
       className={`px-md py-sm rounded-xl text-label-md bg-tertiary-container text-tertiary font-bold uppercase`}
@@ -141,6 +148,13 @@ export const ActiveSubjectTags: Record<string, JSX.Element> = {
       className={`px-md py-sm rounded-xl text-label-md bg-tertiary text-on-primary font-bold uppercase`}
     >
       english
+    </span>
+  ),
+  French: (
+    <span
+      className={`px-md py-sm rounded-xl text-label-md bg-tertiary text-on-primary font-bold uppercase`}
+    >
+      french
     </span>
   ),
   History: (
