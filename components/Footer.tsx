@@ -25,17 +25,13 @@ export default function Footer() {
               Impressum
             </Link>
             <Link
-              href="/legal/privacy-policy.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/legal/privacy-policy"
               className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
             >
               Privacy Policy
             </Link>
             <Link
-              href="/legal/terms-of-service.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/legal/terms-of-service"
               className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
             >
               Terms of Service

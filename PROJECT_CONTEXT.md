@@ -256,12 +256,20 @@ If a deploy goes bad in production: **Vercel dashboard → project → Deploymen
 ## Known gaps / pre-existing issues, still open
 
 - A handful of unused-import lint warnings scattered around (pre-existing, `eslint` currently reports 38 problems total across ~15 files, **none in files touched by the 2026-07-21 hardening pass** — baseline, not regressions). `article-grid.tsx` was rewritten during that pass so its old `let numButtons` issue no longer applies.
-- Google Cloud OAuth consent screen is still in Testing mode (allowlisted test users only) — needs a verification submission before real users can sign in via Google. This is arguably the single biggest remaining launch blocker and it's entirely on the user's side (Google's review queue, not code).
-- **Pending user action before the 2026-07-21 hardening pass is actually live:**
-  1. Run the two SQL scripts (discussions pagination RPCs + index creation) in the Supabase SQL editor — see "Pre-launch hardening pass" section. Until then `/community` will error outright (RPC functions don't exist).
-  2. Fill in `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` in `.env.local` (free tier at console.upstash.com) — rate limiting no-ops until then.
-  3. Fill in `NEXT_PUBLIC_SENTRY_DSN` in `.env.local` (free tier at sentry.io) — error tracking no-ops until then.
-  4. `RESEND_API_KEY` is already set, but `EMAIL_SENDING_ENABLED = false` is hardcoded in `notifications.ts` until 2026-09-02 (Resend domain verification pending) — flip it manually when ready, don't wait on a date check that doesn't exist.
+- **2026-07-21 hardening pass is confirmed live**: user ran both SQL scripts, filled in Upstash + Sentry + Resend env vars, deployed to Vercel at **diplomahub.org** (canonical/serving domain is `www.diplomahub.org` — the apex 308-redirects to it, see Deployment section below). The `EMAIL_SENDING_ENABLED = false` flag in `notifications.ts` is still the one deliberate exception — stays off until ~2026-09-02 regardless of Resend being configured.
+- Google Cloud OAuth consent screen is still in Testing mode — see "Deployment & Google OAuth verification" section below for the full story, this took multiple rounds to diagnose.
+
+## Deployment & Google OAuth verification
+
+Live on Vercel. **Canonical domain is `https://www.diplomahub.org`** — the bare apex `https://diplomahub.org` returns an HTTP 308 redirect to the `www` version (standard Vercel behavior when both domain variants are added with one set primary). This matters a lot for anything that checks URLs without following redirects (see below) — **always use the `www` URL** when configuring external services (Google Cloud Console, Search Console, etc.), never the apex.
+
+Google OAuth verification (moving the consent screen out of Testing mode) hit two errors:
+1. *"Home page URL is not registered to you"* — needs domain ownership verification in **Google Search Console**, using a **Domain property** (DNS TXT record), not a URL-prefix property, so it covers both `diplomahub.org` and `www.diplomahub.org` under one verification. **Not done yet** as of this writing.
+2. *"Privacy policy URL is unresponsive"* — root cause was exactly the redirect above: the consent screen had the apex URL configured, Google's automated checker doesn't follow redirects, so it saw a 308 instead of a 200 and called it unresponsive. Confirmed via direct `curl -I` testing (including with a spoofed Googlebot user-agent) that the `www` URL always served a clean 200.
+
+**Fix applied**: `/legal/privacy-policy.pdf` and `/legal/terms-of-service.pdf` (static files in `public/legal/`, still present, no longer linked from the Footer) were converted to real Next.js pages — `app/legal/privacy-policy/page.tsx` and `app/legal/terms-of-service/page.tsx`, styled like the pre-existing `app/legal/impressum/page.tsx`. Content was transcribed faithfully from the PDFs (read via the PDF tool, not rewritten/summarized) — same sections, same legal wording, same "Last updated: 07/07/2026" date. `components/Footer.tsx` now links to `/legal/privacy-policy` and `/legal/terms-of-service` instead of the `.pdf` paths. This was **both** a UX improvement and a direct fix for the Google verification error — a real HTML page can't 308-redirect the way the apex-domain PDF link did.
+
+**Still to do**: point Google Cloud Console's OAuth consent screen (home page + privacy policy + terms links) at the `www` URLs if not already done, complete Search Console Domain property verification, then resubmit. Also worth double-checking Vercel's Security/Deployment Protection settings aren't challenging Google's verification crawler if the privacy policy error persists after resubmitting with the new HTML page.
 
 ## Environment quirks for whoever's driving
 
