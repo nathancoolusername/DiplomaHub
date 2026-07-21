@@ -1,8 +1,7 @@
 "use client";
 
 import Panel from "./article-panel";
-import Link from "next/link";
-import { Resource } from "@/components/data";
+import type { Resource } from "@/app/lib/types";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -14,8 +13,8 @@ export default function ResourceHome({ data }: Props) {
   const [num, setNum] = useState(1);
   const currentItems = data.slice((+num - 1) * 3, +num * 3);
   return (
-    <div className="bg-surface-container-lowest h-[730px] flex flex-col px-lg place-content-center gap-15">
-      <div className="mb-lg flex flex-row justify-between">
+    <div className="bg-surface-container-lowest min-h-fit md:h-[730px] flex flex-col px-lg py-lg md:py-0 place-content-center gap-15">
+      <div className="mb-lg flex flex-col sm:flex-row justify-between gap-md">
         <div>
           <h1 className="text-headline-lg font-serif font-bold">
             Featured Resources
@@ -51,7 +50,7 @@ export default function ResourceHome({ data }: Props) {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-gutter w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter w-full">
         {currentItems.map((row) => (
           <div key={row.id}>
             <Panel resource={row} />

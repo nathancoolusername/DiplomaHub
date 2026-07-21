@@ -1,0 +1,69 @@
+"use client";
+
+import { useState } from "react";
+import { deleteFeedback, type AdminFeedbackRow } from "@/app/lib/actions/admin";
+import { formatRelativeTime } from "@/app/lib/relativeTime";
+
+export function FeedbackTable({ feedback }: { feedback: AdminFeedbackRow[] }) {
+  const [items, setItems] = useState(feedback);
+  const [search, setSearch] = useState("");
+
+  const query = search.toLowerCase();
+  const filtered = items.filter(
+    (f) =>
+      f.content.toLowerCase().includes(query) ||
+      f.author_display_name?.toLowerCase().includes(query),
+  );
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this feedback?")) return;
+    const result = await deleteFeedback(id);
+    if (result.success) {
+      setItems((prev) => prev.filter((f) => f.id !== id));
+    } else {
+      alert(result.error);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-md">
+      <input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search feedback or submitter..."
+        className="border rounded-lg px-md py-sm w-full max-w-100"
+      />
+
+      {filtered.length === 0 && (
+        <p className="text-on-surface-variant">No feedback yet.</p>
+      )}
+
+      <div className="flex flex-col gap-md">
+        {filtered.map((f) => (
+          <div
+            key={f.id}
+            className="bg-surface-container-lowest border-1 border-outline-variant rounded-xl p-lg flex flex-col gap-sm"
+          >
+            <div className="flex flex-row justify-between items-center">
+              <h1 className="font-bold text-body-md text-primary">
+                {f.author_display_name ?? "Anonymous"}
+              </h1>
+              <div className="flex flex-row items-center gap-md">
+                <h1 className="text-on-surface-variant text-label-md">
+                  {formatRelativeTime(f.created_at)}
+                </h1>
+                <button
+                  onClick={() => handleDelete(f.id)}
+                  className="text-red-500 font-semibold cursor-pointer hover:underline"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+            <h1 className="text-body-lg whitespace-pre-wrap">{f.content}</h1>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

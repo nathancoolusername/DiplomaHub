@@ -1,14 +1,48 @@
 import Link from "next/link";
 
-
 export default function Footer() {
   return (
-    <footer className="bg-surface-container-lowest border-t border-outline-variant py-xl mt-auto w-full h-20">
-      <div className="max-w-[1280px] mx-md px-margin flex flex-col md:flex-row justify-between items-center gap-lg">
-        <div className="flex flex-col gap-xs">
-          <span className="font-serif text-headline-md text-primary">IBPeople</span>
+    <footer className="bg-surface-container-lowest border-t border-outline-variant py-xl mt-auto w-full pb-10">
+      <div className="mx-md px-margin flex flex-col md:flex-row justify-between items-center gap-margin">
+        <div className="flex flex-col gap-xs items-center md:items-start text-center md:text-left">
+          <span className="font-serif text-headline-md font-bold flex flex-row">
+            Diploma<h1 className="text-primary">Hub</h1>
+          </span>
+          <h1 className="text-primary">
+            Where IB students never graduate alone
+          </h1>
         </div>
+        <div className="flex flex-col items-center justify-content-center gap-xs md:ml-auto text-center">
+          <h1 className="text-on-surface-variant text-body-lg">
+            DiplomaHub has been developed independently from and is not endorsed
+            by the International Baccalaureate Organization.
+          </h1>
+          <div className="flex flex-row flex-wrap justify-center gap-margin">
+            <Link
+              href="/legal/impressum"
+              className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
+            >
+              Impressum
+            </Link>
+            <Link
+              href="/legal/privacy-policy.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/legal/terms-of-service.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
+            >
+              Terms of Service
+            </Link>
+          </div>
         </div>
+      </div>
     </footer>
   );
 }
