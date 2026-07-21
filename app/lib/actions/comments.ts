@@ -4,6 +4,7 @@ import { createClient } from "../supabase/server";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "../admin";
 import { createNotification } from "./notifications";
+import { checkRateLimit } from "../ratelimit";
 import type { ActionResult, Comment } from "../types";
 
 export async function getComments(
@@ -38,9 +39,18 @@ export async function addComment(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not logged in" };
 
+  const rateLimit = await checkRateLimit("write", user.id);
+  if (!rateLimit.allowed) return { success: false, error: rateLimit.error };
+
+  const trimmedContent = content.trim();
+  if (!trimmedContent) return { success: false, error: "Comment cannot be empty" };
+  if (trimmedContent.length > 2000) {
+    return { success: false, error: "Comment must be under 2000 characters" };
+  }
+
   const { data, error } = await supabase
     .from("comments")
-    .insert({ user_id: user.id, content, ...target })
+    .insert({ user_id: user.id, content: trimmedContent, ...target })
     .select()
     .single();
 

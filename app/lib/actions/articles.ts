@@ -5,7 +5,10 @@ import { createAdminClient } from "../supabase/admin";
 import { revalidatePath } from "next/cache";
 import sanitizeHtml from "sanitize-html";
 import { isAdmin } from "../admin";
+import { requireField, optionalField } from "../validation";
 import type { ActionResult, Article } from "../types";
+
+const ARTICLE_CONTENT_MAX_LENGTH = 100_000;
 
 const ARTICLE_HTML_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: [
@@ -35,6 +38,39 @@ const ARTICLE_HTML_OPTIONS: sanitizeHtml.IOptions = {
     }),
   },
 };
+
+function validateArticleContent(formData: FormData) {
+  const title = requireField(formData.get("title"), "Title", 200);
+  if ("error" in title) return title;
+
+  const topic = requireField(formData.get("topic"), "Topic", 100);
+  if ("error" in topic) return topic;
+
+  const rawContent = formData.get("content");
+  const rawContentStr = typeof rawContent === "string" ? rawContent : "";
+  if (!rawContentStr.trim()) return { error: "Content is required" };
+  if (rawContentStr.length > ARTICLE_CONTENT_MAX_LENGTH) {
+    return { error: "Content is too long" };
+  }
+  const content = sanitizeHtml(rawContentStr, ARTICLE_HTML_OPTIONS);
+  if (!content.trim()) return { error: "Content is required" };
+
+  const coverImageUrl = optionalField(
+    formData.get("cover_image_url"),
+    "Cover image",
+    2000,
+  );
+  if ("error" in coverImageUrl) return coverImageUrl;
+
+  return {
+    value: {
+      title: title.value,
+      topic: topic.value,
+      content,
+      cover_image_url: coverImageUrl.value,
+    },
+  };
+}
 
 export async function getArticle(slug: string): Promise<ActionResult<Article>> {
   const supabase = await createClient();
@@ -82,20 +118,53 @@ export async function getArticle(slug: string): Promise<ActionResult<Article>> {
   };
 }
 
-export async function getArticlesWithUserState(): Promise<
-  ActionResult<Article[]>
-> {
+export type ArticleSort = "newest" | "oldest" | "most_liked" | "most_viewed";
+
+// Filters/sorts/paginates in the query itself instead of fetching every
+// published article and slicing client-side — used by the /articles grid.
+// The UI's "subject" filter actually maps to the `topic` column (topic is
+// itself constrained to the same SubjectTags option set in the write form).
+export async function getArticlesPage(filters: {
+  topic?: string;
+  sort?: ArticleSort;
+  page?: number;
+  pageSize?: number;
+}): Promise<ActionResult<{ items: Article[]; totalCount: number }>> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: articles, error } = await supabase
-    .from("articles")
-    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
-    .eq("published", true)
-    .order("created_at", { ascending: false });
+  const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const pageSize =
+    filters.pageSize && filters.pageSize > 0 ? filters.pageSize : 6;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
 
+  let query = supabase
+    .from("articles")
+    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)", {
+      count: "exact",
+    })
+    .eq("published", true);
+
+  if (filters.topic) query = query.eq("topic", filters.topic);
+
+  switch (filters.sort) {
+    case "oldest":
+      query = query.order("created_at", { ascending: true });
+      break;
+    case "most_liked":
+      query = query.order("like_count", { ascending: false });
+      break;
+    case "most_viewed":
+      query = query.order("view_count", { ascending: false });
+      break;
+    default:
+      query = query.order("created_at", { ascending: false });
+  }
+
+  const { data: articles, error, count } = await query.range(from, to);
   if (error) return { success: false, error: error.message };
 
   const normalized = articles.map((a) => ({
@@ -106,7 +175,10 @@ export async function getArticlesWithUserState(): Promise<
   if (!user) {
     return {
       success: true,
-      data: normalized.map((a) => ({ ...a, isLiked: false, isSaved: false })),
+      data: {
+        items: normalized.map((a) => ({ ...a, isLiked: false, isSaved: false })),
+        totalCount: count ?? 0,
+      },
     };
   }
 
@@ -130,11 +202,14 @@ export async function getArticlesWithUserState(): Promise<
 
   return {
     success: true,
-    data: normalized.map((a) => ({
-      ...a,
-      isLiked: likedIds.has(a.id),
-      isSaved: savedIds.has(a.id),
-    })),
+    data: {
+      items: normalized.map((a) => ({
+        ...a,
+        isLiked: likedIds.has(a.id),
+        isSaved: savedIds.has(a.id),
+      })),
+      totalCount: count ?? 0,
+    },
   };
 }
 
@@ -218,8 +293,10 @@ export async function createArticle(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not logged in" };
 
-  const title = formData.get("title") as string;
-  const baseSlug = title
+  const fields = validateArticleContent(formData);
+  if ("error" in fields) return { success: false, error: fields.error };
+
+  const baseSlug = fields.value.title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
@@ -228,19 +305,13 @@ export async function createArticle(
   // random suffix so that can't happen.
   const slug = `${baseSlug}-${crypto.randomUUID().slice(0, 8)}`;
 
-  const rawContent = formData.get("content") as string;
-  const content = sanitizeHtml(rawContent, ARTICLE_HTML_OPTIONS);
-  const coverImageUrl = (formData.get("cover_image_url") as string) || null;
   const published = formData.get("published") === "true";
 
   const { data, error } = await supabase
     .from("articles")
     .insert({
-      title,
+      ...fields.value,
       slug,
-      content,
-      cover_image_url: coverImageUrl,
-      topic: formData.get("topic") as string,
       author_id: user.id,
       published,
     })
@@ -262,20 +333,14 @@ export async function updateArticle(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not logged in" };
 
-  const rawContent = formData.get("content") as string;
-  const content = sanitizeHtml(rawContent, ARTICLE_HTML_OPTIONS);
-  const coverImageUrl = (formData.get("cover_image_url") as string) || null;
+  const fields = validateArticleContent(formData);
+  if ("error" in fields) return { success: false, error: fields.error };
+
   const published = formData.get("published") === "true";
 
   let query = supabase
     .from("articles")
-    .update({
-      title: formData.get("title") as string,
-      content,
-      cover_image_url: coverImageUrl,
-      topic: formData.get("topic") as string,
-      published,
-    })
+    .update({ ...fields.value, published })
     .eq("id", articleId);
 
   if (!isAdmin(user.id)) {

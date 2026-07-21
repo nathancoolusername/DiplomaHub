@@ -33,6 +33,19 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
+// message/link end up in an HTML email body below and can embed
+// user-controlled text (display names, resource/article/discussion
+// titles) — escape before interpolating or a malicious display name
+// becomes live HTML in someone else's inbox.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // Internal — called from other server actions after a successful
 // like/comment/reply/download/admin-edit, never invoked directly from the
 // client. Writes through the service-role client because it inserts into
@@ -92,7 +105,7 @@ async function sendNotificationEmail(
         process.env.RESEND_FROM_EMAIL ?? "DiplomaHub <onboarding@resend.dev>",
       to: recipient.email,
       subject: message,
-      html: `<p>${message}</p><p><a href="${origin}${link}">View on DiplomaHub</a></p>`,
+      html: `<p>${escapeHtml(message)}</p><p><a href="${escapeHtml(origin + link)}">View on DiplomaHub</a></p>`,
     });
   } catch (err) {
     console.error("Failed to send notification email:", err);

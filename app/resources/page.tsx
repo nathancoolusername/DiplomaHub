@@ -1,11 +1,11 @@
 import { Upload } from "lucide-react";
 import Button from "../../components/button";
 import ResourceGrid from "@/components/resources/resources-grid";
-import { getResourcesWithUserState } from "../lib/actions/resources";
+import { getResourcesPage } from "../lib/actions/resources";
 import Link from "next/link";
 
 export default async function ResourcesPage() {
-  const result = await getResourcesWithUserState();
+  const result = await getResourcesPage({ sort: "most_downloaded" });
 
   if (!result.success) {
     return (
@@ -34,7 +34,10 @@ export default async function ResourcesPage() {
         </Link>
       </div>
 
-      <ResourceGrid data={result.data} />
+      <ResourceGrid
+        initialItems={result.data.items}
+        initialTotalCount={result.data.totalCount}
+      />
     </div>
   );
 }

@@ -1,17 +1,24 @@
 import { Users } from "lucide-react";
 import CommunityPage from "@/components/community/community";
-import { getDiscussionsWithUserState } from "@/app/lib/actions/discussions";
+import {
+  getDiscussionsPage,
+  getTrendingDiscussions,
+} from "@/app/lib/actions/discussions";
 import { getTopContributors } from "@/app/lib/actions/profile";
 import { getCurrentUserProfile } from "@/app/lib/get-current-user";
 import { createClient } from "@/app/lib/supabase/server";
 
 export default async function Community() {
-  const [result, currentUserProfile, contributorsResult] = await Promise.all([
-    getDiscussionsWithUserState(),
-    getCurrentUserProfile(),
-    getTopContributors(),
-  ]);
-  const data = result.success ? result.data : [];
+  const [result, trendingResult, currentUserProfile, contributorsResult] =
+    await Promise.all([
+      getDiscussionsPage({ sort: "newest" }),
+      getTrendingDiscussions(),
+      getCurrentUserProfile(),
+      getTopContributors(),
+    ]);
+  const items = result.success ? result.data.items : [];
+  const totalCount = result.success ? result.data.totalCount : 0;
+  const trending = trendingResult.success ? trendingResult.data : [];
   const topContributors = contributorsResult.success
     ? contributorsResult.data
     : [];
@@ -55,7 +62,9 @@ export default async function Community() {
       )}
 
       <CommunityPage
-        data={data}
+        initialItems={items}
+        initialTotalCount={totalCount}
+        trending={trending}
         currentUserProfile={currentUserProfile}
         topContributors={topContributors}
       />

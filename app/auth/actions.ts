@@ -5,22 +5,41 @@ import { createClient } from "../lib/supabase/server";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { resolveOrigin } from "../lib/resolveOrigin";
+import { requireField, requireOneOf } from "../lib/validation";
+import { checkRateLimit, getClientIp } from "../lib/ratelimit";
 import type { ActionResult } from "../lib/types";
+
+const IB_YEAR_OPTIONS = ["Pre-IB", "DP1", "DP2", "Alumni", "Educator"];
 
 export async function signUp(
   formData: FormData,
 ): Promise<ActionResult<null> | void> {
+  const rateLimit = await checkRateLimit("auth", await getClientIp());
+  if (!rateLimit.allowed) return { success: false, error: rateLimit.error };
+
   const supabase = await createClient();
+
+  const displayName = requireField(
+    formData.get("display_name"),
+    "Display name",
+    100,
+  );
+  if ("error" in displayName) return { success: false, error: displayName.error };
+
+  const ibYear = requireOneOf(
+    formData.get("ib_year"),
+    "IB year",
+    IB_YEAR_OPTIONS,
+  );
+  if ("error" in ibYear) return { success: false, error: ibYear.error };
 
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const display_name = formData.get("display_name") as string;
-  const ib_year = formData.get("ib_year") as string;
 
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { display_name, ib_year: ib_year || null } },
+    options: { data: { display_name: displayName.value, ib_year: ibYear.value } },
   });
 
   if (error) return { success: false, error: error.message };
@@ -30,6 +49,9 @@ export async function signUp(
 export async function signIn(
   formData: FormData,
 ): Promise<ActionResult<null> | void> {
+  const rateLimit = await checkRateLimit("auth", await getClientIp());
+  if (!rateLimit.allowed) return { success: false, error: rateLimit.error };
+
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -87,11 +109,25 @@ export async function updateProfile(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not logged in" };
 
+  const displayName = requireField(
+    formData.get("display_name"),
+    "Display name",
+    100,
+  );
+  if ("error" in displayName) return { success: false, error: displayName.error };
+
+  const ibYear = requireOneOf(
+    formData.get("ib_year"),
+    "IB year",
+    IB_YEAR_OPTIONS,
+  );
+  if ("error" in ibYear) return { success: false, error: ibYear.error };
+
   const { error } = await supabase
     .from("users")
     .update({
-      display_name: formData.get("display_name") as string,
-      ib_year: formData.get("ib_year") as string,
+      display_name: displayName.value,
+      ib_year: ibYear.value,
     })
     .eq("id", user.id);
 

@@ -3,6 +3,52 @@
 import { createClient } from "../supabase/server";
 import type { ActionResult } from "../types";
 
+// Extension → Content-Type we explicitly set on the storage upload, rather
+// than trusting the browser-supplied `file.type` (which the uploader
+// controls and can spoof — e.g. naming an SVG-with-embedded-script
+// "cover.jpg" but setting type: "image/jpeg" wouldn't help if we blindly
+// passed that along; validating the extension and setting our own
+// Content-Type means storage always serves what we intended, not what the
+// client claimed).
+const RESOURCE_FILE_TYPES: Record<string, string> = {
+  pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+};
+const IMAGE_FILE_TYPES: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  webp: "image/webp",
+};
+
+const RESOURCE_FILE_MAX_BYTES = 15 * 1024 * 1024;
+const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const AVATAR_MAX_BYTES = 3 * 1024 * 1024;
+
+function validateFile(
+  file: File,
+  allowedTypes: Record<string, string>,
+  maxBytes: number,
+): { error: string } | { ext: string; contentType: string } {
+  const ext = file.name.split(".").pop()?.toLowerCase();
+  const contentType = ext ? allowedTypes[ext] : undefined;
+  if (!ext || !contentType) {
+    return {
+      error: `Unsupported file type — allowed: ${Object.keys(allowedTypes).join(", ")}`,
+    };
+  }
+  if (file.size > maxBytes) {
+    return {
+      error: `File is too large — max ${Math.floor(maxBytes / (1024 * 1024))}MB`,
+    };
+  }
+  return { ext, contentType };
+}
+
 export async function uploadResourceFile(
   file: File,
 ): Promise<ActionResult<{ fileUrl: string }>> {
@@ -12,13 +58,15 @@ export async function uploadResourceFile(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Log in to upload files" };
 
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${crypto.randomUUID()}.${fileExt}`;
+  const validated = validateFile(file, RESOURCE_FILE_TYPES, RESOURCE_FILE_MAX_BYTES);
+  if ("error" in validated) return { success: false, error: validated.error };
+
+  const fileName = `${crypto.randomUUID()}.${validated.ext}`;
   const filePath = `${user.id}/${fileName}`;
 
   const { error } = await supabase.storage
     .from("resources")
-    .upload(filePath, file);
+    .upload(filePath, file, { contentType: validated.contentType });
   if (error) return { success: false, error: error.message };
 
   const { data: urlData } = supabase.storage
@@ -36,13 +84,15 @@ export async function uploadArticleCoverImage(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Log in to upload files" };
 
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${crypto.randomUUID()}.${fileExt}`;
+  const validated = validateFile(file, IMAGE_FILE_TYPES, IMAGE_MAX_BYTES);
+  if ("error" in validated) return { success: false, error: validated.error };
+
+  const fileName = `${crypto.randomUUID()}.${validated.ext}`;
   const filePath = `${user.id}/${fileName}`;
 
   const { error } = await supabase.storage
     .from("article-covers")
-    .upload(filePath, file);
+    .upload(filePath, file, { contentType: validated.contentType });
   if (error) return { success: false, error: error.message };
 
   const { data: urlData } = supabase.storage
@@ -60,12 +110,17 @@ export async function uploadAvatar(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not logged in" };
 
-  const fileExt = file.name.split(".").pop();
-  const filePath = `${user.id}/avatar.${fileExt}`; // fixed filename — overwrites old avatar automatically
+  const validated = validateFile(file, IMAGE_FILE_TYPES, AVATAR_MAX_BYTES);
+  if ("error" in validated) return { success: false, error: validated.error };
+
+  const filePath = `${user.id}/avatar.${validated.ext}`; // fixed filename — overwrites old avatar automatically
 
   const { error: uploadError } = await supabase.storage
     .from("avatars")
-    .upload(filePath, file, { upsert: true });
+    .upload(filePath, file, {
+      upsert: true,
+      contentType: validated.contentType,
+    });
 
   if (uploadError) return { success: false, error: uploadError.message };
 

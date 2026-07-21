@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import FilterDropdown from "./drop-down";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   TrendingUp,
   Dot,
@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import type { Discussion, UserProfile } from "@/app/lib/types";
 import type { TopContributor } from "@/app/lib/actions/profile";
+import {
+  getDiscussionsPage,
+  type DiscussionSort,
+} from "@/app/lib/actions/discussions";
 import Panel, { typeTags } from "./discussion-panel";
 import { SubjectTags, YEAR_OPTIONS } from "../pills";
 import { initialsFor } from "@/app/lib/initials";
@@ -19,17 +23,26 @@ import { initialsFor } from "@/app/lib/initials";
 const optionsSubject = ["All Subjects", ...Object.keys(SubjectTags)];
 const opttionsType = ["All Types", ...Object.keys(typeTags)];
 const optionsYear = ["Any Year", ...YEAR_OPTIONS];
+const PAGE_SIZE = 6;
+const SORT_MAP: Record<string, DiscussionSort> = {
+  Newest: "newest",
+  Hot: "hot",
+};
 
 const DIPLOMA_PRO_THRESHOLD = 1000;
 
 type Props = {
-  data: Discussion[];
+  initialItems: Discussion[];
+  initialTotalCount: number;
+  trending: Discussion[];
   currentUserProfile: UserProfile | null;
   topContributors: TopContributor[];
 };
 
 export default function CommunityPage({
-  data,
+  initialItems,
+  initialTotalCount,
+  trending,
   currentUserProfile,
   topContributors,
 }: Props) {
@@ -37,32 +50,29 @@ export default function CommunityPage({
   const [selectedT, setSelectedT] = useState(opttionsType[0]);
   const [selectedY, setSelectedY] = useState(optionsYear[0]);
   const [order, setOrder] = useState("Newest");
-  const [num, setNum] = useState("1");
+  const [num, setNum] = useState(1);
+
+  const [items, setItems] = useState(initialItems);
+  const [totalCount, setTotalCount] = useState(initialTotalCount);
+  const [loading, setLoading] = useState(false);
+
   const handleClickS = (selectedS: string) => {
     setSelectedS(selectedS);
-    setNum("1");
+    setNum(1);
   };
   const handleClickT = (selectedS: string) => {
     setSelectedT(selectedS);
-    setNum("1");
+    setNum(1);
   };
   const handleClickY = (selectedS: string) => {
     setSelectedY(selectedS);
-    setNum("1");
+    setNum(1);
   };
   const newest = order == "Newest";
   const Hot = order == "Hot";
 
-  function hotScore(discussion: Discussion) {
-    const hours =
-      (new Date().getTime() - new Date(discussion.created_at).getTime()) /
-      (1000 * 60 * 60 * 24);
-    return (
-      discussion.like_count + discussion.reply_count / Math.pow(hours + 2, 1.5)
-    );
-  }
-
-  const trending = [...data].sort((a, b) => hotScore(b) - hotScore(a));
+  // "Trending This Week" looks at the top hot discussions board-wide,
+  // independent of whatever filters/sort/page the main list below is on.
   const actual = trending.filter(
     (discussion) => discussion.type_tag != "Resource",
   );
@@ -70,37 +80,50 @@ export default function CommunityPage({
     (discussion) => discussion.type_tag == "Resource",
   );
 
-  const filteredS = data.filter((discussion) => {
-    if (selectedS == optionsSubject[0]) return true;
-    return discussion.subject_tag === selectedS;
-  });
-  const filteredT = filteredS.filter((discussion) => {
-    if (selectedT == opttionsType[0]) return true;
-    return discussion.type_tag === selectedT;
-  });
-  const filteredY = filteredT.filter((discussion) => {
-    if (selectedY == optionsYear[0]) return true;
-    return discussion.year_tag === selectedY;
-  });
+  const isFirstRender = useRef(true);
 
-  const filtered = newest
-    ? [...filteredY].sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      )
-    : [...filteredY].sort((a, b) => hotScore(b) - hotScore(a));
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
 
-  const currentItems = filtered.slice((+num - 1) * 6, +num * 6);
-  const numButtons = Math.ceil(filtered.length / 6);
+    let cancelled = false;
+
+    async function fetchPage() {
+      setLoading(true);
+      const result = await getDiscussionsPage({
+        subject: selectedS === optionsSubject[0] ? undefined : selectedS,
+        type: selectedT === opttionsType[0] ? undefined : selectedT,
+        year: selectedY === optionsYear[0] ? undefined : selectedY,
+        sort: SORT_MAP[order],
+        page: num,
+        pageSize: PAGE_SIZE,
+      });
+      if (cancelled) return;
+      if (result.success) {
+        setItems(result.data.items);
+        setTotalCount(result.data.totalCount);
+      }
+      setLoading(false);
+    }
+
+    fetchPage();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedS, selectedT, selectedY, order, num]);
+
+  const numButtons = Math.ceil(totalCount / PAGE_SIZE);
   const buttons: React.ReactNode[] = [];
   for (let i = 1; i <= numButtons; i++) {
-    const isActive = +num === i;
-    const showPage = i <= 3 || i === numButtons || Math.abs(i - +num) <= 1;
+    const isActive = num === i;
+    const showPage = i <= 3 || i === numButtons || Math.abs(i - num) <= 1;
 
     if (showPage) {
       buttons.push(
         <button
-          onClick={() => setNum(`${i}`)}
+          onClick={() => setNum(i)}
           className={`border-1 border-outline-variant h-10 w-9 items-center rounded cursor-pointer ${isActive ? "bg-primary text-on-primary" : "hover:bg-surface-container-high transition"}`}
           key={i}
         >
@@ -108,8 +131,8 @@ export default function CommunityPage({
         </button>,
       );
     } else if (
-      (i === 4 && +num > 4) ||
-      (i === numButtons - 1 && Math.abs(i - +num) > 1)
+      (i === 4 && num > 4) ||
+      (i === numButtons - 1 && Math.abs(i - num) > 1)
     ) {
       buttons.push(<h1 key={`ellipsis-${i}`}>...</h1>);
     }
@@ -151,7 +174,7 @@ export default function CommunityPage({
                 setSelectedS(optionsSubject[0]);
                 setSelectedT(opttionsType[0]);
                 setSelectedY(optionsYear[0]);
-                setNum("1");
+                setNum(1);
               }}
             >
               <div className="bg-on-primary-fixed-variant items-center flex justify-center h-10 w-20 self-end rounded-xl  hover:drop-shadow-xl/10">
@@ -217,7 +240,7 @@ export default function CommunityPage({
               <button
                 onClick={() => {
                   setOrder("Newest");
-                  setNum("1");
+                  setNum(1);
                 }}
               >
                 <h1
@@ -229,7 +252,7 @@ export default function CommunityPage({
               <button
                 onClick={() => {
                   setOrder("Hot");
-                  setNum("1");
+                  setNum(1);
                 }}
               >
                 <h1
@@ -242,13 +265,15 @@ export default function CommunityPage({
           </div>
         </div>
 
-        <div className="flex flex-col gap-margin">
-          {currentItems.map((discussion) => (
+        <div
+          className={`flex flex-col gap-margin transition-opacity ${loading ? "opacity-50" : ""}`}
+        >
+          {items.map((discussion) => (
             <div key={discussion.id}>
               <Panel discussion={discussion} />
             </div>
           ))}
-          {filtered.length === 0 && (
+          {!loading && items.length === 0 && (
             <p className="text-on-surface-variant text-body-md">
               No discussions match these filters yet.
             </p>
@@ -259,7 +284,7 @@ export default function CommunityPage({
           <div className="flex flex-row gap-sm items-center justify-content-center place-content-center">
             <button
               onClick={() => {
-                if (+num !== 1) setNum(`${+num - 1}`);
+                if (num !== 1) setNum(num - 1);
               }}
             >
               <div className="p-sm rounded border-outline-variant border-1 h-10 hover:bg-surface-container-high transition cursor-pointer">
@@ -269,7 +294,7 @@ export default function CommunityPage({
             {buttons.map((button) => button)}
             <button
               onClick={() => {
-                if (+num < numButtons) setNum(`${+num + 1}`);
+                if (num < numButtons) setNum(num + 1);
               }}
             >
               <div className="p-sm rounded border-outline-variant border-1 h-10 hover:bg-surface-container-high transition cursor-pointer">

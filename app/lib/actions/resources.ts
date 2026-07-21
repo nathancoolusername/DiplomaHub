@@ -5,11 +5,60 @@ import { createAdminClient } from "../supabase/admin";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "../admin";
 import { createNotification } from "./notifications";
+import { requireField, optionalField, requireOneOf } from "../validation";
+import { checkRateLimit } from "../ratelimit";
+import { SubjectTags, ResourceTypeTag, YEAR_OPTIONS } from "@/components/pills";
 import type { ActionResult, Resource } from "../types";
 
 // Notify the resource owner once total downloads first cross one of these
 // thresholds, rather than on every single download.
 const DOWNLOAD_MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
+
+const SUBJECT_OPTIONS = Object.keys(SubjectTags);
+const RESOURCE_TYPE_OPTIONS = Object.keys(ResourceTypeTag);
+
+function validateResourceFields(formData: FormData) {
+  const title = requireField(formData.get("title"), "Title", 200);
+  if ("error" in title) return title;
+
+  const description = optionalField(
+    formData.get("description"),
+    "Description",
+    3000,
+  );
+  if ("error" in description) return description;
+
+  const subject_tag = requireOneOf(
+    formData.get("subject_tag"),
+    "Subject",
+    SUBJECT_OPTIONS,
+  );
+  if ("error" in subject_tag) return subject_tag;
+
+  const type_tag = requireOneOf(
+    formData.get("type_tag"),
+    "Type",
+    RESOURCE_TYPE_OPTIONS,
+  );
+  if ("error" in type_tag) return type_tag;
+
+  const year_tag = requireOneOf(formData.get("year_tag"), "Year", YEAR_OPTIONS);
+  if ("error" in year_tag) return year_tag;
+
+  const file_url = requireField(formData.get("file_url"), "File", 2000);
+  if ("error" in file_url) return file_url;
+
+  return {
+    value: {
+      title: title.value,
+      description: description.value,
+      subject_tag: subject_tag.value,
+      type_tag: type_tag.value,
+      year_tag: year_tag.value,
+      file_url: file_url.value,
+    },
+  };
+}
 
 export async function createResource(
   formData: FormData,
@@ -20,17 +69,12 @@ export async function createResource(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not logged in" };
 
+  const fields = validateResourceFields(formData);
+  if ("error" in fields) return { success: false, error: fields.error };
+
   const { data, error } = await supabase
     .from("resources")
-    .insert({
-      title: formData.get("title") as string,
-      description: formData.get("description") as string,
-      subject_tag: formData.get("subject_tag") as string,
-      type_tag: formData.get("type_tag") as string,
-      year_tag: formData.get("year_tag") as string,
-      file_url: formData.get("file_url") as string,
-      author_id: user.id,
-    })
+    .insert({ ...fields.value, author_id: user.id })
     .select()
     .single();
 
@@ -78,16 +122,12 @@ export async function updateResource(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not logged in" };
 
+  const fields = validateResourceFields(formData);
+  if ("error" in fields) return { success: false, error: fields.error };
+
   let query = supabase
     .from("resources")
-    .update({
-      title: formData.get("title") as string,
-      description: formData.get("description") as string,
-      subject_tag: formData.get("subject_tag") as string,
-      type_tag: formData.get("type_tag") as string,
-      year_tag: formData.get("year_tag") as string,
-      file_url: formData.get("file_url") as string,
-    })
+    .update(fields.value)
     .eq("id", resourceId);
 
   if (!isAdmin(user.id)) {
@@ -211,6 +251,9 @@ export async function downloadResource(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Log in to download resources" };
 
+  const rateLimit = await checkRateLimit("download", user.id);
+  if (!rateLimit.allowed) return { success: false, error: rateLimit.error };
+
   const admin = createAdminClient();
 
   const { data: resource, error: fetchError } = await admin
@@ -245,6 +288,107 @@ export async function downloadResource(
 
   revalidatePath("/resources");
   return { success: true, data: { fileUrl: resource.file_url } };
+}
+
+export type ResourceSort =
+  | "newest"
+  | "oldest"
+  | "most_downloaded"
+  | "most_liked";
+
+// Filters/sorts/paginates in the query itself (via .range()) instead of
+// fetching every published resource and slicing client-side — used by the
+// /resources grid, which needs real pagination as the table grows.
+export async function getResourcesPage(filters: {
+  subject?: string;
+  type?: string;
+  year?: string;
+  sort?: ResourceSort;
+  page?: number;
+  pageSize?: number;
+}): Promise<ActionResult<{ items: Resource[]; totalCount: number }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const pageSize =
+    filters.pageSize && filters.pageSize > 0 ? filters.pageSize : 6;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase
+    .from("resources")
+    .select(
+      `
+      *,
+      author:users(display_name, is_pro, ib_year, avatar_url)
+    `,
+      { count: "exact" },
+    )
+    .eq("published", true);
+
+  if (filters.subject) query = query.eq("subject_tag", filters.subject);
+  if (filters.type) query = query.eq("type_tag", filters.type);
+  if (filters.year) query = query.eq("year_tag", filters.year);
+
+  switch (filters.sort) {
+    case "oldest":
+      query = query.order("created_at", { ascending: true });
+      break;
+    case "most_downloaded":
+      query = query.order("download_count", { ascending: false });
+      break;
+    case "most_liked":
+      query = query.order("like_count", { ascending: false });
+      break;
+    default:
+      query = query.order("created_at", { ascending: false });
+  }
+
+  const { data: resources, error, count } = await query.range(from, to);
+  if (error) return { success: false, error: error.message };
+
+  if (!user) {
+    return {
+      success: true,
+      data: {
+        items: resources.map((r) => ({ ...r, isLiked: false, isSaved: false })),
+        totalCount: count ?? 0,
+      },
+    };
+  }
+
+  const resourceIds = resources.map((r) => r.id);
+
+  const [{ data: likes }, { data: saves }] = await Promise.all([
+    supabase
+      .from("likes")
+      .select("resource_id")
+      .eq("user_id", user.id)
+      .in("resource_id", resourceIds),
+    supabase
+      .from("saved_items")
+      .select("resource_id")
+      .eq("user_id", user.id)
+      .in("resource_id", resourceIds),
+  ]);
+
+  const likedIds = new Set(likes?.map((l) => l.resource_id));
+  const savedIds = new Set(saves?.map((s) => s.resource_id));
+
+  return {
+    success: true,
+    data: {
+      items: resources.map((r) => ({
+        ...r,
+        isLiked: likedIds.has(r.id),
+        isSaved: savedIds.has(r.id),
+      })),
+      totalCount: count ?? 0,
+    },
+  };
 }
 
 // lib/actions/resources.ts

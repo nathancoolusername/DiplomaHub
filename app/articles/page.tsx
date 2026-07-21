@@ -2,18 +2,16 @@ import { Pencil } from "lucide-react";
 import Link from "next/link";
 import Button from "../../components/button";
 import ArticleGrid from "../../components/articles/article-grid";
-import { getArticlesWithUserState } from "@/app/lib/actions/articles";
+import { getArticlesPage } from "@/app/lib/actions/articles";
 
 export default async function Articles() {
-  const result = await getArticlesWithUserState();
+  const result = await getArticlesPage({});
 
   if (!result.success) {
     return (
       <p className="text-red-500">Failed to load articles: {result.error}</p>
     );
   }
-
-  const data = result.data.map((a) => ({ ...a, subject_tag: a.topic }));
 
   return (
     <div className="flex flex-col bg-surface-bright px-margin py-lg gap-margin">
@@ -37,7 +35,10 @@ export default async function Articles() {
         </Link>
       </div>
 
-      <ArticleGrid data={data} />
+      <ArticleGrid
+        initialItems={result.data.items}
+        initialTotalCount={result.data.totalCount}
+      />
     </div>
   );
 }
