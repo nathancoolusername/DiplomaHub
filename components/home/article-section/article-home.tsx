@@ -20,7 +20,7 @@ export default function ResourceHome({ data }: Props) {
             Featured Resources
           </h1>
           <h1 className="text-on-surface-variant text-body-lg">
-            Handpicked expertise from the IB community's top contributors.
+            Handpicked expertise from the IB community&apos;s top contributors.
           </h1>
         </div>
         <div className="flex flex-row gap-sm">

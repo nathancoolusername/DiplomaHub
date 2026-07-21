@@ -3,6 +3,7 @@
 import { createClient } from "../supabase/server";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "./notifications";
+import { checkRateLimit } from "../ratelimit";
 import type { ActionResult } from "../types";
 
 type LikeTarget =
@@ -85,6 +86,9 @@ export async function toggleLike(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not logged in" };
+
+  const rateLimit = await checkRateLimit("toggle", user.id);
+  if (!rateLimit.allowed) return { success: false, error: rateLimit.error };
 
   const { data: existing } = await supabase
     .from("likes")

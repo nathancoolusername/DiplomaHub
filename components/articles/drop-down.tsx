@@ -10,7 +10,7 @@ export default function SortDropdown({
   placeholder = "Select",
 }: {
   selected: string;
-  handleClick: Function;
+  handleClick: (value: string) => void;
   options: string[];
   placeholder?: string;
 }) {

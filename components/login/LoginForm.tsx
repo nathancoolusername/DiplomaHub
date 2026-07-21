@@ -70,6 +70,12 @@ export default function LoginForm() {
                 />
               </button>
             </div>
+            <Link
+              href="/forgot-password"
+              className="text-primary hover:underline text-label-md"
+            >
+              Forgot password?
+            </Link>
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}

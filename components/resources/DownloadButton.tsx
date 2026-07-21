@@ -1,7 +1,6 @@
 // components/DownloadButton.tsx
 "use client";
 import { Download, ExternalLink } from "lucide-react";
-import Button from "../button";
 import { useState } from "react";
 import { downloadResource } from "@/app/lib/actions/resources";
 

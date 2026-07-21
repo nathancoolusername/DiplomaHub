@@ -10,13 +10,24 @@ import type {
   Discussion,
 } from "@/app/lib/types";
 
+type ProfileComment = {
+  id: string;
+  user_id: string;
+  resource_id: string | null;
+  article_id: string | null;
+  content: string;
+  created_at: string;
+  resource: { title: string } | { title: string }[] | null;
+  article: { title: string; slug: string } | { title: string; slug: string }[] | null;
+};
+
 export async function getPublicProfile(userId: string): Promise<
   ActionResult<{
     user: UserProfile;
     articles: Article[];
     resources: Resource[];
     discussions: Discussion[];
-    commentsWritten: any[];
+    commentsWritten: ProfileComment[];
     totalLikes: number;
     total_downloads: number;
     drafts: Article[] | null;
@@ -156,38 +167,11 @@ export async function getPublicProfile(userId: string): Promise<
     isSaved: savedDiscussionIds.has(d.id),
   }));
 
-  const [
-    { count: articleComments },
-    { count: resourceComments },
-    { count: discussionReplies },
-    { data: commentsWritten },
-  ] = await Promise.all([
-    articleIds.length
-      ? supabase
-          .from("comments")
-          .select("*", { count: "exact", head: true })
-          .in("article_id", articleIds)
-      : Promise.resolve({ count: 0 }),
-    resourceIds.length
-      ? supabase
-          .from("comments")
-          .select("*", { count: "exact", head: true })
-          .in("resource_id", resourceIds)
-      : Promise.resolve({ count: 0 }),
-    discussionIds.length
-      ? supabase
-          .from("discussion_replies")
-          .select("*", { count: "exact", head: true })
-          .in("discussion_id", discussionIds)
-      : Promise.resolve({ count: 0 }),
-    supabase
-      .from("comments")
-      .select("*, resource:resources(title), article:articles(title, slug)")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false }),
-  ]);
-  const commentsReceived =
-    (articleComments ?? 0) + (resourceComments ?? 0) + (discussionReplies ?? 0);
+  const { data: commentsWritten } = await supabase
+    .from("comments")
+    .select("*, resource:resources(title), article:articles(title, slug)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
 
   const totalLikes =
     articles.reduce((sum, a) => sum + a.like_count, 0) +

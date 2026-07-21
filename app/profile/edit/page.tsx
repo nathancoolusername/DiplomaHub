@@ -16,7 +16,7 @@ export default async function ProfilePage() {
   const emailConfirmed = !!user.email_confirmed_at;
 
   return (
-    <div className="space-y-6 bg-surface-container px-[600px] h-full py-20">
+    <div className="space-y-6 bg-surface-container max-w-[600px] mx-auto px-md h-full py-20">
       <h1 className="text-display-lg font-serif font-semibold">Your profile</h1>
 
       {!emailConfirmed && (

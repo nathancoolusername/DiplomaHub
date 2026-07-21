@@ -1,4 +1,4 @@
-import { GraduationCap, ChevronRight, ChevronLeft } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import ResourceHome from "../components/home/article-section/article-home";
 import Trending from "../components/home/trending";
 import Image from "next/image";

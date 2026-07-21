@@ -200,7 +200,7 @@ export default async function Roadmap() {
             </h1>
             <h1 className="text-on-primary text-body-lg">
               DiplomaHub is built by the community. Share your ideas for new
-              features or tools you'd love to see.
+              features or tools you&apos;d love to see.
             </h1>
             <Link href="/feedback">
               <button className="py-sm px-lg bg-surface-container-lowest text-primary rounded-xl text-body-lg cursor-pointer hover:border-primary">

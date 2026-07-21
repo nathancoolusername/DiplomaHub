@@ -10,7 +10,7 @@ export default function FilterDropdown({
 }: {
   options: string[];
   selected: string;
-  handleClick: Function;
+  handleClick: (value: string) => void;
 }) {
   const optionL = options.length > 4;
   const [isOpen, setIsOpen] = useState(false);

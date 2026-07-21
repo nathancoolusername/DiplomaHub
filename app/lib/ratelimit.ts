@@ -23,9 +23,10 @@ function makeLimiter(requests: number, window: `${number} ${"s" | "m" | "h"}`) {
 }
 
 const LIMITERS = {
-  auth: makeLimiter(5, "1 m"), // signup/login attempts
+  auth: makeLimiter(5, "1 m"), // signup/login/password-reset attempts
   write: makeLimiter(10, "1 m"), // comments/discussions/replies/feedback
   download: makeLimiter(30, "1 m"), // resource downloads
+  toggle: makeLimiter(60, "1 m"), // like/save — higher limit, legitimately clicked a lot while browsing
 };
 
 export type RateLimitKind = keyof typeof LIMITERS;

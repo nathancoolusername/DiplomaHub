@@ -17,7 +17,7 @@ export function LikeButton({
   path,
   className,
   activeColor,
-  size,
+  size = 36,
 }: {
   target: LikeTarget;
   initiallyLiked: boolean;
@@ -70,7 +70,7 @@ export function LikeButton({
       }
       style={liked ? { color: activeColor ?? "#f50707" } : undefined}
     >
-      <Heart size={36} fill={liked ? "currentColor" : "none"} />
+      <Heart size={size} fill={liked ? "currentColor" : "none"} />
       <h1 className="text-body-lg ml-sm mr-sm">{displayCount}</h1>
     </button>
   );
