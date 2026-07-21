@@ -6,15 +6,46 @@ import Link from "next/link";
 import { getResourcesWithUserState } from "@/app/lib/actions/resources";
 import { getDiscussions } from "@/app/lib/actions/discussions";
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ error_code?: string }>;
+}) {
   const resourcesResult = await getResourcesWithUserState({ limit: 6 });
   const resources = resourcesResult.success ? resourcesResult.data : [];
 
   const discussionsResult = await getDiscussions();
   const discussions = discussionsResult.success ? discussionsResult.data : [];
 
+  // Supabase redirects here (not to our /auth routes) when an email link's
+  // OTP is invalid/expired — e.g. the recovery or signup-confirmation link
+  // sat unused past its expiry window, or an email security scanner
+  // pre-opened the link and silently burned the single-use token before the
+  // real click. Can't tell which of the two flows it was from the error
+  // alone, so point at both.
+  const { error_code } = await searchParams;
+  const linkExpired = error_code === "otp_expired";
+
   return (
     <div className="flex flex-col">
+      {linkExpired && (
+        <div className="bg-amber-50 border-b border-amber-200 px-md py-md text-center">
+          <p className="text-sm text-amber-800">
+            That link expired or was already used.{" "}
+            <Link
+              href="/forgot-password"
+              className="underline font-semibold"
+            >
+              Request a new password reset
+            </Link>
+            , or if you were confirming your email, resend it from your{" "}
+            <Link href="/profile/edit" className="underline font-semibold">
+              profile
+            </Link>
+            .
+          </p>
+        </div>
+      )}
       <div className="bg-surface-container-low min-h-[500px] md:h-[700px] flex flex-col items-center justify-content-center place-content-center px-md py-20">
         <div className="text-primary bg-surface-container-lowest p-sm flex flex-row gap-sm">
           <GraduationCap />
