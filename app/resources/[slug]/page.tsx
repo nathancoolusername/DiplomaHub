@@ -240,9 +240,11 @@ export default async function resourcePage({
               {resource.author.display_name} has contributed resources to the
               IBPeople community.
             </h1>
-            <button className="bg-surface-variant-lowest text-primary border-1 border-primary py-sm hover:bg-surface-container cursor-pointer">
-              View Full Profile
-            </button>
+            <Link href={`/profile/${resource.author_id}`}>
+              <button className="w-full bg-surface-variant-lowest text-primary border-1 border-primary py-sm hover:bg-surface-container cursor-pointer">
+                View Full Profile
+              </button>
+            </Link>
           </div>
 
           <div className="h-60 w-full bg-on-primary-fixed p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
