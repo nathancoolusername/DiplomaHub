@@ -21,8 +21,16 @@ export default function SignupPage() {
   };
 
   async function handleSubmit(formData: FormData) {
-    setLoading(true);
     setError(null);
+
+    const password = formData.get("password") as string;
+    const confirm = formData.get("confirm_password") as string;
+    if (password !== confirm) {
+      setError("Passwords don't match");
+      return;
+    }
+
+    setLoading(true);
     const result = await signUp(formData);
     if (result && !result.success) {
       setError(result.error);
@@ -69,7 +77,7 @@ export default function SignupPage() {
                 type={type}
                 required
                 minLength={6}
-                className="w-full border rounded-lg px-3 py-2"
+                className="flex-1 min-w-0 border rounded-lg px-3 py-2"
               />
               <button type="button" onClick={handleToggle}>
                 <Eye
@@ -77,6 +85,18 @@ export default function SignupPage() {
                 />
               </button>
             </div>
+          </div>
+          <div>
+            <label className="block text-body-lg font-bold mb-1">
+              Confirm password
+            </label>
+            <input
+              name="confirm_password"
+              type={type}
+              required
+              minLength={6}
+              className="w-full border rounded-lg px-3 py-2"
+            />
           </div>
           <div>
             <label className="block text-body-lg font-bold mb-1">

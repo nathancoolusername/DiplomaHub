@@ -46,12 +46,22 @@ export default function LoginForm() {
             <label className="block text-body-lg font-medium mb-1">
               Email Adress
             </label>
-            <input
-              name="email"
-              type="email"
-              required
-              className="w-full border rounded-lg px-3 py-2"
-            />
+            <div className="flex flex-row gap-sm">
+              <input
+                name="email"
+                type="email"
+                required
+                className="flex-1 min-w-0 border rounded-lg px-3 py-2"
+              />
+              <button
+                type="button"
+                className="invisible"
+                tabIndex={-1}
+                aria-hidden="true"
+              >
+                <Eye />
+              </button>
+            </div>
           </div>
           <div>
             <label className="block text-body-lg font-medium mb-1">
@@ -62,7 +72,7 @@ export default function LoginForm() {
                 name="password"
                 type={type}
                 required
-                className="w-full border rounded-lg px-3 py-2"
+                className="flex-1 min-w-0 border rounded-lg px-3 py-2"
               />
               <button type="button" onClick={handleToggle}>
                 <Eye
