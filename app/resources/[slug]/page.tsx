@@ -117,174 +117,178 @@ export default async function resourcePage({
     <>
       <JsonLd data={resourceJsonLd} />
       <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
-      <Breadcrumb
-        parentLabel="Resources"
-        parentHref="/resources"
-        currentLabel={resource.subject_tag}
-        currentClassName="text-secondary"
-      />
-      <div className="flex flex-col lg:flex-row gap-margin">
-        <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant lg:basis-2/3 gap-lg">
-          <div className="flex flex-row justify-between">
-            <div>
-              {SubjectTags[resource.subject_tag]}{" "}
-              {ResourceTypeTag[resource.type_tag]}
-            </div>{" "}
-            <FileText size={30} />{" "}
-          </div>
-
-          <h1 className={`font-serif text-display-lg font-bold`}>
-            {resource.title}
-          </h1>
-
-          <div className="border-b-1 border-outline-variant flex flex-row flex-wrap gap-y-md pb-md gap-20">
-            <div className="flex flex-row items-center gap-sm">
-              <Avatar
-                src={resource.author.avatar_url}
-                name={resource.author.display_name}
-                size={40}
-              />
-              <div className="flex flex-col">
-                <p className="text-body-lg">{resource.author.display_name}</p>
-                <p className="text-label-md text-on-surface-variant">
-                  {resource.author.ib_year}
-                </p>
-              </div>
+        <Breadcrumb
+          parentLabel="Resources"
+          parentHref="/resources"
+          currentLabel={resource.subject_tag}
+          currentClassName="text-secondary"
+        />
+        <div className="flex flex-col lg:flex-row gap-margin">
+          <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant lg:basis-2/3 gap-lg">
+            <div className="flex flex-row justify-between">
+              <div>
+                {SubjectTags[resource.subject_tag]}{" "}
+                {ResourceTypeTag[resource.type_tag]}
+              </div>{" "}
+              <FileText size={30} />{" "}
             </div>
-            <div className="flex flex-col gap-sm">
-              <p className="text-body-lg">Uploaded</p>
+
+            <h1 className={`font-serif text-display-lg font-bold`}>
+              {resource.title}
+            </h1>
+
+            <div className="border-b-1 border-outline-variant flex flex-row flex-wrap gap-y-md pb-md gap-20">
               <div className="flex flex-row items-center gap-sm">
-                <Calendar />
-                <p>{final}</p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-sm">
-              <p className="text-body-lg">Downloads</p>
-              <p className="text-label-md text-on-surface-variant">
-                {final_view}
-              </p>
-            </div>
-            <div className="flex flex-col gap-sm">
-              <p className="text-body-lg">Likes</p>
-              <p className="text-label-md text-on-surface-variant">
-                {final_like}
-              </p>
-            </div>
-          </div>
-          <div className="pb-10 border-b-1 border-outline-variant flex flex-col gap-lg mt-md">
-            <h2 className="font-serif text-headline-lg font-bold">Abstract</h2>
-            <p className="text-on-surface-variant text-body-lg">
-              {resource.description}
-            </p>
-            <div className="flex flex-row flex-wrap p-margin rounded-xl bg-surface-container-low border-1 border-outline-variant gap-lg">
-              <FileText size={100} />
-              <div className="flex flex-col gap-lg self-start">
+                <Avatar
+                  src={resource.author.avatar_url}
+                  name={resource.author.display_name}
+                  size={40}
+                />
                 <div className="flex flex-col">
-                  <p className="font-bold">
-                    {isExternalLink
-                      ? (linkHostname ?? "External Link")
-                      : `Resource ${fileExtension ?? "File"}`}
+                  <p className="text-body-lg">{resource.author.display_name}</p>
+                  <p className="text-label-md text-on-surface-variant">
+                    {resource.author.ib_year}
                   </p>
                 </div>
-                <div className="ml-auto text-primary flex flex-row flex-wrap items-center">
-                  <DownloadButton
-                    resourceId={resource.id}
-                    fileName={resource.title}
-                    isExternalLink={isExternalLink}
-                  />
-                  <LikeButton
-                    target={{ resource_id: resource.id }}
-                    initiallyLiked={resource.isLiked ?? false}
-                    initialCount={resource.like_count}
-                    path={`/resources/${resource.id}`}
-                    size={30}
-                    className="text-on-surface-variant transition hover:text-[#f50707] hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1 flex flex-row items-center"
-                    activeColor="#f50707"
-                  />
-                  <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row  items-center ">
-                    <SaveButton
-                      target={{ resource_id: resource.id }}
-                      initiallySaved={resource.isSaved ?? false}
-                      path={`/resources/${resource.id}`}
-                      size={36}
-                      className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
-                    />
-                    <ShareButton
-                      size={46}
-                      className="rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
-                    />
+              </div>
+              <div className="flex flex-col gap-sm">
+                <p className="text-body-lg">Uploaded</p>
+                <div className="flex flex-row items-center gap-sm">
+                  <Calendar />
+                  <p>{final}</p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-sm">
+                <p className="text-body-lg">Downloads</p>
+                <p className="text-label-md text-on-surface-variant">
+                  {final_view}
+                </p>
+              </div>
+              <div className="flex flex-col gap-sm">
+                <p className="text-body-lg">Likes</p>
+                <p className="text-label-md text-on-surface-variant">
+                  {final_like}
+                </p>
+              </div>
+            </div>
+            <div className="pb-10 border-b-1 border-outline-variant flex flex-col gap-lg mt-md">
+              <h2 className="font-serif text-headline-lg font-bold">
+                Abstract
+              </h2>
+              <p className="text-on-surface-variant text-body-lg">
+                {resource.description}
+              </p>
+              <div className="flex flex-row flex-wrap p-margin rounded-xl bg-surface-container-low border-1 border-outline-variant gap-lg">
+                <FileText size={100} />
+                <div className="flex flex-col gap-lg self-start">
+                  <div className="flex flex-col">
+                    <p className="font-bold">
+                      {isExternalLink
+                        ? (linkHostname ?? "External Link")
+                        : `Resource ${fileExtension ?? "File"}`}
+                    </p>
                   </div>
-                  {isOwner && (
-                    <Link href={`/resources/${resource.id}/edit`}>
-                      <div className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer">
-                        <Pencil size={30} />
-                      </div>
-                    </Link>
-                  )}
-                  {isOwner && <DeleteResourceButton resourceId={resource.id} />}
+                  <div className="ml-auto text-primary flex flex-row flex-wrap items-center">
+                    <DownloadButton
+                      resourceId={resource.id}
+                      fileName={resource.title}
+                      isExternalLink={isExternalLink}
+                    />
+                    <LikeButton
+                      target={{ resource_id: resource.id }}
+                      initiallyLiked={resource.isLiked ?? false}
+                      initialCount={resource.like_count}
+                      path={`/resources/${resource.id}`}
+                      size={30}
+                      className="text-on-surface-variant transition hover:text-[#f50707] hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1 flex flex-row items-center"
+                      activeColor="#f50707"
+                    />
+                    <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row  items-center ">
+                      <SaveButton
+                        target={{ resource_id: resource.id }}
+                        initiallySaved={resource.isSaved ?? false}
+                        path={`/resources/${resource.id}`}
+                        size={36}
+                        className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
+                      />
+                      <ShareButton
+                        size={36}
+                        className="rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
+                      />
+                    </div>
+                    {isOwner && (
+                      <Link href={`/resources/${resource.id}/edit`}>
+                        <div className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer">
+                          <Pencil size={30} />
+                        </div>
+                      </Link>
+                    )}
+                    {isOwner && (
+                      <DeleteResourceButton resourceId={resource.id} />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
+
+            <Comments
+              kind="comment"
+              target={{ resource_id: resource.id }}
+              initialItems={comments}
+              path={`/resources/${resource.id}`}
+              isLoggedIn={!!currentUser}
+              currentUserId={currentUser?.id ?? null}
+            />
           </div>
 
-          <Comments
-            kind="comment"
-            target={{ resource_id: resource.id }}
-            initialItems={comments}
-            path={`/resources/${resource.id}`}
-            isLoggedIn={!!currentUser}
-            currentUserId={currentUser?.id ?? null}
-          />
-        </div>
-
-        <div className="lg:basis-1/3 flex flex-col gap-margin">
-          <div className="h-65 w-full bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-            <h2 className="text-body-lg uppercase text-primary">
-              About the Author
-            </h2>
-            <div className="flex flex-row items-center gap-md">
-              <Avatar
-                src={resource.author.avatar_url}
-                name={resource.author.display_name}
-                size={50}
-              />
-              <div className="flex flex-col">
-                <p className="text-headline-lg font-serif">
-                  {resource.author.display_name}
-                </p>
-                <p className="text-body-md text-primary">
-                  {resource.author.ib_year}
-                </p>
+          <div className="lg:basis-1/3 flex flex-col gap-margin">
+            <div className="h-65 w-full bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-md">
+              <h2 className="text-body-lg uppercase text-primary">
+                About the Author
+              </h2>
+              <div className="flex flex-row items-center gap-md">
+                <Avatar
+                  src={resource.author.avatar_url}
+                  name={resource.author.display_name}
+                  size={50}
+                />
+                <div className="flex flex-col">
+                  <p className="text-headline-lg font-serif">
+                    {resource.author.display_name}
+                  </p>
+                  <p className="text-body-md text-primary">
+                    {resource.author.ib_year}
+                  </p>
+                </div>
               </div>
-            </div>
-            <p className="text-body-md text-on-surface-variant">
-              {resource.author.display_name} has contributed resources to the
-              IBPeople community.
-            </p>
-            <Link href={`/profile/${resource.author_id}`}>
-              <button className="w-full bg-surface-variant-lowest text-primary border-1 border-primary py-sm hover:bg-surface-container cursor-pointer">
-                View Full Profile
-              </button>
-            </Link>
-          </div>
-
-          <div className="h-60 w-full bg-on-primary-fixed p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-            <h2 className="font-serif text-headline-md text-surface-container">
-              Community Trust
-            </h2>
-            <div className="flex flex-row justify-between">
-              <p className="text-body-lg text-on-primary border-b-1 pb-5 border-outline-variant">
-                Obtained from author activity and user engagement.
+              <p className="text-body-md text-on-surface-variant">
+                {resource.author.display_name} has contributed resources to the
+                IBPeople community.
               </p>
-              <BadgeCheck className="text-secondary-container" size={50} />
+              <Link href={`/profile/${resource.author_id}`}>
+                <button className="w-full bg-surface-variant-lowest text-primary border-1 border-primary py-sm hover:bg-surface-container cursor-pointer">
+                  View Full Profile
+                </button>
+              </Link>
             </div>
-            <p className="text-display-lg mt-1 text-on-primary self-center">
-              {resource.community_trust}%
-            </p>
+
+            <div className="h-60 w-full bg-on-primary-fixed p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
+              <h2 className="font-serif text-headline-md text-surface-container">
+                Community Trust
+              </h2>
+              <div className="flex flex-row justify-between">
+                <p className="text-body-lg text-on-primary border-b-1 pb-5 border-outline-variant">
+                  Obtained from author activity and user engagement.
+                </p>
+                <BadgeCheck className="text-secondary-container" size={50} />
+              </div>
+              <p className="text-display-lg mt-1 text-on-primary self-center">
+                {resource.community_trust}%
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 }
