@@ -1,6 +1,5 @@
 "use client";
 
-import { uploadResourceFile } from "@/app/lib/actions/upload";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -14,6 +13,13 @@ import {
   Link2,
 } from "lucide-react";
 import { createResource, updateResource } from "@/app/lib/actions/resources";
+import { createClient } from "@/app/lib/supabase/client";
+import { Spinner } from "@/components/spinner";
+import {
+  validateFile,
+  RESOURCE_FILE_TYPES,
+  RESOURCE_FILE_MAX_BYTES,
+} from "@/app/lib/uploadValidation";
 import { useState, useRef, ChangeEvent, DragEvent, MouseEvent } from "react";
 import SortDropdown from "@/components/articles/drop-down";
 import { SubjectTags, ResourceTypeTag, YEAR_OPTIONS } from "@/components/pills";
@@ -113,13 +119,37 @@ export default function UploadResourceForm({
       }
       fileUrl = linkUrl;
     } else if (file) {
-      const uploadResult = await uploadResourceFile(file);
-      if (!uploadResult.success) {
-        setError(uploadResult.error);
+      const validated = validateFile(file, RESOURCE_FILE_TYPES, RESOURCE_FILE_MAX_BYTES);
+      if ("error" in validated) {
+        setError(validated.error);
         setStatus("error");
         return;
       }
-      fileUrl = uploadResult.data.fileUrl;
+
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setError("Log in to upload files");
+        setStatus("error");
+        return;
+      }
+
+      const filePath = `${user.id}/${crypto.randomUUID()}.${validated.ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("resources")
+        .upload(filePath, file, { contentType: validated.contentType });
+      if (uploadError) {
+        setError(uploadError.message);
+        setStatus("error");
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("resources")
+        .getPublicUrl(filePath);
+      fileUrl = urlData.publicUrl;
     }
 
     formData.set("file_url", fileUrl);
@@ -334,8 +364,9 @@ export default function UploadResourceForm({
             <button
               type="submit"
               disabled={status === "uploading"}
-              className="bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer px-lg py-sm disabled:opacity-50"
+              className="bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer px-lg py-sm disabled:opacity-50 inline-flex items-center gap-sm"
             >
+              {status === "uploading" && <Spinner size={16} />}
               {status === "uploading"
                 ? "Saving..."
                 : isEditing
