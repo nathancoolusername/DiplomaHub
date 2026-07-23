@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { submitFeedback } from "@/app/lib/actions/feedback";
+import { Spinner } from "@/components/spinner";
 
 export default function FeedbackPage() {
   const [content, setContent] = useState("");
@@ -53,8 +54,9 @@ export default function FeedbackPage() {
             <button
               type="submit"
               disabled={loading}
-              className="bg-primary text-on-primary rounded-lg py-sm font-semibold cursor-pointer hover:opacity-90 transition disabled:opacity-50"
+              className="bg-primary text-on-primary rounded-lg py-sm font-semibold cursor-pointer hover:opacity-90 transition disabled:opacity-50 inline-flex items-center justify-center gap-sm"
             >
+              {loading && <Spinner size={16} />}
               {loading ? "Submitting..." : "Submit Feedback"}
             </button>
           </form>
