@@ -2,6 +2,7 @@ import { Trash2 } from "lucide-react";
 import { ibYearTitleTag } from "../pills";
 import { LikeButton } from "../likeButton";
 import { Avatar } from "../avatar";
+import { Spinner } from "../spinner";
 import { formatRelativeTime } from "@/app/lib/relativeTime";
 
 type Author = {
@@ -24,6 +25,7 @@ type Props = {
   author?: Author;
   like?: LikeProps;
   canDelete?: boolean;
+  deleting?: boolean;
   onDelete?: () => void;
 };
 
@@ -33,6 +35,7 @@ export default function Comment({
   author,
   like,
   canDelete,
+  deleting,
   onDelete,
 }: Props) {
   return (
@@ -63,10 +66,11 @@ export default function Comment({
               {canDelete && (
                 <button
                   onClick={onDelete}
-                  className="text-on-surface-variant transition hover:text-red-500 cursor-pointer"
+                  disabled={deleting}
+                  className="text-on-surface-variant transition hover:text-red-500 cursor-pointer disabled:opacity-50"
                   aria-label="Delete"
                 >
-                  <Trash2 size={18} />
+                  {deleting ? <Spinner size={18} /> : <Trash2 size={18} />}
                 </button>
               )}
             </div>

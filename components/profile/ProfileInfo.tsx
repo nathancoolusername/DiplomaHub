@@ -58,11 +58,19 @@ export default function ProfileInfo({
   profileUserId: string;
 }) {
   const router = useRouter();
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
+    null,
+  );
 
   async function handleDeleteComment(commentId: string) {
     if (!confirm("Delete this comment?")) return;
+    setDeletingCommentId(commentId);
     const result = await deleteComment(commentId, `/profile/${profileUserId}`);
-    if (result.success) router.refresh();
+    if (result.success) {
+      router.refresh();
+    } else {
+      setDeletingCommentId(null);
+    }
   }
 
   const final_like =
@@ -284,6 +292,7 @@ export default function ProfileInfo({
                     createdAt={comment.created_at}
                     author={author}
                     canDelete={self}
+                    deleting={deletingCommentId === comment.id}
                     onDelete={() => handleDeleteComment(comment.id)}
                   />
                 </div>

@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { deleteFeedback, type AdminFeedbackRow } from "@/app/lib/actions/admin";
 import { formatRelativeTime } from "@/app/lib/relativeTime";
+import { Spinner } from "@/components/spinner";
 
 export function FeedbackTable({ feedback }: { feedback: AdminFeedbackRow[] }) {
   const [items, setItems] = useState(feedback);
   const [search, setSearch] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const query = search.toLowerCase();
   const filtered = items.filter(
@@ -17,11 +19,13 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedbackRow[] }) {
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this feedback?")) return;
+    setDeletingId(id);
     const result = await deleteFeedback(id);
     if (result.success) {
       setItems((prev) => prev.filter((f) => f.id !== id));
     } else {
       alert(result.error);
+      setDeletingId(null);
     }
   }
 
@@ -54,8 +58,10 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedbackRow[] }) {
                 </h1>
                 <button
                   onClick={() => handleDelete(f.id)}
-                  className="text-red-500 font-semibold cursor-pointer hover:underline"
+                  disabled={deletingId === f.id}
+                  className="text-red-500 font-semibold cursor-pointer hover:underline disabled:opacity-50 disabled:no-underline inline-flex items-center gap-xs"
                 >
+                  {deletingId === f.id && <Spinner size={14} />}
                   Delete
                 </button>
               </div>

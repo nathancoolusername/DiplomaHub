@@ -11,6 +11,7 @@ import {
 import SortDropdown from "@/components/articles/drop-down";
 import { SubjectTags, YEAR_OPTIONS } from "@/components/pills";
 import { typeTags } from "./discussion-panel";
+import { Spinner } from "@/components/spinner";
 
 type SubmitStatus = "idle" | "saving" | "error";
 
@@ -177,8 +178,9 @@ export default function WriteDiscussionForm({
           <button
             type="submit"
             disabled={status === "saving"}
-            className="bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer px-lg py-sm disabled:opacity-50"
+            className="bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer px-lg py-sm disabled:opacity-50 inline-flex items-center gap-sm"
           >
+            {status === "saving" && <Spinner size={16} />}
             {status === "saving"
               ? "Saving..."
               : isEditing

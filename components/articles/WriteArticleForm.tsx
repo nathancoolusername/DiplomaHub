@@ -24,6 +24,7 @@ import { createArticle, updateArticle } from "@/app/lib/actions/articles";
 import { uploadArticleCoverImage } from "@/app/lib/actions/upload";
 import SortDropdown from "@/components/articles/drop-down";
 import { SubjectTags } from "@/components/pills";
+import { Spinner } from "@/components/spinner";
 
 type SubmitStatus = "idle" | "saving" | "error";
 
@@ -363,8 +364,9 @@ export default function WriteArticleForm({
                 name="intent"
                 value="draft"
                 disabled={status === "saving"}
-                className="bg-surface-variant-lowest text-primary border-1 border-primary rounded-lg px-lg py-sm hover:bg-surface-container transition cursor-pointer disabled:opacity-50"
+                className="bg-surface-variant-lowest text-primary border-1 border-primary rounded-lg px-lg py-sm hover:bg-surface-container transition cursor-pointer disabled:opacity-50 inline-flex items-center gap-sm"
               >
+                {status === "saving" && <Spinner size={16} />}
                 {status === "saving" ? "Saving..." : "Save Draft"}
               </button>
               <button
@@ -372,8 +374,9 @@ export default function WriteArticleForm({
                 name="intent"
                 value="publish"
                 disabled={status === "saving"}
-                className="bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer px-lg py-sm disabled:opacity-50"
+                className="bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer px-lg py-sm disabled:opacity-50 inline-flex items-center gap-sm"
               >
+                {status === "saving" && <Spinner size={16} />}
                 {status === "saving" ? "Publishing..." : "Publish"}
               </button>
             </div>
