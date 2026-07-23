@@ -181,10 +181,10 @@ export default function UploadResourceForm({
           <h1 className="text-primary font-serif text-display-lg font-bold">
             {isEditing ? "Edit Your Resource" : "Share your Knowledge"}
           </h1>
-          <h1 className="text-on-surface-variant text-body-md mb-5">
+          <p className="text-on-surface-variant text-body-md mb-5">
             Contribute to the IB community with high-quality resources. All
             submissions will be reviewed for academic integrity.
-          </h1>
+          </p>
           <form action={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
@@ -372,43 +372,43 @@ export default function UploadResourceForm({
           <div className="w-full bg-surface-container-lowest p-lg  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
             <div className="flex flex-row gap-sm items-center">
               <Verified fill="#002c98" className="text-on-primary" size={40} />
-              <h1 className="text-primary font-bold uppercase text-headline-md">
+              <h2 className="text-primary font-bold uppercase text-headline-md">
                 Upload Guidelines
-              </h1>
+              </h2>
             </div>
             <div className="flex flex-row items-center gap-sm">
               <div className="flex flex-col gap-sm">
                 <div className="flex flex-row gap-sm items-center">
                   <ShieldCheck className="text-primary" />
-                  <h1 className="font-semibold text-body-md">
+                  <h3 className="font-semibold text-body-md">
                     Academic Integrity
-                  </h1>
+                  </h3>
                 </div>
-                <h1 className="text-label-lg text-on-surface-variant pl-8 mb-5">
+                <p className="text-label-lg text-on-surface-variant pl-8 mb-5">
                   Do not upload copyrighted materials, official IB exam papers,
                   or work that is not yours.
-                </h1>
+                </p>
                 <div className="flex flex-col gap-sm">
                   <div className="flex flex-row gap-sm items-center">
                     <Hd className="text-primary" />
-                    <h1 className="font-semibold text-body-md">File Quality</h1>
+                    <h3 className="font-semibold text-body-md">File Quality</h3>
                   </div>
-                  <h1 className="text-label-lg text-on-surface-variant pl-8 mb-5">
+                  <p className="text-label-lg text-on-surface-variant pl-8 mb-5">
                     Do not upload copyrighted materials, official IB exam
                     papers, or work that is not yours.
-                  </h1>
+                  </p>
                 </div>
                 <div className="flex flex-col gap-sm">
                   <div className="flex flex-row gap-sm items-center">
                     <Hd className="text-primary" />
-                    <h1 className="font-semibold text-body-md">
+                    <h3 className="font-semibold text-body-md">
                       Original Work
-                    </h1>
+                    </h3>
                   </div>
-                  <h1 className="text-label-lg text-on-surface-variant pl-8 mb-5">
+                  <p className="text-label-lg text-on-surface-variant pl-8 mb-5">
                     Contributions should be your own summaries, notes, diagrams,
                     helpful study aids...
-                  </h1>
+                  </p>
                 </div>
               </div>
             </div>

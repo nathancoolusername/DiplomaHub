@@ -66,12 +66,12 @@ export default function Panel({
               </h3>
             </div>
             <div>
-              <h1 className="text-on-surface-variant text-body-sm">
+              <p className="text-on-surface-variant text-body-sm">
                 {article.excerpt ??
                   (article.content
                     ? `${stripHtml(article.content).slice(0, 140)}…`
                     : "")}
-              </h1>
+              </p>
             </div>
           </div>
         </Link>
@@ -83,9 +83,9 @@ export default function Panel({
               size={36}
             />
             <div className="flex flex-col">
-              <h1 className="text-body-md">
+              <p className="text-body-md">
                 {article.author?.display_name ?? article.author?.name}
-              </h1>
+              </p>
               {article.author?.is_pro && (
                 <DiplomaProBadge className="text-on-primary-fixed-variant font-bold text-label-sm" />
               )}
@@ -99,9 +99,9 @@ export default function Panel({
               path="/articles"
             />
             <Eye />
-            <h1 className="text-on-surface-variant text-body-lg ml-sm">
+            <p className="text-on-surface-variant text-body-lg ml-sm">
               {article.view_count}
-            </h1>
+            </p>
             <SaveButton
               target={{ article_id: String(article.id) }}
               initiallySaved={article.isSaved ?? false}

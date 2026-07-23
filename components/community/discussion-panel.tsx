@@ -62,9 +62,9 @@ export default function Panel({ discussion, href }: Props) {
             />
             <div className="flex flex-col min-w-0">
               <div className="flex flex-row flex-wrap gap-sm items-center">
-                <h1 className="text-body-md font-bold break-words">
+                <p className="text-body-md font-bold break-words">
                   {discussion.author?.display_name ?? discussion.author?.name}
-                </h1>
+                </p>
                 <div className="flex flex-row gap-sm">
                   {ibYearTitleTag(discussion.author?.ib_year)}
                   {discussion.author?.is_pro && (
@@ -73,35 +73,35 @@ export default function Panel({ discussion, href }: Props) {
                 </div>
               </div>
               <div className="flex flex-row flex-wrap gap-sm items-center">
-                <h1 className="text-on-surface-variant text-label-md">
+                <p className="text-on-surface-variant text-label-md">
                   Posted {finalTime} in{" "}
-                </h1>{" "}
-                <h1 className="text-on-primary-fixed-variant">
+                </p>{" "}
+                <p className="text-on-primary-fixed-variant">
                   {discussion.subject_tag}
-                </h1>
+                </p>
               </div>
             </div>
           </div>
-          <h1
+          <p
             className={`shrink-0 ${discussion.type_tag ? typeTags[discussion.type_tag] : ""}`}
           >
             {discussion.type_tag}
-          </h1>
+          </p>
         </div>
 
         <div>
           <h3 className="text-headline-md font-serif">{discussion.title}</h3>
         </div>
 
-        <h1 className="text-on-surface-variant text-body-lg">
+        <p className="text-on-surface-variant text-body-lg">
           {discussion.content}
-        </h1>
+        </p>
 
         {discussion.top_reply && (
           <div className="flex flex-row gap-md bg-surface-container-low py-md px-sm rounded-xl items-center">
-            <h1 className="italic text-on-surface-variant text-body-sm">
+            <p className="italic text-on-surface-variant text-body-sm">
               &ldquo;{discussion.top_reply}&rdquo;
-            </h1>
+            </p>
           </div>
         )}
       </Link>
@@ -117,9 +117,9 @@ export default function Panel({ discussion, href }: Props) {
           <div className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl">
             <MessageSquare />
           </div>
-          <h1 className="text-on-surface-variant text-body-lg ml-sm">
+          <p className="text-on-surface-variant text-body-lg ml-sm">
             {discussion.reply_count}
-          </h1>
+          </p>
         </div>
         <SaveButton
           target={{ discussion_id: String(discussion.id) }}

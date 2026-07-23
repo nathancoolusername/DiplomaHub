@@ -185,10 +185,10 @@ export default function WriteArticleForm({
           <h1 className="text-primary font-serif text-display-lg font-bold">
             {isEditing ? "Continue Your Draft" : "Share Your Expertise"}
           </h1>
-          <h1 className="text-on-surface-variant text-body-md mb-5">
+          <p className="text-on-surface-variant text-body-md mb-5">
             Contribute to the IB community with well-researched insights and
             practical advice.
-          </h1>
+          </p>
           <form action={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
@@ -378,43 +378,43 @@ export default function WriteArticleForm({
 
         <div className="lg:basis-1/3 flex flex-col gap-margin">
           <div className="w-full bg-surface-container-lowest p-md border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-            <h1 className="font-serif text-headline-lg font-bold text-primary">
+            <h2 className="font-serif text-headline-lg font-bold text-primary">
               Submission Guidelines
-            </h1>
+            </h2>
             <div className="flex flex-row gap-sm">
               <CircleCheck className="text-primary shrink-0" size={22} />
               <div className="flex flex-col">
-                <h1 className="text-body-md font-bold">Academic Honesty</h1>
-                <h1 className="text-label-md text-on-surface-variant">
+                <h3 className="text-body-md font-bold">Academic Honesty</h3>
+                <p className="text-label-md text-on-surface-variant">
                   Ensure all work is original and respects IB academic
                   integrity standards.
-                </h1>
+                </p>
               </div>
             </div>
             <div className="flex flex-row gap-sm">
               <CircleCheck className="text-primary shrink-0" size={22} />
               <div className="flex flex-col">
-                <h1 className="text-body-md font-bold">Cite Your Sources</h1>
-                <h1 className="text-label-md text-on-surface-variant">
+                <h3 className="text-body-md font-bold">Cite Your Sources</h3>
+                <p className="text-label-md text-on-surface-variant">
                   Use standard citation formats for any external research or
                   data mentioned.
-                </h1>
+                </p>
               </div>
             </div>
             <div className="flex flex-row gap-sm">
               <CircleCheck className="text-primary shrink-0" size={22} />
               <div className="flex flex-col">
-                <h1 className="text-body-md font-bold">Clarity & Tone</h1>
-                <h1 className="text-label-md text-on-surface-variant">
+                <h3 className="text-body-md font-bold">Clarity & Tone</h3>
+                <p className="text-label-md text-on-surface-variant">
                   Maintain a professional, scholarly, and supportive tone for
                   fellow students.
-                </h1>
+                </p>
               </div>
             </div>
-            <h1 className="text-label-md text-on-surface-variant border-t-1 border-outline-variant pt-md">
+            <p className="text-label-md text-on-surface-variant border-t-1 border-outline-variant pt-md">
               Draft articles are only visible to you. Publishing makes an
               article visible to the whole community immediately.
-            </h1>
+            </p>
           </div>
         </div>
       </div>
