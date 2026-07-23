@@ -1,6 +1,6 @@
 // app/signup/page.tsx
 "use client";
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { signUp } from "../auth/actions";
 import { Eye } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -39,13 +39,18 @@ export default function SignupPage() {
     }
   }
 
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    handleSubmit(new FormData(e.currentTarget));
+  }
+
   return (
     <div className="py-20 px-md bg-surface-container h-full flex flex-col gap-margin items-center">
       <div className="w-full max-w-140 flex flex-col gap-gutter bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant">
         <Logo size="lg" prefix="Join " />
         <h1 className="text-headline-lg font-semibold font-serif">Sign up</h1>
 
-        <form action={handleSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="block text-body-lg font-bold mb-1">
               Display name

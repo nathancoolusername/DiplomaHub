@@ -19,7 +19,14 @@ import {
   RESOURCE_FILE_TYPES,
   RESOURCE_FILE_MAX_BYTES,
 } from "@/app/lib/uploadValidation";
-import { useState, useRef, ChangeEvent, DragEvent, MouseEvent } from "react";
+import {
+  useState,
+  useRef,
+  ChangeEvent,
+  DragEvent,
+  MouseEvent,
+  FormEvent,
+} from "react";
 import SortDropdown from "@/components/articles/drop-down";
 import { SubjectTags, ResourceTypeTag, YEAR_OPTIONS } from "@/components/pills";
 
@@ -169,6 +176,16 @@ export default function UploadResourceForm({
     router.push("/resources");
   }
 
+  // A plain function passed to <form action={fn}> runs inside a React
+  // transition, which can skip painting intermediate states (like the
+  // "uploading" spinner) entirely if the whole submit resolves quickly —
+  // onSubmit + preventDefault uses a normal event handler instead, so
+  // setStatus("uploading") is guaranteed to flush before the network call.
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    handleSubmit(new FormData(e.currentTarget));
+  }
+
   return (
     <div className="flex flex-col px-md md:px-10 xl:px-45 py-10 gap-gutter bg-surface-container-low">
       <Breadcrumb
@@ -185,7 +202,7 @@ export default function UploadResourceForm({
             Contribute to the IB community with high-quality resources. All
             submissions will be reviewed for academic integrity.
           </p>
-          <form action={handleSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
             <div>
               <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
                 Resource Title

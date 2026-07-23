@@ -1,7 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, ChangeEvent, DragEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  ChangeEvent,
+  DragEvent,
+  FormEvent,
+} from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TiptapLink from "@tiptap/extension-link";
@@ -173,6 +181,21 @@ export default function WriteArticleForm({
     router.push("/articles");
   }
 
+  // A plain function passed to <form action={fn}> runs inside a React
+  // transition, which can skip painting intermediate states (like the
+  // "saving" spinner) entirely if the whole submit resolves quickly —
+  // onSubmit + preventDefault uses a normal event handler instead, so
+  // setStatus("saving") is guaranteed to flush before the network calls.
+  // FormData's second arg preserves which button (Save Draft vs Publish)
+  // triggered the submit, same as native form submission would.
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as
+      | HTMLElement
+      | undefined;
+    handleSubmit(new FormData(e.currentTarget, submitter));
+  }
+
   return (
     <div className="flex flex-col px-md md:px-10 xl:px-45 py-10 gap-gutter bg-surface-container-low">
       <Breadcrumb
@@ -189,7 +212,7 @@ export default function WriteArticleForm({
             Contribute to the IB community with well-researched insights and
             practical advice.
           </p>
-          <form action={handleSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
             <div>
               <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
                 Article Title

@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { signIn, signInWithGoogle } from "@/app/auth/actions";
 import { Eye } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -33,13 +33,18 @@ export default function LoginForm() {
     }
   }
 
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    handleSubmit(new FormData(e.currentTarget));
+  }
+
   return (
     <div className="w-full justify-content-center items-center py-20 px-md bg-surface-container h-full flex flex-col gap-margin">
       <Logo size="lg" />
       <div className="bg-surface-container-lowest p-margin border-1 border-outline-variant rounded-xl flex flex-col gap-margin w-full max-w-120">
         <h1 className="text-headline-lg font-semibold font-serif">Log in</h1>
 
-        <form action={handleSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="block text-body-lg font-medium mb-1">
               Email Adress

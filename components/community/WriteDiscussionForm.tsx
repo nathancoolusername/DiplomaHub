@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import {
   createDiscussion,
   updateDiscussion,
@@ -89,6 +89,16 @@ export default function WriteDiscussionForm({
     router.push("/community");
   }
 
+  // A plain function passed to <form action={fn}> runs inside a React
+  // transition, which can skip painting intermediate states (like the
+  // "saving" spinner) entirely if the whole submit resolves quickly —
+  // onSubmit + preventDefault uses a normal event handler instead, so
+  // setStatus("saving") is guaranteed to flush before the network call.
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    handleSubmit(new FormData(e.currentTarget));
+  }
+
   return (
     <div className="flex flex-col px-md md:px-10 xl:px-45 py-10 gap-gutter bg-surface-container-low">
       <Breadcrumb
@@ -103,7 +113,7 @@ export default function WriteDiscussionForm({
         <p className="text-on-surface-variant text-body-md mb-5">
           Ask a question, share an idea, or get help from the IB community.
         </p>
-        <form action={handleSubmit} className="space-y-4 max-w-2xl">
+        <form onSubmit={onSubmit} className="space-y-4 max-w-2xl">
           <div>
             <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
               Title

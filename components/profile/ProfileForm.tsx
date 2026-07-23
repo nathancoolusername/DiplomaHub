@@ -1,7 +1,7 @@
 // components/ProfileForm.tsx
 "use client";
 
-import { useRef, useState, type ChangeEvent } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Camera } from "lucide-react";
@@ -56,9 +56,14 @@ export function ProfileForm({
     router.push(`/profile/${profile.id}`);
   }
 
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    handleSubmit(new FormData(e.currentTarget));
+  }
+
   return (
     <form
-      action={handleSubmit}
+      onSubmit={onSubmit}
       className="space-y-4 flex flex-col gap-margin h-full py-margin px-gutter bg-surface-container-lowest border-1 border-outline-variant rounded-xl"
     >
       <div className="flex flex-col items-center gap-sm">
