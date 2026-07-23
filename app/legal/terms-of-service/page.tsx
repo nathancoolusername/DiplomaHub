@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+};
+
 export default function TermsOfService() {
   return (
     <div className="flex flex-col gap-lg max-w-[800px] mx-auto px-margin py-[60px]">

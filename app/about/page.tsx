@@ -1,5 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getCurrentUser } from "@/app/lib/get-current-user";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "DiplomaHub's mission is to help IB students never navigate the Diploma Programme alone — meet the team behind it.",
+};
 
 export default async function About() {
   const user = await getCurrentUser();

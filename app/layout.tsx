@@ -7,9 +7,33 @@ import Footer from "@/components/Footer";
 import ScrollTopBtn from "@/components/scrollTop";
 import { Suspense } from "react";
 
+const description =
+  "The community platform for IB Diploma Programme students, alumni, and educators. Share resources, discuss coursework, and navigate the IB journey together.";
+
 export const metadata: Metadata = {
-  title: "DiplomaHub",
-  description: "Where IB students never graduate alone.",
+  // www is the canonical domain — apex 308-redirects to it (see
+  // PROJECT_CONTEXT.md's "Deployment & Google OAuth verification" section).
+  // Lets Next resolve relative OG image URLs and canonical links.
+  metadataBase: new URL("https://www.diplomahub.org"),
+  title: {
+    default: "DiplomaHub — Where IB students never graduate alone",
+    // Pages that set their own `title` (e.g. "Resources") get it appended
+    // automatically: "Resources | DiplomaHub".
+    template: "%s | DiplomaHub",
+  },
+  description,
+  // No description set here on purpose — Next.js falls back to the
+  // page-resolved `description` (root default or whatever a page's own
+  // `generateMetadata`/`metadata` sets) as long as openGraph/twitter don't
+  // pin their own value, which setting one here would override site-wide.
+  openGraph: {
+    siteName: "DiplomaHub",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary",
+  },
 };
 
 export const viewport: Viewport = {

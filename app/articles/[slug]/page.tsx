@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getArticle } from "@/app/lib/actions/articles";
+import { stripHtml } from "@/app/lib/stripHtml";
 import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
@@ -28,6 +30,22 @@ const months = [
   "Nov",
   "Dec",
 ];
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const result = await getArticle(slug);
+  if (!result.success) return {};
+
+  const { title, content } = result.data;
+  return {
+    title,
+    description: stripHtml(content).slice(0, 160),
+  };
+}
 
 export default async function ArticlePage({
   params,

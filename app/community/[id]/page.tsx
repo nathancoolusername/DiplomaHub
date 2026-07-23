@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getDiscussion } from "@/app/lib/actions/discussions";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
@@ -12,6 +13,22 @@ import { SaveButton } from "@/components/saveButton";
 import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
 import { formatRelativeTime } from "@/app/lib/relativeTime";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const result = await getDiscussion(id);
+  if (!result.success) return {};
+
+  const { title, content } = result.data.discussion;
+  return {
+    title,
+    description: content.slice(0, 160),
+  };
+}
 
 export default async function DiscussionPage({
   params,

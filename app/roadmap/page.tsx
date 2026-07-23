@@ -8,8 +8,15 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getRoadmapItems } from "@/app/lib/actions/roadmap";
 import type { RoadmapItem, RoadmapStatus } from "@/app/lib/types";
+
+export const metadata: Metadata = {
+  title: "Roadmap",
+  description:
+    "See what we're building next for DiplomaHub and share your own ideas for the platform.",
+};
 
 // Description/tags/release-label copy stays static here — only status and
 // completion_percentage are admin-editable (see /admin/roadmap), since those

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getResourceDetail } from "@/app/lib/actions/resources";
 import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUser } from "@/app/lib/get-current-user";
@@ -34,6 +35,22 @@ const months = [
   "Nov",
   "Dec",
 ];
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const result = await getResourceDetail(slug);
+  if (!result.success) return {};
+
+  const { title, description } = result.data;
+  return {
+    title,
+    description: description || `${title} — a resource shared on DiplomaHub.`,
+  };
+}
 
 export default async function resourcePage({
   params,

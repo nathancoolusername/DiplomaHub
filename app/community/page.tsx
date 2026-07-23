@@ -1,4 +1,5 @@
 import { Users } from "lucide-react";
+import type { Metadata } from "next";
 import CommunityPage from "@/components/community/community";
 import {
   getDiscussionsPage,
@@ -7,6 +8,12 @@ import {
 import { getTopContributors } from "@/app/lib/actions/profile";
 import { getCurrentUserProfile } from "@/app/lib/get-current-user";
 import { createClient } from "@/app/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Community",
+  description:
+    "Discuss coursework, ask questions, and connect with IB students and educators worldwide.",
+};
 
 export default async function Community() {
   const [result, trendingResult, currentUserProfile, contributorsResult] =

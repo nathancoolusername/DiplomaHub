@@ -1,8 +1,15 @@
 import { Upload } from "lucide-react";
+import type { Metadata } from "next";
 import Button from "../../components/button";
 import ResourceGrid from "@/components/resources/resources-grid";
 import { getResourcesPage } from "../lib/actions/resources";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Resources",
+  description:
+    "Practical IB materials, exemplars, revision guides, and past-paper tips curated by the IB community.",
+};
 
 export default async function ResourcesPage() {
   const result = await getResourcesPage({ sort: "most_downloaded" });
