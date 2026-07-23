@@ -100,9 +100,9 @@ export default function WriteDiscussionForm({
         <h1 className="text-primary font-serif text-display-lg font-bold">
           {isEditing ? "Edit Your Discussion" : "Start a Discussion"}
         </h1>
-        <h1 className="text-on-surface-variant text-body-md mb-5">
+        <p className="text-on-surface-variant text-body-md mb-5">
           Ask a question, share an idea, or get help from the IB community.
-        </h1>
+        </p>
         <form action={handleSubmit} className="space-y-4 max-w-2xl">
           <div>
             <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">

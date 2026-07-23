@@ -42,6 +42,7 @@ export default function SignupPage() {
     <div className="py-20 px-md bg-surface-container h-full flex flex-col gap-margin items-center">
       <div className="w-full max-w-140 flex flex-col gap-gutter bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant">
         <Logo size="lg" prefix="Join " />
+        <h1 className="text-headline-lg font-semibold font-serif">Sign up</h1>
 
         <form action={handleSubmit} className="space-y-4">
           <div>

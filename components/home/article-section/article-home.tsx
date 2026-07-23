@@ -16,12 +16,12 @@ export default function ResourceHome({ data }: Props) {
     <div className="bg-surface-container-lowest min-h-fit md:h-[730px] flex flex-col px-lg py-lg md:py-0 place-content-center gap-15">
       <div className="mb-lg flex flex-col sm:flex-row justify-between gap-md">
         <div>
-          <h1 className="text-headline-lg font-serif font-bold">
+          <h2 className="text-headline-lg font-serif font-bold">
             Featured Resources
-          </h1>
-          <h1 className="text-on-surface-variant text-body-lg">
+          </h2>
+          <p className="text-on-surface-variant text-body-lg">
             Handpicked expertise from the IB community&apos;s top contributors.
-          </h1>
+          </p>
         </div>
         <div className="flex flex-row gap-sm">
           <button

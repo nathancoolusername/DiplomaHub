@@ -81,15 +81,15 @@ export default async function ProfilePage({
             <div className="flex flex-row flex-wrap gap-md justify-center md:justify-start">
               <div className="flex flex-row gap-sm">
                 <Medal className="text-primary" />
-                <h1 className="text-body-lg text-on-surface-variant font-bold">
+                <p className="text-body-lg text-on-surface-variant font-bold">
                   {user.points} points
-                </h1>
+                </p>
               </div>
               <div className="flex flex-row gap-sm">
                 <Calendar className="text-primary" />
-                <h1 className="text-body-lg text-on-surface-variant font-bold">
+                <p className="text-body-lg text-on-surface-variant font-bold">
                   Joined {final}
-                </h1>
+                </p>
               </div>
             </div>
           </div>
@@ -97,7 +97,7 @@ export default async function ProfilePage({
             {isOwnProfile && (
               <Link href={"/profile/edit"}>
                 <div className="px-lg py-md bg-primary rounded-xl">
-                  <h1 className="text-on-primary text-body-lg">Edit Profile</h1>
+                  <span className="text-on-primary text-body-lg">Edit Profile</span>
                 </div>
               </Link>
             )}

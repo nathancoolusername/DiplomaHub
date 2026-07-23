@@ -10,10 +10,10 @@ export default function Trending({discussions} : {discussions:Discussion[]}) {
     .slice(0, 3)
     return ( <div className='bg-surface-container-low min-h-fit lg:h-[700px] flex flex-col lg:flex-row justify-content-center px-lg py-lg lg:pt-[150px] lg:pb-[100px] gap-gutter'>
       <div className='flex flex-col lg:basis-3/8 px-md gap-lg'>
-        <div className='bg-primary text-on-primary px-sm py-sm rounded text-label-md w-30'><h1>Now Trending</h1></div>
-        <div><h1 className='text-headline-lg font-serif font-bold'>Community Pulse</h1></div>
+        <div className='bg-primary text-on-primary px-sm py-sm rounded text-label-md w-30'><p>Now Trending</p></div>
+        <div><h2 className='text-headline-lg font-serif font-bold'>Community Pulse</h2></div>
         <div>
-          <h1 className="text-on-surface-variant text-body-lg">What the IB community is talking about right now. Real-time updates on discussions, resource drops, and exam prep.</h1>
+          <p className="text-on-surface-variant text-body-lg">What the IB community is talking about right now. Real-time updates on discussions, resource drops, and exam prep.</p>
         </div>
         <div className="flex flex-row gap-sm flex-wrap">
           {shown.map((discussion)=> {
@@ -33,7 +33,7 @@ export default function Trending({discussions} : {discussions:Discussion[]}) {
           </div>
         )}
       })}
-       <Link href={"/community"}><div className="flex flex-row mt- gap-sm cursor-pointer hover:border-b-1 border-primary transition w-67"><h1 className="text-primary font-bold">View all trending discussions</h1> <MoveUpRight /> </div></Link> 
+       <Link href={"/community"}><div className="flex flex-row mt- gap-sm cursor-pointer hover:border-b-1 border-primary transition w-67"><span className="text-primary font-bold">View all trending discussions</span> <MoveUpRight /> </div></Link>
       </div>
     </div>)
 }

@@ -31,10 +31,10 @@ export default function FeedbackPage() {
         <h1 className="text-display-lg font-serif font-bold">
           Submit Feedback
         </h1>
-        <h1 className="text-on-surface-variant text-body-lg">
+        <p className="text-on-surface-variant text-body-lg">
           Got a bug report, feature request, or something you&apos;d love to
           see on DiplomaHub? Let us know below.
-        </h1>
+        </p>
 
         {submitted ? (
           <div className="bg-secondary-container text-secondary rounded-xl p-lg text-body-lg font-semibold">

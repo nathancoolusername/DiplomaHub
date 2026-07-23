@@ -111,7 +111,7 @@ export default function LoginForm() {
           <div className="flex-1 h-px bg-gray-200" />
         </div>
         <div className="flex flex-col gap-sm">
-          <h1 className="text-on-surface-variant">New to the community?</h1>
+          <p className="text-on-surface-variant">New to the community?</p>
           <Link href={"/signup"}>
             <button className="w-full py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 cursor-pointer">
               Sign up

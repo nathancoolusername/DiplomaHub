@@ -49,16 +49,18 @@ export default async function Home({
       <div className="bg-surface-container-low min-h-[500px] md:h-[700px] flex flex-col items-center justify-content-center place-content-center px-md py-20">
         <div className="text-primary bg-surface-container-lowest p-sm flex flex-row gap-sm">
           <GraduationCap />
-          <h1 className="text-body-lg text-primary">
+          <p className="text-body-lg text-primary">
             A RESOURCE FOR THE IB COMMUNITY
-          </h1>
+          </p>
         </div>
         <div className="text-center">
           <h1 className="text-display-lg font-serif font-bold m-md">
-            Diploma<b className="text-primary">Hub</b>,
-          </h1>
-          <h1 className="text-display-lg font-serif font-bold m-md text-primary italic mb-20">
-            where IB students never graduate alone.
+            <span>
+              Diploma<b className="text-primary">Hub</b>,
+            </span>
+            <span className="block text-primary italic mb-20">
+              where IB students never graduate alone.
+            </span>
           </h1>
           <p className="text-on-surface-variant text-body-lg w-full md:w-170 self-center place-self-center">
             The community platform for IB students, alumni, and educators.
@@ -93,10 +95,10 @@ export default async function Home({
             <span className="font-serif text-headline-lg text-on-primary font-bold flex flex-row">
               Want to see more DiplomaHub content?
             </span>
-            <h1 className="text-body-lg text-surface-container-high">
+            <p className="text-body-lg text-surface-container-high">
               Get funny, interesting, and engaging videos delivered straight
               from the founders on Instagram.
-            </h1>
+            </p>
           </div>
           <Link
             href={`https://www.instagram.com/the_diplomahub?igsh=aDhoZmQ5ZnRpeDc5`}

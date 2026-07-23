@@ -86,9 +86,9 @@ export default function Comments(props: Props) {
   return (
     <div className="mt-25 flex flex-col gap-gutter">
       <div className="flex flex-row flex-wrap items-center gap-md">
-        <h1 className="text-headline-lg font-serif font-bold">
+        <h2 className="text-headline-lg font-serif font-bold">
           {kind === "comment" ? "Conversation" : "Community Replies"}
-        </h1>
+        </h2>
         <div className="shrink-0 border-1 border-outline-variant px-sm rounded-xl uppercase text-on-surface-variant">
           {initialItems.length} {noun}
         </div>

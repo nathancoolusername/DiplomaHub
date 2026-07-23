@@ -49,13 +49,13 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedbackRow[] }) {
             className="bg-surface-container-lowest border-1 border-outline-variant rounded-xl p-lg flex flex-col gap-sm"
           >
             <div className="flex flex-row justify-between items-center">
-              <h1 className="font-bold text-body-md text-primary">
+              <p className="font-bold text-body-md text-primary">
                 {f.author_display_name ?? "Anonymous"}
-              </h1>
+              </p>
               <div className="flex flex-row items-center gap-md">
-                <h1 className="text-on-surface-variant text-label-md">
+                <p className="text-on-surface-variant text-label-md">
                   {formatRelativeTime(f.created_at)}
-                </h1>
+                </p>
                 <button
                   onClick={() => handleDelete(f.id)}
                   disabled={deletingId === f.id}
@@ -66,7 +66,7 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedbackRow[] }) {
                 </button>
               </div>
             </div>
-            <h1 className="text-body-lg whitespace-pre-wrap">{f.content}</h1>
+            <p className="text-body-lg whitespace-pre-wrap">{f.content}</p>
           </div>
         ))}
       </div>

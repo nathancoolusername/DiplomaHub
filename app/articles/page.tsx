@@ -28,10 +28,10 @@ export default async function Articles() {
           <h1 className="text-display-lg font-serif font-bold">
             Article Archive
           </h1>
-          <h1 className="text-on-surface-variant text-body-lg w-full md:w-170">
+          <p className="text-on-surface-variant text-body-lg w-full md:w-170">
             A curated collection of articles, guides, and student experiences
             from across the IB community.
-          </h1>
+          </p>
         </div>
         <Link href={"/articles/write"}>
           <Button className="h-12 self-center text-body-lg">

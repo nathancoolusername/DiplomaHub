@@ -81,10 +81,10 @@ function RoadmapRow({ item }: { item: RoadmapItem }) {
               onChange={(e) => setPercentage(Number(e.target.value))}
               className="w-20 border rounded-lg px-sm py-1"
             />
-            <h1 className="text-on-surface-variant">%</h1>
+            <p className="text-on-surface-variant">%</p>
           </div>
         ) : (
-          <h1 className="text-on-surface-variant text-label-md">—</h1>
+          <p className="text-on-surface-variant text-label-md">—</p>
         )}
       </td>
       <td className="p-md">

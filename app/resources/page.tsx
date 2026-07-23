@@ -27,10 +27,10 @@ export default async function ResourcesPage() {
           <h1 className="text-display-lg font-serif font-bold">
             Resources Vault
           </h1>
-          <h1 className="text-on-surface-variant text-body-lg w-full md:w-170">
+          <p className="text-on-surface-variant text-body-lg w-full md:w-170">
             Practical IB materials, exemplars, revision guides, and much more
             curated for the rigorous academic journey.
-          </h1>
+          </p>
         </div>
         <Link href={"/resources/upload"}>
           <Button className="h-12 self-center text-body-lg">
