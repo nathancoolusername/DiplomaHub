@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signUp } from "../auth/actions";
 import { Eye } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { Spinner } from "@/components/spinner";
 
 export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
@@ -118,8 +119,9 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-lg bg-primary cursor-pointer text-white font-medium hover:bg-blue-700 disabled:opacity-50"
+            className="w-full py-2 rounded-lg bg-primary cursor-pointer text-white font-medium hover:bg-blue-700 disabled:opacity-50 inline-flex items-center justify-center gap-sm"
           >
+            {loading && <Spinner size={16} />}
             {loading ? "Creating account..." : "Sign up"}
           </button>
         </form>

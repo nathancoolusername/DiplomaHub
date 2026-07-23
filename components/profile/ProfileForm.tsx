@@ -8,6 +8,7 @@ import { Camera } from "lucide-react";
 import { updateProfile } from "@/app/auth/actions";
 import { uploadAvatar } from "@/app/lib/actions/upload";
 import { initialsFor } from "@/app/lib/initials";
+import { Spinner } from "@/components/spinner";
 import type { UserProfile } from "@/app/lib/types";
 
 export function ProfileForm({
@@ -92,7 +93,9 @@ export function ProfileForm({
           className="hidden"
         />
         {avatarUploading && (
-          <p className="text-sm text-on-surface-variant">Uploading...</p>
+          <p className="text-sm text-on-surface-variant inline-flex items-center gap-sm">
+            <Spinner size={14} /> Uploading...
+          </p>
         )}
         {avatarError && <p className="text-sm text-red-500">{avatarError}</p>}
       </div>
@@ -140,8 +143,9 @@ export function ProfileForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full cursor-pointer py-2 rounded-lg bg-primary text-white font-medium hover:bg-blue-700 disabled:opacity-50"
+        className="w-full cursor-pointer py-2 rounded-lg bg-primary text-white font-medium hover:bg-blue-700 disabled:opacity-50 inline-flex items-center justify-center gap-sm"
       >
+        {loading && <Spinner size={16} />}
         {loading ? "Saving..." : "Save changes"}
       </button>
     </form>
