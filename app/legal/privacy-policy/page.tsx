@@ -1,12 +1,19 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  alternates: { canonical: "/legal/privacy-policy" },
+};
+
 export default function PrivacyPolicy() {
   return (
     <div className="flex flex-col gap-lg max-w-[800px] mx-auto px-margin py-[60px]">
       <h1 className="font-serif text-headline-lg font-bold">
         DiplomaHub Privacy Policy
       </h1>
-      <h1 className="text-on-surface-variant text-body-lg">
+      <p className="text-on-surface-variant text-body-lg">
         Last updated: 07/07/2026
-      </h1>
+      </p>
 
       <p className="text-body-md">
         DiplomaHub (&quot;we,&quot; &quot;us,&quot; &quot;our&quot;)
@@ -17,7 +24,7 @@ export default function PrivacyPolicy() {
       </p>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">1. Who This Applies To</h1>
+        <h2 className="font-bold text-headline-md">1. Who This Applies To</h2>
         <p className="text-body-md">
           DiplomaHub is intended for users 13 years of age or older. If you
           are under the age of majority in your jurisdiction, you confirm
@@ -32,9 +39,9 @@ export default function PrivacyPolicy() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">
+        <h2 className="font-bold text-headline-md">
           2. Information We Collect
-        </h1>
+        </h2>
         <p className="text-body-md font-bold">Information you provide directly:</p>
         <ul className="list-disc pl-lg flex flex-col gap-xs text-body-md">
           <li>Account information (name, email address, password — handled via Supabase Auth)</li>
@@ -61,7 +68,7 @@ export default function PrivacyPolicy() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">3. How We Use Information</h1>
+        <h2 className="font-bold text-headline-md">3. How We Use Information</h2>
         <p className="text-body-md">We use collected information to:</p>
         <ul className="list-disc pl-lg flex flex-col gap-xs text-body-md">
           <li>Create and manage your account</li>
@@ -74,9 +81,9 @@ export default function PrivacyPolicy() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">
+        <h2 className="font-bold text-headline-md">
           4. How Information Is Shared
-        </h1>
+        </h2>
         <ul className="list-disc pl-lg flex flex-col gap-xs text-body-md">
           <li>
             <span className="font-bold">Other users:</span> Your profile,
@@ -100,7 +107,7 @@ export default function PrivacyPolicy() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">5. Data Retention</h1>
+        <h2 className="font-bold text-headline-md">5. Data Retention</h2>
         <p className="text-body-md">
           We retain account and content data for as long as your account is
           active. You may request deletion of your account and associated
@@ -111,9 +118,9 @@ export default function PrivacyPolicy() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">
+        <h2 className="font-bold text-headline-md">
           6. Legal Basis for Processing (GDPR)
-        </h1>
+        </h2>
         <p className="text-body-md">
           DiplomaHub is operated from Germany, and personal data is
           processed in accordance with the EU General Data Protection
@@ -145,9 +152,9 @@ export default function PrivacyPolicy() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">
+        <h2 className="font-bold text-headline-md">
           7. International Users &amp; Data Transfers
-        </h1>
+        </h2>
         <p className="text-body-md">
           DiplomaHub is used by IB students and alumni globally. By using
           the Platform, you understand that your information may be
@@ -161,7 +168,7 @@ export default function PrivacyPolicy() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">8. Your Rights (GDPR)</h1>
+        <h2 className="font-bold text-headline-md">8. Your Rights (GDPR)</h2>
         <p className="text-body-md">
           If you are located in the EEA, UK, or another jurisdiction with
           similar data protection laws, you have the right to:
@@ -205,7 +212,7 @@ export default function PrivacyPolicy() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">9. Your Choices</h1>
+        <h2 className="font-bold text-headline-md">9. Your Choices</h2>
         <ul className="list-disc pl-lg flex flex-col gap-xs text-body-md">
           <li>
             You can access and update most profile information directly in
@@ -220,7 +227,7 @@ export default function PrivacyPolicy() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">10. Contact Us</h1>
+        <h2 className="font-bold text-headline-md">10. Contact Us</h2>
         <p className="text-body-md">
           Questions about this Privacy Policy or your data, or requests to
           exercise your rights under Section 8, can be directed to:{" "}
@@ -234,9 +241,9 @@ export default function PrivacyPolicy() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">
+        <h2 className="font-bold text-headline-md">
           11. Changes to This Policy
-        </h1>
+        </h2>
         <p className="text-body-md">
           We may update this Privacy Policy from time to time. We will post
           the updated version on this page with a new &quot;Last
@@ -246,7 +253,7 @@ export default function PrivacyPolicy() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">12. Data Controller</h1>
+        <h2 className="font-bold text-headline-md">12. Data Controller</h2>
         <p className="text-body-md">
           The data controller responsible for your personal data under this
           Privacy Policy is:

@@ -4,6 +4,7 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteArticle } from "@/app/lib/actions/articles";
+import { Spinner } from "@/components/spinner";
 
 export function DeleteArticleButton({ articleId }: { articleId: string }) {
   const [loading, setLoading] = useState(false);
@@ -34,7 +35,7 @@ export function DeleteArticleButton({ articleId }: { articleId: string }) {
         disabled={loading}
         className="text-on-surface-variant transition hover:text-red-500 hover:bg-surface-container p-sm rounded-xl cursor-pointer disabled:opacity-50"
       >
-        <Trash2 size={30} />
+        {loading ? <Spinner size={30} /> : <Trash2 size={30} />}
       </button>
       {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
     </div>

@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getDiscussion } from "@/app/lib/actions/discussions";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
-import { ChevronRight, Calendar, Pencil } from "lucide-react";
+import { Calendar, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
+import { Breadcrumb } from "@/components/Breadcrumb";
+import { DiplomaProBadge } from "@/components/DiplomaProBadge";
 import { typeTags } from "@/components/community/discussion-panel";
 import { DeleteDiscussionButton } from "@/components/community/DeleteDiscussionButton";
 import { LikeButton } from "@/components/likeButton";
@@ -12,6 +15,24 @@ import { SaveButton } from "@/components/saveButton";
 import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
 import { formatRelativeTime } from "@/app/lib/relativeTime";
+import { JsonLd } from "@/components/JsonLd";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const result = await getDiscussion(id);
+  if (!result.success) return {};
+
+  const { title, content } = result.data.discussion;
+  return {
+    title,
+    description: content.slice(0, 160),
+    alternates: { canonical: `/community/${id}` },
+  };
+}
 
 export default async function DiscussionPage({
   params,
@@ -38,29 +59,39 @@ export default async function DiscussionPage({
         })()
       : discussion.like_count;
 
+  const discussionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "DiscussionForumPosting",
+    headline: discussion.title,
+    text: discussion.content,
+    datePublished: discussion.created_at,
+    author: {
+      "@type": "Person",
+      name: discussion.author?.display_name ?? "DiplomaHub",
+    },
+    url: `https://www.diplomahub.org/community/${discussion.id}`,
+  };
+
   return (
-    <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
-      <div className="flex flex-row gap-sm items-center">
-        <Link href={"/community"}>
-          <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
-            discussions
-          </h1>
-        </Link>
-        <ChevronRight />
-        <h1 className={`text-secondary text-headline-md uppercase`}>
-          {discussion.subject_tag}
-        </h1>
-      </div>
+    <>
+      <JsonLd data={discussionJsonLd} />
+      <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
+      <Breadcrumb
+        parentLabel="discussions"
+        parentHref="/community"
+        currentLabel={discussion.subject_tag}
+        currentClassName="text-secondary"
+      />
       <div className="flex flex-col lg:flex-row gap-margin">
         <div className="flex flex-col gap-margin lg:basis-2/3">
           <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant gap-lg">
-            <h1
+            <p
               className={
                 discussion.type_tag ? typeTags[discussion.type_tag] : ""
               }
             >
               {discussion.type_tag}
-            </h1>
+            </p>
 
             <h1 className={`font-serif text-display-lg font-bold`}>
               {discussion.title}
@@ -74,34 +105,34 @@ export default async function DiscussionPage({
                   size={40}
                 />
                 <div className="flex flex-col">
-                  <h1 className="text-body-lg">
+                  <p className="text-body-lg">
                     {discussion.author?.display_name}
-                  </h1>
-                  <h1 className="text-on-primary-fixed-variant font-bold">
-                    {discussion.author?.is_pro ? "Diploma Pro" : ""}
-                  </h1>
+                  </p>
+                  {discussion.author?.is_pro && (
+                    <DiplomaProBadge className="text-on-primary-fixed-variant font-bold" />
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-sm">
-                <h1 className="text-body-lg">Posted</h1>
+                <p className="text-body-lg">Posted</p>
                 <div className="flex flex-row items-center gap-sm">
                   <Calendar className="text-on-surface-variant" />
-                  <h1 className="text-on-surface-variant text-label-md">
+                  <p className="text-on-surface-variant text-label-md">
                     {finalTime}
-                  </h1>
+                  </p>
                 </div>
               </div>
               <div className="flex flex-col gap-sm">
-                <h1 className="text-body-lg">Likes</h1>
-                <h1 className="text-label-md text-on-surface-variant">
+                <p className="text-body-lg">Likes</p>
+                <p className="text-label-md text-on-surface-variant">
                   {final_like}
-                </h1>
+                </p>
               </div>
             </div>
             <div className="flex flex-col gap-lg mt-md">
-              <h1 className="text-on-surface-variant text-body-lg">
+              <p className="text-on-surface-variant text-body-lg">
                 {discussion.content}
-              </h1>
+              </p>
               <div className="ml-auto text-primary flex flex-row flex-wrap">
                 <LikeButton
                   target={{ discussion_id: discussion.id }}
@@ -149,9 +180,9 @@ export default async function DiscussionPage({
         </div>
         <div className="lg:basis-1/3 flex flex-col gap-margin">
           <div className="h-65 w-full bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-            <h1 className="text-body-lg uppercase text-primary">
+            <h2 className="text-body-lg uppercase text-primary">
               About the Author
-            </h1>
+            </h2>
             <div className="flex flex-row items-center gap-md">
               <Avatar
                 src={discussion.author?.avatar_url}
@@ -159,18 +190,18 @@ export default async function DiscussionPage({
                 size={50}
               />
               <div className="flex flex-col">
-                <h1 className="text-headline-lg font-serif">
+                <p className="text-headline-lg font-serif">
                   {discussion.author?.display_name}
-                </h1>
-                <h1 className="text-body-md text-primary">
-                  {discussion.author?.is_pro ? "Diploma Pro" : ""}
-                </h1>
+                </p>
+                {discussion.author?.is_pro && (
+                  <DiplomaProBadge className="text-body-md text-primary" />
+                )}
               </div>
             </div>
-            <h1 className="text-body-md text-on-surface-variant">
+            <p className="text-body-md text-on-surface-variant">
               {discussion.author?.display_name} has contributed to the IBPeople
               community.
-            </h1>
+            </p>
             <Link href={`/profile/${discussion.author_id}`}>
               <button className="bg-surface-variant-lowest text-primary border-1 border-primary py-sm hover:bg-surface-container cursor-pointer w-full">
                 View Full Profile
@@ -180,5 +211,6 @@ export default async function DiscussionPage({
         </div>
       </div>
     </div>
+    </>
   );
 }

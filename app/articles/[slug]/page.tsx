@@ -1,18 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getArticle } from "@/app/lib/actions/articles";
+import { stripHtml } from "@/app/lib/stripHtml";
 import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
-import { ChevronRight, Calendar, Eye, Pencil } from "lucide-react";
+import { Calendar, Eye, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
+import { Breadcrumb } from "@/components/Breadcrumb";
+import { DiplomaProBadge } from "@/components/DiplomaProBadge";
 import { DeleteArticleButton } from "@/components/articles/DeleteArticleButton";
 import { estimateReadTime } from "@/app/lib/readTime";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
 import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
+import { JsonLd } from "@/components/JsonLd";
 
 const months = [
   "Jan",
@@ -28,6 +33,23 @@ const months = [
   "Nov",
   "Dec",
 ];
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const result = await getArticle(slug);
+  if (!result.success) return {};
+
+  const { title, content } = result.data;
+  return {
+    title,
+    description: stripHtml(content).slice(0, 160),
+    alternates: { canonical: `/articles/${slug}` },
+  };
+}
 
 export default async function ArticlePage({
   params,
@@ -63,19 +85,31 @@ export default async function ArticlePage({
       : article.view_count;
   const readTime = estimateReadTime(article.content);
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: stripHtml(article.content).slice(0, 200),
+    datePublished: article.created_at,
+    image: article.cover_image_url || undefined,
+    author: {
+      "@type": "Person",
+      name: article.author?.display_name ?? "DiplomaHub",
+    },
+    publisher: { "@type": "Organization", name: "DiplomaHub" },
+    url: `https://www.diplomahub.org/articles/${article.slug}`,
+  };
+
   return (
-    <div className="flex flex-col px-md md:px-10 xl:px-100 py-10  gap-gutter bg-surface-container-lowest">
-      <div className="flex flex-row gap-sm items-center">
-        <Link href={"/articles"}>
-          <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
-            articles
-          </h1>
-        </Link>
-        <ChevronRight />
-        <h1 className={`text-secondary text-headline-md uppercase`}>
-          {article.topic}
-        </h1>
-      </div>
+    <>
+      <JsonLd data={articleJsonLd} />
+      <div className="flex flex-col px-md md:px-10 xl:px-100 py-10  gap-gutter bg-surface-container-lowest">
+      <Breadcrumb
+        parentLabel="articles"
+        parentHref="/articles"
+        currentLabel={article.topic}
+        currentClassName="text-secondary"
+      />
 
       <h1 className={`font-serif text-display-lg font-bold`}>
         {article.title}
@@ -89,19 +123,19 @@ export default async function ArticlePage({
             size={40}
           />
           <div className="flex flex-col">
-            <h1 className="text-body-lg">{article.author?.display_name}</h1>
-            <h1 className="text-label-md text-on-surface-variant">
-              {article.author?.is_pro ? "Diploma Pro" : ""}
-            </h1>
+            <p className="text-body-lg">{article.author?.display_name}</p>
+            {article.author?.is_pro && (
+              <DiplomaProBadge className="text-label-md text-on-surface-variant" />
+            )}
           </div>
         </div>
         <div className="flex flex-row items-center gap-sm">
           <Calendar />
-          <h1>{final}</h1>
+          <p>{final}</p>
         </div>
-        <h1 className="text-on-surface-variant self-center">
+        <p className="text-on-surface-variant self-center">
           {readTime} min read
-        </h1>
+        </p>
       </div>
 
       <div className="relative w-full aspect-video rounded-xl overflow-hidden">
@@ -138,9 +172,9 @@ export default async function ArticlePage({
           <div className="text-on-surface-variant transition hover:text-primary p-sm">
             <Eye size={30} />
           </div>
-          <h1 className="text-on-surface-variant text-body-lg ml-sm">
+          <p className="text-on-surface-variant text-body-lg ml-sm">
             {final_view} views
-          </h1>
+          </p>
         </div>
         <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row gap-md items-center">
           <SaveButton
@@ -174,5 +208,6 @@ export default async function ArticlePage({
         currentUserId={currentUser?.id ?? null}
       />
     </div>
+    </>
   );
 }

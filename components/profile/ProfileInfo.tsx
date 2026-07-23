@@ -58,11 +58,19 @@ export default function ProfileInfo({
   profileUserId: string;
 }) {
   const router = useRouter();
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
+    null,
+  );
 
   async function handleDeleteComment(commentId: string) {
     if (!confirm("Delete this comment?")) return;
+    setDeletingCommentId(commentId);
     const result = await deleteComment(commentId, `/profile/${profileUserId}`);
-    if (result.success) router.refresh();
+    if (result.success) {
+      router.refresh();
+    } else {
+      setDeletingCommentId(null);
+    }
   }
 
   const final_like =
@@ -81,69 +89,69 @@ export default function ProfileInfo({
     <div className="flex flex-col lg:flex-row bg-surface-container-low grow h-full py-10 px-md md:px-10 xl:px-30 gap-margin">
       <div className="flex flex-col lg:basis-1/4 gap-lg">
         <div className="bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
-          <h1 className="font-serif text-headline-lg font-bold">Analytics</h1>
+          <h2 className="font-serif text-headline-lg font-bold">Analytics</h2>
           <div className="flex flex-row justify-between border-b-1 border-outline-variant pb-3 cursor-pointer">
-            <h1 className="text-on-surface-variant text-body-lg">
+            <p className="text-on-surface-variant text-body-lg">
               <b>Resources</b> Uploaded
-            </h1>
-            <h1 className="text-primary text-body-lg font-bold">
+            </p>
+            <p className="text-primary text-body-lg font-bold">
               {resources.length}
-            </h1>
+            </p>
           </div>
           <div className="flex flex-row justify-between border-b-1 border-outline-variant pb-3 cursor-pointer">
-            <h1 className="text-on-surface-variant text-body-lg">
+            <p className="text-on-surface-variant text-body-lg">
               <b>Downloads</b>
-            </h1>
-            <h1 className="text-primary text-body-lg font-bold">
+            </p>
+            <p className="text-primary text-body-lg font-bold">
               {`${total_downloads}`}
-            </h1>
+            </p>
           </div>
           <div className="flex flex-row justify-between border-b-1 border-outline-variant pb-3 cursor-pointer">
-            <h1 className="text-on-surface-variant text-body-lg">
+            <p className="text-on-surface-variant text-body-lg">
               <b>Articles</b> Written
-            </h1>
-            <h1 className="text-primary text-body-lg font-bold">
+            </p>
+            <p className="text-primary text-body-lg font-bold">
               {articles.length}
-            </h1>
+            </p>
           </div>
           <div className="flex flex-row justify-between border-b-1 border-outline-variant pb-3 cursor-pointer">
-            <h1 className="text-on-surface-variant text-body-lg">
+            <p className="text-on-surface-variant text-body-lg">
               <b>Discussions</b> Started
-            </h1>
-            <h1 className="text-primary text-body-lg font-bold">
+            </p>
+            <p className="text-primary text-body-lg font-bold">
               {discussions.length}
-            </h1>
+            </p>
           </div>
           <div className="flex flex-row justify-between border-b-1 border-outline-variant pb-3 cursor-pointer">
-            <h1 className="text-on-surface-variant text-body-lg">
+            <p className="text-on-surface-variant text-body-lg">
               <b>Likes</b> Received
-            </h1>
-            <h1 className="text-primary text-body-lg font-bold">
+            </p>
+            <p className="text-primary text-body-lg font-bold">
               {final_like}
-            </h1>
+            </p>
           </div>
           <div className="flex flex-row justify-between pb-3 cursor-pointer">
-            <h1 className="text-on-surface-variant text-body-lg">
+            <p className="text-on-surface-variant text-body-lg">
               <b>Comments</b> Written
-            </h1>
-            <h1 className="text-primary text-body-lg font-bold">
+            </p>
+            <p className="text-primary text-body-lg font-bold">
               {commentsWritten.length}
-            </h1>
+            </p>
           </div>
         </div>
         <div className="bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
           {bio && (
             <div className="flex flex-col gap-lg">
-              <h1 className="font-serif text-headline-lg font-bold">About</h1>{" "}
-              <h1 className="text-body-lg text-on-surface-variant">{bio}</h1>
+              <h2 className="font-serif text-headline-lg font-bold">About</h2>{" "}
+              <p className="text-body-lg text-on-surface-variant">{bio}</p>
             </div>
           )}
-          <h1 className="font-serif text-headline-lg font-bold self-center">
+          <h2 className="font-serif text-headline-lg font-bold self-center">
             Community Trust
-          </h1>
-          <h1 className="font-serif font-bold text-headline-lg text-primary self-center">
+          </h2>
+          <p className="font-serif font-bold text-headline-lg text-primary self-center">
             {trust} %
-          </h1>
+          </p>
         </div>
       </div>
       <div className="flex-col flex lg:basis-3/5 gap-margin">
@@ -284,6 +292,7 @@ export default function ProfileInfo({
                     createdAt={comment.created_at}
                     author={author}
                     canDelete={self}
+                    deleting={deletingCommentId === comment.id}
                     onDelete={() => handleDeleteComment(comment.id)}
                   />
                 </div>
@@ -293,7 +302,7 @@ export default function ProfileInfo({
         )}
         {section == "Saves" && (
           <div className="flex flex-col gap-margin">
-            <h1 className="text-headline-md font-serif">Saved Resources</h1>
+            <h2 className="text-headline-md font-serif">Saved Resources</h2>
             <LoadMoreList
               items={savedItems?.resources ?? []}
               listClassName="grid grid-cols-1 sm:grid-cols-2 gap-gutter"
@@ -304,7 +313,7 @@ export default function ProfileInfo({
                 </div>
               )}
             />
-            <h1 className="text-headline-md font-serif">Saved Discussions</h1>
+            <h2 className="text-headline-md font-serif">Saved Discussions</h2>
             <LoadMoreList
               items={savedItems?.discussions ?? []}
               listClassName="flex flex-col gap-gutter"
@@ -315,7 +324,7 @@ export default function ProfileInfo({
                 </div>
               )}
             />
-            <h1 className="text-headline-md font-serif">Saved Articles</h1>
+            <h2 className="text-headline-md font-serif">Saved Articles</h2>
             <LoadMoreList
               items={savedItems?.articles ?? []}
               listClassName="grid grid-cols-1 sm:grid-cols-2 gap-gutter items-center"

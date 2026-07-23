@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { requestPasswordReset } from "@/app/auth/actions";
+import { Logo } from "@/components/Logo";
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -18,11 +19,7 @@ export default function ForgotPasswordForm() {
 
   return (
     <div className="w-full justify-content-center items-center py-20 px-md bg-surface-container h-full flex flex-col gap-margin">
-      <Link href="/">
-        <span className="font-serif text-display-lg self-center justify-center font-bold flex flex-row">
-          Diploma<h1 className="text-primary">Hub</h1>
-        </span>
-      </Link>
+      <Logo size="lg" />
       <div className="bg-surface-container-lowest p-margin border-1 border-outline-variant rounded-xl flex flex-col gap-margin w-full max-w-120">
         <h1 className="text-headline-lg font-semibold font-serif">
           Reset your password

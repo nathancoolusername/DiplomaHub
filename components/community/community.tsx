@@ -134,7 +134,7 @@ export default function CommunityPage({
       (i === 4 && num > 4) ||
       (i === numButtons - 1 && Math.abs(i - num) > 1)
     ) {
-      buttons.push(<h1 key={`ellipsis-${i}`}>...</h1>);
+      buttons.push(<span key={`ellipsis-${i}`}>...</span>);
     }
   }
 
@@ -142,10 +142,10 @@ export default function CommunityPage({
     <div className="bg-surface-container-low flex flex-col lg:flex-row py-margin px-md md:px-10 xl:px-30">
       <div className="flex flex-col gap-margin lg:basis-2/3">
         <div className="flex-col flex w-full">
-          <h1 className="font-serif text-headline-md">Filter Discussions</h1>
+          <h2 className="font-serif text-headline-md">Filter Discussions</h2>
           <div className="flex flex-col sm:flex-row mt-margin gap-margin">
             <div className="flex flex-col gap-sm sm:basis-2/7">
-              <h1 className="text-on-surface-variant text-body-md">Subject</h1>
+              <p className="text-on-surface-variant text-body-md">Subject</p>
               <FilterDropdown
                 options={optionsSubject}
                 selected={selectedS}
@@ -153,7 +153,7 @@ export default function CommunityPage({
               />
             </div>
             <div className="flex flex-col gap-sm sm:basis-2/7">
-              <h1 className="text-on-surface-variant text-body-md">Type</h1>
+              <p className="text-on-surface-variant text-body-md">Type</p>
               <FilterDropdown
                 options={opttionsType}
                 selected={selectedT}
@@ -161,7 +161,7 @@ export default function CommunityPage({
               />
             </div>
             <div className="flex flex-col gap-sm sm:basis-2/7">
-              <h1 className="text-on-surface-variant text-body-md">Year</h1>
+              <p className="text-on-surface-variant text-body-md">Year</p>
               <FilterDropdown
                 options={optionsYear}
                 selected={selectedY}
@@ -178,7 +178,7 @@ export default function CommunityPage({
               }}
             >
               <div className="bg-on-primary-fixed-variant items-center flex justify-center h-10 w-20 self-end rounded-xl  hover:drop-shadow-xl/10">
-                <h1 className="text-on-primary text-body-md">Clear</h1>
+                <span className="text-on-primary text-body-md">Clear</span>
               </div>
             </button>
           </div>
@@ -188,9 +188,9 @@ export default function CommunityPage({
           <div className="flex flex-col">
             <div className="flex flex-row gap-sm items-center">
               <TrendingUp className="text-on-primary-fixed-variant" />
-              <h1 className="font-serif text-headline-md">
+              <h2 className="font-serif text-headline-md">
                 Trending This Week
-              </h1>
+              </h2>
             </div>
             <div className="flex flex-col sm:flex-row mt-margin gap-lg">
               {actual.length > 0 && (
@@ -199,15 +199,15 @@ export default function CommunityPage({
                   className="flex flex-col bg-surface-container-high px-md py-lg rounded-xl basis-1/2 gap-sm border-1 border-outline-variant cursor-pointer transition hover:border-on-primary-fixed-variant"
                 >
                   <div className="px-sm bg-on-primary-fixed-variant text-on-primary text-label-md font-semibold w-30 rounded-sm justify-center">
-                    <h1>MOST ACTIVE</h1>
+                    <p>MOST ACTIVE</p>
                   </div>
-                  <h1 className="text-headline-md font-serif">
+                  <h3 className="text-headline-md font-serif">
                     {actual[0].title}
-                  </h1>
+                  </h3>
                   <div className="flex flex-row gap-sm text-on-surface-variant text-label-md items-center">
-                    <h1>{actual[0].like_count} likes</h1>
+                    <span>{actual[0].like_count} likes</span>
                     <Dot />
-                    <h1>{`${actual[0].reply_count} replies`}</h1>
+                    <span>{`${actual[0].reply_count} replies`}</span>
                   </div>
                 </Link>
               )}
@@ -217,15 +217,15 @@ export default function CommunityPage({
                   className="flex flex-col bg-surface-container-high px-md py-lg rounded-xl basis-1/2 gap-sm border-1 border-outline-variant cursor-pointer transition hover:border-secondary"
                 >
                   <div className="px-sm bg-secondary text-on-primary text-label-md font-semibold w-23 rounded-sm justify-center">
-                    <h1>ESSENTIAL</h1>
+                    <p>ESSENTIAL</p>
                   </div>
-                  <h1 className="text-headline-md font-serif">
+                  <h3 className="text-headline-md font-serif">
                     {essential.title}
-                  </h1>
+                  </h3>
                   <div className="flex flex-row gap-sm text-on-surface-variant text-label-md items-center">
-                    <h1>{essential.like_count} likes</h1>
+                    <span>{essential.like_count} likes</span>
                     <Dot />
-                    <h1>{essential.reply_count} replies</h1>
+                    <span>{essential.reply_count} replies</span>
                   </div>
                 </Link>
               )}
@@ -235,7 +235,7 @@ export default function CommunityPage({
 
         <div className="flex flex-col">
           <div className="flex flex-row justify-between border-b-1 border-outline-variant pb-md">
-            <h1 className="font-serif text-headline-md">All Discussions</h1>
+            <h2 className="font-serif text-headline-md">All Discussions</h2>
             <div className="flex flex-row gap-sm">
               <button
                 onClick={() => {
@@ -243,11 +243,11 @@ export default function CommunityPage({
                   setNum(1);
                 }}
               >
-                <h1
+                <span
                   className={`px-md rounded-3xl py-1 transition cursor-pointer ${newest ? "bg-surface-container-high text-on-primary-fixed-variant font-bold" : "text-on-surface-variant"}`}
                 >
                   Newest
-                </h1>
+                </span>
               </button>
               <button
                 onClick={() => {
@@ -255,11 +255,11 @@ export default function CommunityPage({
                   setNum(1);
                 }}
               >
-                <h1
+                <span
                   className={`px-md rounded-3xl py-1 transition cursor-pointer ${Hot ? "bg-surface-container-high text-on-primary-fixed-variant font-bold" : "text-on-surface-variant"}`}
                 >
                   Hot
-                </h1>
+                </span>
               </button>
             </div>
           </div>
@@ -308,7 +308,7 @@ export default function CommunityPage({
       <div className="lg:basis-1/3 flex flex-col mt-margin lg:mt-0 lg:ml-margin gap-margin">
         {currentUserProfile ? (
           <div className="w-full bg-surface-container-lowest p-md border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-            <h1 className="font-serif text-headline-md">Your Status</h1>
+            <h2 className="font-serif text-headline-md">Your Status</h2>
             <div className="flex flex-row items-center gap-md">
               {currentUserProfile.avatar_url ? (
                 <Image
@@ -324,12 +324,12 @@ export default function CommunityPage({
                 </div>
               )}
               <div className="flex flex-col">
-                <h1 className="font-bold text-body-lg">
+                <p className="font-bold text-body-lg">
                   {currentUserProfile.display_name}
-                </h1>
-                <h1 className="text-on-surface-variant text-label-md">
+                </p>
+                <p className="text-on-surface-variant text-label-md">
                   {currentUserProfile.ib_year}
-                </h1>
+                </p>
               </div>
             </div>
 
@@ -352,13 +352,13 @@ export default function CommunityPage({
                     }}
                   />
                 </div>
-                <h1 className="text-on-surface-variant text-label-md italic">
+                <p className="text-on-surface-variant text-label-md italic">
                   {Math.max(
                     0,
                     DIPLOMA_PRO_THRESHOLD - currentUserProfile.points,
                   )}{" "}
                   points until Diploma Pro
-                </h1>
+                </p>
               </>
             )}
 
@@ -370,37 +370,37 @@ export default function CommunityPage({
           </div>
         ) : (
           <div className="h-60 w-full bg-surface-container-lowest place-content-center justify-center items-center p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
-            <h1 className="font-serif text-headline-md">Your Status</h1>
+            <h2 className="font-serif text-headline-md">Your Status</h2>
             <Link href={"/login"}>
-              <h1 className="flex text-primary-container p-md bg-surface-container-low font-serif text-headline-md rounded-full items-center justify-center border-surface-container-highest border-1 hover:border-primary cursor-pointer transition">
+              <span className="flex text-primary-container p-md bg-surface-container-low font-serif text-headline-md rounded-full items-center justify-center border-surface-container-highest border-1 hover:border-primary cursor-pointer transition">
                 Login to see your status
-              </h1>
+              </span>
             </Link>
           </div>
         )}
 
         <Link href={"/community/write"}>
           <div className="h-60 w-full bg-surface-container-lowest p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-            <h1 className="font-serif text-headline-md">Have a question?</h1>
-            <h1 className="text-on-surface-variant text-body-lg">
+            <h2 className="font-serif text-headline-md">Have a question?</h2>
+            <p className="text-on-surface-variant text-body-lg">
               Get Help with your IAs, EE, or subject doubts from the community.
-            </h1>
+            </p>
             <div className="bg-on-primary-fixed-variant w-full h-12 rounded-xl flex flex-row gap-md items-center justify-center mt-sm cursor-pointer hover:drop-shadow-xl/10">
               <SquarePen size={25} className="text-on-primary" />
-              <h1 className="text-on-primary font-semibold text-body-lg">
+              <span className="text-on-primary font-semibold text-body-lg">
                 Start a Discussion
-              </h1>
+              </span>
             </div>
           </div>
         </Link>
 
         <div className="w-full bg-surface-container-lowest p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-          <h1 className="font-serif text-headline-md">Top Contributors</h1>
+          <h2 className="font-serif text-headline-md">Top Contributors</h2>
           {topContributors.length === 0 ? (
             <div className="bg-surface-container-low w-full h-24 rounded-xl flex items-center justify-center">
-              <h1 className="font-semibold text-headline-md font-serif text-on-primary-fixed">
+              <p className="font-semibold text-headline-md font-serif text-on-primary-fixed">
                 No contributors yet
-              </h1>
+              </p>
             </div>
           ) : (
             <div className="flex flex-col gap-md">
@@ -409,7 +409,7 @@ export default function CommunityPage({
                   key={contributor.id}
                   className="flex flex-row items-center gap-md"
                 >
-                  <h1 className="text-primary font-bold w-6">{i + 1}</h1>
+                  <span className="text-primary font-bold w-6">{i + 1}</span>
                   {contributor.avatar_url ? (
                     <Image
                       src={contributor.avatar_url}
@@ -424,12 +424,12 @@ export default function CommunityPage({
                     </div>
                   )}
                   <div className="flex flex-col flex-1">
-                    <h1 className="font-bold text-body-md">
+                    <h3 className="font-bold text-body-md">
                       {contributor.display_name}
-                    </h1>
-                    <h1 className="text-on-surface-variant text-label-sm">
+                    </h3>
+                    <p className="text-on-surface-variant text-label-sm">
                       {contributor.points.toLocaleString()} XP
-                    </h1>
+                    </p>
                   </div>
                   {contributor.is_pro && (
                     <span className="text-label-lg bg-primary-container text-on-primary px-sm py-1 rounded-md font-semibold">

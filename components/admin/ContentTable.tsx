@@ -10,6 +10,7 @@ import {
   setArticlePublished,
   type AdminContentRow,
 } from "@/app/lib/actions/admin";
+import { Spinner } from "@/components/spinner";
 
 type Tab = "resources" | "articles" | "discussions";
 
@@ -31,6 +32,7 @@ export function ContentTable({
   const [tab, setTab] = useState<Tab>("resources");
   const [items, setItems] = useState({ resources, articles, discussions });
   const [search, setSearch] = useState("");
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
   const current = items[tab];
   const query = search.toLowerCase();
@@ -56,6 +58,7 @@ export function ContentTable({
 
   async function handleDelete(id: string) {
     if (!confirm(`Delete this ${tab.slice(0, -1)}?`)) return;
+    setPendingId(id);
     const result =
       tab === "resources"
         ? await deleteResource(id)
@@ -63,16 +66,21 @@ export function ContentTable({
           ? await deleteArticle(id)
           : await deleteDiscussion(id);
     if (result.success) removeItem(id);
-    else alert(result.error);
+    else {
+      alert(result.error);
+      setPendingId(null);
+    }
   }
 
   async function handleTogglePublished(id: string, published: boolean) {
+    setPendingId(id);
     const result =
       tab === "resources"
         ? await setResourcePublished(id, !published)
         : await setArticlePublished(id, !published);
     if (result.success) updateItem(id, { published: !published });
     else alert(result.error);
+    setPendingId(null);
   }
 
   return (
@@ -145,12 +153,14 @@ export function ContentTable({
                       onClick={() =>
                         handleTogglePublished(item.id, !!item.published)
                       }
-                      className={`px-md py-1 rounded-full text-label-md font-semibold cursor-pointer transition ${
+                      disabled={pendingId === item.id}
+                      className={`px-md py-1 rounded-full text-label-md font-semibold cursor-pointer transition disabled:opacity-50 inline-flex items-center gap-xs ${
                         item.published
                           ? "bg-primary-container text-on-primary"
                           : "bg-surface-container text-on-surface-variant"
                       }`}
                     >
+                      {pendingId === item.id && <Spinner size={12} />}
                       {item.published ? "Published" : "Unpublished"}
                     </button>
                   </td>
@@ -161,8 +171,10 @@ export function ContentTable({
                 <td className="p-md">
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="text-red-500 font-semibold cursor-pointer hover:underline"
+                    disabled={pendingId === item.id}
+                    className="text-red-500 font-semibold cursor-pointer hover:underline disabled:opacity-50 disabled:no-underline inline-flex items-center gap-xs"
                   >
+                    {pendingId === item.id && <Spinner size={14} />}
                     Delete
                   </button>
                 </td>

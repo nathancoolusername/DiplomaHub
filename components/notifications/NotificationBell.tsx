@@ -99,7 +99,7 @@ export function NotificationBell() {
       {isOpen && (
         <div className="absolute right-0 top-full mt-xs w-80 max-h-100 overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-md z-20">
           <div className="flex flex-row justify-between items-center px-md py-sm border-b border-outline-variant sticky top-0 bg-surface-container-lowest">
-            <h1 className="font-serif font-bold text-body-md">Notifications</h1>
+            <h2 className="font-serif font-bold text-body-md">Notifications</h2>
             {notifications && notifications.some((n) => !n.read) && (
               <button
                 onClick={handleMarkAllRead}
@@ -137,10 +137,10 @@ export function NotificationBell() {
                     size={28}
                   />
                   <div className="flex flex-col gap-1 min-w-0">
-                    <h1 className="text-label-md break-words">{n.message}</h1>
-                    <h1 className="text-label-sm text-on-surface-variant">
+                    <p className="text-label-md break-words">{n.message}</p>
+                    <p className="text-label-sm text-on-surface-variant">
                       {formatRelativeTime(n.created_at)}
-                    </h1>
+                    </p>
                   </div>
                   {!n.read && (
                     <span className="w-2 h-2 rounded-full bg-primary shrink-0 ml-auto mt-1" />

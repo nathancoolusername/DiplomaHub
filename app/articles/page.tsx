@@ -1,8 +1,16 @@
 import { Pencil } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import Button from "../../components/button";
 import ArticleGrid from "../../components/articles/article-grid";
 import { getArticlesPage } from "@/app/lib/actions/articles";
+
+export const metadata: Metadata = {
+  title: "Articles",
+  description:
+    "A curated collection of articles, guides, and student experiences from across the IB community.",
+  alternates: { canonical: "/articles" },
+};
 
 export default async function Articles() {
   const result = await getArticlesPage({});
@@ -20,10 +28,10 @@ export default async function Articles() {
           <h1 className="text-display-lg font-serif font-bold">
             Article Archive
           </h1>
-          <h1 className="text-on-surface-variant text-body-lg w-full md:w-170">
+          <p className="text-on-surface-variant text-body-lg w-full md:w-170">
             A curated collection of articles, guides, and student experiences
             from across the IB community.
-          </h1>
+          </p>
         </div>
         <Link href={"/articles/write"}>
           <Button className="h-12 self-center text-body-lg">

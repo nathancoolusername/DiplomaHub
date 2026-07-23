@@ -1,4 +1,5 @@
 import { Users } from "lucide-react";
+import type { Metadata } from "next";
 import CommunityPage from "@/components/community/community";
 import {
   getDiscussionsPage,
@@ -7,6 +8,13 @@ import {
 import { getTopContributors } from "@/app/lib/actions/profile";
 import { getCurrentUserProfile } from "@/app/lib/get-current-user";
 import { createClient } from "@/app/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Community",
+  description:
+    "Discuss coursework, ask questions, and connect with IB students and educators worldwide.",
+  alternates: { canonical: "/community" },
+};
 
 export default async function Community() {
   const [result, trendingResult, currentUserProfile, contributorsResult] =
@@ -35,10 +43,10 @@ export default async function Community() {
           <h1 className="text-display-lg font-serif text-on-primary">
             Discuss, Share, and Connect with IB students worldwide
           </h1>
-          <h1 className="text-headline-md text-on-primary-container">
+          <p className="text-headline-md text-on-primary-container">
             The community for International Baccalaureate students to excel
             together.
-          </h1>
+          </p>
         </div>
         <div className="bg-white/10 border border-white/20 rounded-md pt-lg px-lg pb-xl flex items-center gap-4 backdrop-blur-sm md:mr-40">
           <div className="bg-white/15 rounded-xl p-3">

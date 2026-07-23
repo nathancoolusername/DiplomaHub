@@ -1,17 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getResourceDetail } from "@/app/lib/actions/resources";
 import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
-import {
-  ChevronRight,
-  Calendar,
-  FileText,
-  BadgeCheck,
-  Pencil,
-} from "lucide-react";
+import { Calendar, FileText, BadgeCheck, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { SubjectTags, ResourceTypeTag } from "@/components/pills";
 import { DownloadButton } from "@/components/resources/DownloadButton";
 import { DeleteResourceButton } from "@/components/resources/DeleteResourceButton";
@@ -19,6 +15,7 @@ import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
 import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
+import { JsonLd } from "@/components/JsonLd";
 
 const months = [
   "Jan",
@@ -34,6 +31,23 @@ const months = [
   "Nov",
   "Dec",
 ];
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const result = await getResourceDetail(slug);
+  if (!result.success) return {};
+
+  const { title, description } = result.data;
+  return {
+    title,
+    description: description || `${title} — a resource shared on DiplomaHub.`,
+    alternates: { canonical: `/resources/${slug}` },
+  };
+}
 
 export default async function resourcePage({
   params,
@@ -89,19 +103,26 @@ export default async function resourcePage({
     }
   })();
 
+  const resourceJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    name: resource.title,
+    description: resource.description || undefined,
+    datePublished: resource.created_at,
+    author: { "@type": "Person", name: resource.author.display_name },
+    url: `https://www.diplomahub.org/resources/${resource.id}`,
+  };
+
   return (
-    <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
-      <div className="flex flex-row gap-sm items-center">
-        <Link href={"/resources"}>
-          <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
-            Resources
-          </h1>
-        </Link>
-        <ChevronRight />
-        <h1 className={`text-secondary text-headline-md uppercase`}>
-          {resource.subject_tag}
-        </h1>
-      </div>
+    <>
+      <JsonLd data={resourceJsonLd} />
+      <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
+      <Breadcrumb
+        parentLabel="Resources"
+        parentHref="/resources"
+        currentLabel={resource.subject_tag}
+        currentClassName="text-secondary"
+      />
       <div className="flex flex-col lg:flex-row gap-margin">
         <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant lg:basis-2/3 gap-lg">
           <div className="flex flex-row justify-between">
@@ -124,46 +145,46 @@ export default async function resourcePage({
                 size={40}
               />
               <div className="flex flex-col">
-                <h1 className="text-body-lg">{resource.author.display_name}</h1>
-                <h1 className="text-label-md text-on-surface-variant">
+                <p className="text-body-lg">{resource.author.display_name}</p>
+                <p className="text-label-md text-on-surface-variant">
                   {resource.author.ib_year}
-                </h1>
+                </p>
               </div>
             </div>
             <div className="flex flex-col gap-sm">
-              <h1 className="text-body-lg">Uploaded</h1>
+              <p className="text-body-lg">Uploaded</p>
               <div className="flex flex-row items-center gap-sm">
                 <Calendar />
-                <h1>{final}</h1>
+                <p>{final}</p>
               </div>
             </div>
             <div className="flex flex-col gap-sm">
-              <h1 className="text-body-lg">Downloads</h1>
-              <h1 className="text-label-md text-on-surface-variant">
+              <p className="text-body-lg">Downloads</p>
+              <p className="text-label-md text-on-surface-variant">
                 {final_view}
-              </h1>
+              </p>
             </div>
             <div className="flex flex-col gap-sm">
-              <h1 className="text-body-lg">Likes</h1>
-              <h1 className="text-label-md text-on-surface-variant">
+              <p className="text-body-lg">Likes</p>
+              <p className="text-label-md text-on-surface-variant">
                 {final_like}
-              </h1>
+              </p>
             </div>
           </div>
           <div className="pb-10 border-b-1 border-outline-variant flex flex-col gap-lg mt-md">
-            <h1 className="font-serif text-headline-lg font-bold">Abstract</h1>
-            <h1 className="text-on-surface-variant text-body-lg">
+            <h2 className="font-serif text-headline-lg font-bold">Abstract</h2>
+            <p className="text-on-surface-variant text-body-lg">
               {resource.description}
-            </h1>
+            </p>
             <div className="flex flex-row flex-wrap p-margin rounded-xl bg-surface-container-low border-1 border-outline-variant gap-lg">
               <FileText size={100} />
               <div className="flex flex-col gap-lg self-start">
                 <div className="flex flex-col">
-                  <h1 className="font-bold">
+                  <p className="font-bold">
                     {isExternalLink
                       ? (linkHostname ?? "External Link")
                       : `Resource ${fileExtension ?? "File"}`}
-                  </h1>
+                  </p>
                 </div>
                 <div className="ml-auto text-primary flex flex-row flex-wrap items-center">
                   <DownloadButton
@@ -218,9 +239,9 @@ export default async function resourcePage({
 
         <div className="lg:basis-1/3 flex flex-col gap-margin">
           <div className="h-65 w-full bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-            <h1 className="text-body-lg uppercase text-primary">
+            <h2 className="text-body-lg uppercase text-primary">
               About the Author
-            </h1>
+            </h2>
             <div className="flex flex-row items-center gap-md">
               <Avatar
                 src={resource.author.avatar_url}
@@ -228,18 +249,18 @@ export default async function resourcePage({
                 size={50}
               />
               <div className="flex flex-col">
-                <h1 className="text-headline-lg font-serif">
+                <p className="text-headline-lg font-serif">
                   {resource.author.display_name}
-                </h1>
-                <h1 className="text-body-md text-primary">
+                </p>
+                <p className="text-body-md text-primary">
                   {resource.author.ib_year}
-                </h1>
+                </p>
               </div>
             </div>
-            <h1 className="text-body-md text-on-surface-variant">
+            <p className="text-body-md text-on-surface-variant">
               {resource.author.display_name} has contributed resources to the
               IBPeople community.
-            </h1>
+            </p>
             <Link href={`/profile/${resource.author_id}`}>
               <button className="w-full bg-surface-variant-lowest text-primary border-1 border-primary py-sm hover:bg-surface-container cursor-pointer">
                 View Full Profile
@@ -248,21 +269,22 @@ export default async function resourcePage({
           </div>
 
           <div className="h-60 w-full bg-on-primary-fixed p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-            <h1 className="font-serif text-headline-md text-surface-container">
+            <h2 className="font-serif text-headline-md text-surface-container">
               Community Trust
-            </h1>
+            </h2>
             <div className="flex flex-row justify-between">
-              <h1 className="text-body-lg text-on-primary border-b-1 pb-5 border-outline-variant">
+              <p className="text-body-lg text-on-primary border-b-1 pb-5 border-outline-variant">
                 Obtained from author activity and user engagement.
-              </h1>
+              </p>
               <BadgeCheck className="text-secondary-container" size={50} />
             </div>
-            <h1 className="text-display-lg mt-1 text-on-primary self-center">
+            <p className="text-display-lg mt-1 text-on-primary self-center">
               {resource.community_trust}%
-            </h1>
+            </p>
           </div>
         </div>
       </div>
     </div>
+    </>
   );
 }

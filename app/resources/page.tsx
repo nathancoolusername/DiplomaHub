@@ -1,8 +1,16 @@
 import { Upload } from "lucide-react";
+import type { Metadata } from "next";
 import Button from "../../components/button";
 import ResourceGrid from "@/components/resources/resources-grid";
 import { getResourcesPage } from "../lib/actions/resources";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Resources",
+  description:
+    "Practical IB materials, exemplars, revision guides, and past-paper tips curated by the IB community.",
+  alternates: { canonical: "/resources" },
+};
 
 export default async function ResourcesPage() {
   const result = await getResourcesPage({ sort: "most_downloaded" });
@@ -19,10 +27,10 @@ export default async function ResourcesPage() {
           <h1 className="text-display-lg font-serif font-bold">
             Resources Vault
           </h1>
-          <h1 className="text-on-surface-variant text-body-lg w-full md:w-170">
+          <p className="text-on-surface-variant text-body-lg w-full md:w-170">
             Practical IB materials, exemplars, revision guides, and much more
             curated for the rigorous academic journey.
-          </h1>
+          </p>
         </div>
         <Link href={"/resources/upload"}>
           <Button className="h-12 self-center text-body-lg">

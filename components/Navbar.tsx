@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { Logo } from "./Logo";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -22,11 +23,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
     <header className="sticky top-0 z-50 bg-surface border-b border-outline-variant">
       <div className="max-w-[2000px] mx-lg px-lg h-16 flex items-center justify-between">
         <div className="flex items-center gap-xl">
-          <Link href="/">
-            <span className="font-serif text-headline-md font-bold flex flex-row">
-              Diploma<h1 className="text-primary">Hub</h1>
-            </span>
-          </Link>
+          <Logo />
           <nav className="hidden md:flex gap-lg">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;

@@ -3,10 +3,10 @@ import { getAdminStats } from "@/app/lib/actions/admin";
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex flex-col gap-sm bg-surface-container-lowest border-1 border-outline-variant rounded-xl p-lg basis-1/3">
-      <h1 className="text-on-surface-variant text-body-lg">{label}</h1>
-      <h1 className="text-display-lg font-serif font-bold text-primary">
+      <p className="text-on-surface-variant text-body-lg">{label}</p>
+      <p className="text-display-lg font-serif font-bold text-primary">
         {value.toLocaleString()}
-      </h1>
+      </p>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
+import { DiplomaProBadge } from "@/components/DiplomaProBadge";
 
 export default function ProfileDropdown({
   display_name,
@@ -44,9 +45,7 @@ export default function ProfileDropdown({
             <span className="hidden sm:inline"> · {points}pts</span>
           </span>
           {is_pro && (
-            <h1 className="hidden sm:block text-on-primary-fixed-variant text-label-md self-start font-bold">
-              Diploma Pro
-            </h1>
+            <DiplomaProBadge className="hidden sm:block text-on-primary-fixed-variant text-label-md self-start font-bold" />
           )}
         </span>
         <ChevronDown

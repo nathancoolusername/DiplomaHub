@@ -23,10 +23,10 @@ export default function Error({
       <h1 className="text-headline-lg font-serif font-bold">
         Something went wrong
       </h1>
-      <h1 className="text-on-surface-variant text-body-lg max-w-150">
+      <p className="text-on-surface-variant text-body-lg max-w-150">
         We hit an unexpected error loading this page. Try again, or head back
         home.
-      </h1>
+      </p>
       <div className="flex flex-row gap-md">
         <button
           onClick={reset}

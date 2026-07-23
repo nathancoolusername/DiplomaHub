@@ -8,6 +8,7 @@ import ProfileInfo from "@/components/profile/ProfileInfo";
 import { getSavedItems } from "@/app/lib/actions/saved-items";
 import { initialsFor } from "@/app/lib/initials";
 import { ShareButton } from "@/components/shareButton";
+import { DiplomaProBadge } from "@/components/DiplomaProBadge";
 
 const months = [
   "January",
@@ -73,22 +74,22 @@ export default async function ProfilePage({
               <h1 className="text-display-lg font-serif font-bold">
                 {user.display_name}
               </h1>
-              <h1 className="text-on-primary-fixed-variant text-headline-lg self-center font-bold">
-                {user.is_pro ? "Diploma Pro" : ""}
-              </h1>
+              {user.is_pro && (
+                <DiplomaProBadge className="text-on-primary-fixed-variant text-headline-lg self-center font-bold" />
+              )}
             </div>
             <div className="flex flex-row flex-wrap gap-md justify-center md:justify-start">
               <div className="flex flex-row gap-sm">
                 <Medal className="text-primary" />
-                <h1 className="text-body-lg text-on-surface-variant font-bold">
+                <p className="text-body-lg text-on-surface-variant font-bold">
                   {user.points} points
-                </h1>
+                </p>
               </div>
               <div className="flex flex-row gap-sm">
                 <Calendar className="text-primary" />
-                <h1 className="text-body-lg text-on-surface-variant font-bold">
+                <p className="text-body-lg text-on-surface-variant font-bold">
                   Joined {final}
-                </h1>
+                </p>
               </div>
             </div>
           </div>
@@ -96,7 +97,7 @@ export default async function ProfilePage({
             {isOwnProfile && (
               <Link href={"/profile/edit"}>
                 <div className="px-lg py-md bg-primary rounded-xl">
-                  <h1 className="text-on-primary text-body-lg">Edit Profile</h1>
+                  <span className="text-on-primary text-body-lg">Edit Profile</span>
                 </div>
               </Link>
             )}

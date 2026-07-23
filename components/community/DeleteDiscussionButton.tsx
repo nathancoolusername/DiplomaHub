@@ -4,6 +4,7 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteDiscussion } from "@/app/lib/actions/discussions";
+import { Spinner } from "@/components/spinner";
 
 export function DeleteDiscussionButton({
   discussionId,
@@ -38,7 +39,7 @@ export function DeleteDiscussionButton({
         disabled={loading}
         className="text-on-surface-variant transition hover:text-red-500 hover:bg-surface-container p-sm rounded-xl cursor-pointer disabled:opacity-50"
       >
-        <Trash2 size={30} />
+        {loading ? <Spinner size={30} /> : <Trash2 size={30} />}
       </button>
       {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
     </div>

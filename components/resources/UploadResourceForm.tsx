@@ -1,10 +1,7 @@
 "use client";
 
-import { uploadResourceFile } from "@/app/lib/actions/upload";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ChevronRight,
   UploadCloud,
   FileText,
   X,
@@ -14,6 +11,14 @@ import {
   Link2,
 } from "lucide-react";
 import { createResource, updateResource } from "@/app/lib/actions/resources";
+import { createClient } from "@/app/lib/supabase/client";
+import { Spinner } from "@/components/spinner";
+import { Breadcrumb } from "@/components/Breadcrumb";
+import {
+  validateFile,
+  RESOURCE_FILE_TYPES,
+  RESOURCE_FILE_MAX_BYTES,
+} from "@/app/lib/uploadValidation";
 import { useState, useRef, ChangeEvent, DragEvent, MouseEvent } from "react";
 import SortDropdown from "@/components/articles/drop-down";
 import { SubjectTags, ResourceTypeTag, YEAR_OPTIONS } from "@/components/pills";
@@ -113,13 +118,37 @@ export default function UploadResourceForm({
       }
       fileUrl = linkUrl;
     } else if (file) {
-      const uploadResult = await uploadResourceFile(file);
-      if (!uploadResult.success) {
-        setError(uploadResult.error);
+      const validated = validateFile(file, RESOURCE_FILE_TYPES, RESOURCE_FILE_MAX_BYTES);
+      if ("error" in validated) {
+        setError(validated.error);
         setStatus("error");
         return;
       }
-      fileUrl = uploadResult.data.fileUrl;
+
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setError("Log in to upload files");
+        setStatus("error");
+        return;
+      }
+
+      const filePath = `${user.id}/${crypto.randomUUID()}.${validated.ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("resources")
+        .upload(filePath, file, { contentType: validated.contentType });
+      if (uploadError) {
+        setError(uploadError.message);
+        setStatus("error");
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("resources")
+        .getPublicUrl(filePath);
+      fileUrl = urlData.publicUrl;
     }
 
     formData.set("file_url", fileUrl);
@@ -142,26 +171,20 @@ export default function UploadResourceForm({
 
   return (
     <div className="flex flex-col px-md md:px-10 xl:px-45 py-10 gap-gutter bg-surface-container-low">
-      <div className="flex flex-row gap-sm items-center">
-        <Link href={"/resources"}>
-          <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
-            Resources
-          </h1>
-        </Link>
-        <ChevronRight />
-        <h1 className={`text-primary text-headline-md uppercase`}>
-          {isEditing ? "edit" : "upload"}
-        </h1>
-      </div>
+      <Breadcrumb
+        parentLabel="Resources"
+        parentHref="/resources"
+        currentLabel={isEditing ? "edit" : "upload"}
+      />
       <div className="flex-1 flex flex-col lg:flex-row gap-margin">
         <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant lg:basis-4/5 gap-lg">
           <h1 className="text-primary font-serif text-display-lg font-bold">
             {isEditing ? "Edit Your Resource" : "Share your Knowledge"}
           </h1>
-          <h1 className="text-on-surface-variant text-body-md mb-5">
+          <p className="text-on-surface-variant text-body-md mb-5">
             Contribute to the IB community with high-quality resources. All
             submissions will be reviewed for academic integrity.
-          </h1>
+          </p>
           <form action={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
@@ -334,8 +357,9 @@ export default function UploadResourceForm({
             <button
               type="submit"
               disabled={status === "uploading"}
-              className="bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer px-lg py-sm disabled:opacity-50"
+              className="bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer px-lg py-sm disabled:opacity-50 inline-flex items-center gap-sm"
             >
+              {status === "uploading" && <Spinner size={16} />}
               {status === "uploading"
                 ? "Saving..."
                 : isEditing
@@ -348,43 +372,43 @@ export default function UploadResourceForm({
           <div className="w-full bg-surface-container-lowest p-lg  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
             <div className="flex flex-row gap-sm items-center">
               <Verified fill="#002c98" className="text-on-primary" size={40} />
-              <h1 className="text-primary font-bold uppercase text-headline-md">
+              <h2 className="text-primary font-bold uppercase text-headline-md">
                 Upload Guidelines
-              </h1>
+              </h2>
             </div>
             <div className="flex flex-row items-center gap-sm">
               <div className="flex flex-col gap-sm">
                 <div className="flex flex-row gap-sm items-center">
                   <ShieldCheck className="text-primary" />
-                  <h1 className="font-semibold text-body-md">
+                  <h3 className="font-semibold text-body-md">
                     Academic Integrity
-                  </h1>
+                  </h3>
                 </div>
-                <h1 className="text-label-lg text-on-surface-variant pl-8 mb-5">
+                <p className="text-label-lg text-on-surface-variant pl-8 mb-5">
                   Do not upload copyrighted materials, official IB exam papers,
                   or work that is not yours.
-                </h1>
+                </p>
                 <div className="flex flex-col gap-sm">
                   <div className="flex flex-row gap-sm items-center">
                     <Hd className="text-primary" />
-                    <h1 className="font-semibold text-body-md">File Quality</h1>
+                    <h3 className="font-semibold text-body-md">File Quality</h3>
                   </div>
-                  <h1 className="text-label-lg text-on-surface-variant pl-8 mb-5">
+                  <p className="text-label-lg text-on-surface-variant pl-8 mb-5">
                     Do not upload copyrighted materials, official IB exam
                     papers, or work that is not yours.
-                  </h1>
+                  </p>
                 </div>
                 <div className="flex flex-col gap-sm">
                   <div className="flex flex-row gap-sm items-center">
                     <Hd className="text-primary" />
-                    <h1 className="font-semibold text-body-md">
+                    <h3 className="font-semibold text-body-md">
                       Original Work
-                    </h1>
+                    </h3>
                   </div>
-                  <h1 className="text-label-lg text-on-surface-variant pl-8 mb-5">
+                  <p className="text-label-lg text-on-surface-variant pl-8 mb-5">
                     Contributions should be your own summaries, notes, diagrams,
                     helpful study aids...
-                  </h1>
+                  </p>
                 </div>
               </div>
             </div>

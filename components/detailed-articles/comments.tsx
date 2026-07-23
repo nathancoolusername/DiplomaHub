@@ -8,6 +8,7 @@ import Comment from "./comment";
 import { addComment, deleteComment } from "@/app/lib/actions/comments";
 import { replyToDiscussion, deleteReply } from "@/app/lib/actions/discussions";
 import { isAdmin } from "@/app/lib/admin";
+import { Spinner } from "@/components/spinner";
 import type { Comment as CommentType, DiscussionReply } from "@/app/lib/types";
 
 type CommentTarget = { resource_id: string } | { article_id: string };
@@ -38,6 +39,7 @@ export default function Comments(props: Props) {
   const [content, setContent] = useState("");
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const filtered = initialItems.slice(0, shown);
   const noun = kind === "comment" ? "comments" : "replies";
 
@@ -45,12 +47,17 @@ export default function Comments(props: Props) {
     if (!confirm(`Delete this ${kind === "comment" ? "comment" : "reply"}?`))
       return;
 
+    setDeletingId(itemId);
     const result =
       kind === "comment"
         ? await deleteComment(itemId, path)
         : await deleteReply(itemId, (target as ReplyTarget).discussion_id);
 
-    if (result.success) router.refresh();
+    if (result.success) {
+      router.refresh();
+    } else {
+      setDeletingId(null);
+    }
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -79,9 +86,9 @@ export default function Comments(props: Props) {
   return (
     <div className="mt-25 flex flex-col gap-gutter">
       <div className="flex flex-row flex-wrap items-center gap-md">
-        <h1 className="text-headline-lg font-serif font-bold">
+        <h2 className="text-headline-lg font-serif font-bold">
           {kind === "comment" ? "Conversation" : "Community Replies"}
-        </h1>
+        </h2>
         <div className="shrink-0 border-1 border-outline-variant px-sm rounded-xl uppercase text-on-surface-variant">
           {initialItems.length} {noun}
         </div>
@@ -112,6 +119,7 @@ export default function Comments(props: Props) {
                 <Button
                   className={posting ? "opacity-50 pointer-events-none" : ""}
                 >
+                  {posting && <Spinner size={16} />}
                   {posting
                     ? "Posting..."
                     : kind === "comment"
@@ -150,6 +158,7 @@ export default function Comments(props: Props) {
                 createdAt={item.created_at}
                 author={item.author}
                 canDelete={canDelete}
+                deleting={deletingId === item.id}
                 onDelete={() => handleDelete(item.id)}
                 like={
                   kind === "reply"

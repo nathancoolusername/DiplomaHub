@@ -110,7 +110,7 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
       (i === 4 && num > 4) ||
       (i === numButtons - 1 && Math.abs(i - num) > 1)
     ) {
-      buttons.push(<h1 key={`ellipsis-${i}`}>...</h1>);
+      buttons.push(<span key={`ellipsis-${i}`}>...</span>);
     }
   }
 
@@ -118,7 +118,7 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
     <div className="flex flex-col gap-gutter">
       <div className="flex flex-col bg-surface-container-lowest border-1 border-outline-variant p-lg rounded-xl gap-margin">
         <div className="flex flex-col gap-md">
-          <h1>Subject Areas</h1>
+          <h2>Subject Areas</h2>
           <div className="flex flex-row gap-sm flex-wrap">
             <button
               onClick={() => {
@@ -157,7 +157,7 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
 
         <div className="flex flex-col sm:flex-row gap-margin w-full">
           <div className="flex flex-col gap-sm sm:basis-1/3">
-            <h1 className="text-on-surface-variant">Resource Type</h1>
+            <p className="text-on-surface-variant">Resource Type</p>
             <div>
               <SortDropdown
                 options={opttionsType}
@@ -168,7 +168,7 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
             </div>
           </div>
           <div className="flex flex-col gap-sm sm:basis-1/3">
-            <h1 className="text-on-surface-variant">Year</h1>
+            <p className="text-on-surface-variant">Year</p>
             <div>
               <SortDropdown
                 options={optionsYear}
@@ -180,7 +180,7 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
           </div>
 
           <div className="flex flex-col gap-sm sm:basis-1/3">
-            <h1 className="text-on-surface-variant">Sort by</h1>
+            <p className="text-on-surface-variant">Sort by</p>
             <div>
               <SortDropdown
                 options={options}
@@ -199,7 +199,7 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
             }}
           >
             <div className="bg-on-primary-fixed-variant items-center flex justify-center h-10 w-20 self-end rounded-xl hover:drop-shadow-xl/10">
-              <h1 className="text-on-primary text-body-md">Clear</h1>
+              <span className="text-on-primary text-body-md">Clear</span>
             </div>
           </button>
         </div>

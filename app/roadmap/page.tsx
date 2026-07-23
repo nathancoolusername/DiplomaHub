@@ -8,8 +8,16 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getRoadmapItems } from "@/app/lib/actions/roadmap";
 import type { RoadmapItem, RoadmapStatus } from "@/app/lib/types";
+
+export const metadata: Metadata = {
+  title: "Roadmap",
+  description:
+    "See what we're building next for DiplomaHub and share your own ideas for the platform.",
+  alternates: { canonical: "/roadmap" },
+};
 
 // Description/tags/release-label copy stays static here — only status and
 // completion_percentage are admin-editable (see /admin/roadmap), since those
@@ -105,19 +113,19 @@ function RoadmapCard({ item }: { item: RoadmapItem }) {
       className={`flex flex-col w-full p-lg rounded-xl ${meta.gapClass} transition ${meta.cardClass}`}
     >
       <div className="justify-between flex flex-row items-center">
-        <h1 className={meta.labelClass}>{content.releaseLabel}</h1>
+        <p className={meta.labelClass}>{content.releaseLabel}</p>
         <Medal size={30} className={meta.medalClass} />
       </div>
-      <h1 className={meta.titleClass}>{item.title}</h1>
-      <h1 className={meta.descriptionClass}>{content.description}</h1>
+      <h3 className={meta.titleClass}>{item.title}</h3>
+      <p className={meta.descriptionClass}>{content.description}</p>
 
       {item.status === "in_progress" && item.completion_percentage !== null && (
         <div className="flex flex-col gap-sm">
           <div className="flex flex-row justify-between text-body-lg">
-            <h1 className="font-bold">Project Completion</h1>
-            <h1 className="text-primary font-bold">
+            <p className="font-bold">Project Completion</p>
+            <p className="text-primary font-bold">
               {item.completion_percentage}%
-            </h1>
+            </p>
           </div>
           <div className="bg-surface-container-low h-3 rounded-xl">
             <div
@@ -135,7 +143,7 @@ function RoadmapCard({ item }: { item: RoadmapItem }) {
               key={tag.label}
               className="rounded-xl p-md bg-surface-container-low flex flex-row gap-sm items-center"
             >
-              <h1 className="text-primary text-body-lg">{tag.label}</h1>
+              <p className="text-primary text-body-lg">{tag.label}</p>
               <tag.icon size={30} className="text-primary" />
             </div>
           ))}
@@ -155,53 +163,53 @@ export default async function Roadmap() {
         <h1 className="text-display-lg font-serif text-primary font-bold">
           Our Direction
         </h1>
-        <h1 className="text-on-surface-variant text-body-lg w-full lg:w-170">
+        <p className="text-on-surface-variant text-body-lg w-full lg:w-170">
           Transparency and shared purpose drive DiplomaHub. Explore our public
           roadmap to see how we are evolving the platform for the international
           community.{" "}
-        </h1>
+        </p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-margin">
         <div className="w-full lg:w-90 flex flex-col gap-margin">
           <div className="flex flex-col bg-surface-container-lowest border-1 border-outline-variant p-lg rounded-xl gap-5">
-            <h1 className="font-serif text-headline-md font-bold border-b-1 border-outline-variant pb-5">
+            <h2 className="font-serif text-headline-md font-bold border-b-1 border-outline-variant pb-5">
               Milestone Keys
-            </h1>
+            </h2>
             <div className="flex flex-row gap-sm items-center">
               <Check
                 size={30}
                 className="p-1 bg-secondary rounded-xl text-on-primary"
               />
-              <h1 className="text-body-lg text-on-surface-variant">
+              <p className="text-body-lg text-on-surface-variant">
                 Completed
-              </h1>
+              </p>
             </div>
             <div className="flex flex-row gap-sm items-center">
               <WandSparkles
                 size={30}
                 className="p-1 bg-primary rounded-xl text-on-primary"
               />
-              <h1 className="text-body-lg text-on-surface-variant">
+              <p className="text-body-lg text-on-surface-variant">
                 In Progress
-              </h1>
+              </p>
             </div>
             <div className="flex flex-row gap-sm items-center">
               <Clock
                 size={30}
                 className="p-1 bg-surface-container-low rounded-xl text-on-surface-variant"
               />
-              <h1 className="text-body-lg text-on-surface-variant">Planned</h1>
+              <p className="text-body-lg text-on-surface-variant">Planned</p>
             </div>
           </div>
           <div className="flex flex-col bg-primary p-lg rounded-xl gap-5">
-            <h1 className="font-serif text-on-primary text-headline-lg">
+            <h2 className="font-serif text-on-primary text-headline-lg">
               Help us shape the future
-            </h1>
-            <h1 className="text-on-primary text-body-lg">
+            </h2>
+            <p className="text-on-primary text-body-lg">
               DiplomaHub is built by the community. Share your ideas for new
               features or tools you&apos;d love to see.
-            </h1>
+            </p>
             <Link href="/feedback">
               <button className="py-sm px-lg bg-surface-container-lowest text-primary rounded-xl text-body-lg cursor-pointer hover:border-primary">
                 Submit Feedback

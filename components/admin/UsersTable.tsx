@@ -82,12 +82,12 @@ function UserRow({ user }: { user: AdminUserRow }) {
         >
           <Avatar src={user.avatar_url} name={user.display_name} size={32} />
           <div className="flex flex-col">
-            <h1 className="font-bold text-body-md text-primary">
+            <p className="font-bold text-body-md text-primary">
               {user.display_name}
-            </h1>
-            <h1 className="text-on-surface-variant text-label-sm">
+            </p>
+            <p className="text-on-surface-variant text-label-sm">
               {user.email}
-            </h1>
+            </p>
           </div>
         </Link>
       </td>

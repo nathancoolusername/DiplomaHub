@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { signIn, signInWithGoogle } from "@/app/auth/actions";
 import { Eye } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +34,7 @@ export default function LoginForm() {
 
   return (
     <div className="w-full justify-content-center items-center py-20 px-md bg-surface-container h-full flex flex-col gap-margin">
-      <Link href="/">
-        <span className="font-serif text-display-lg self-center justify-center font-bold flex flex-row">
-          Diploma<h1 className="text-primary">Hub</h1>
-        </span>
-      </Link>
+      <Logo size="lg" />
       <div className="bg-surface-container-lowest p-margin border-1 border-outline-variant rounded-xl flex flex-col gap-margin w-full max-w-120">
         <h1 className="text-headline-lg font-semibold font-serif">Log in</h1>
 
@@ -114,7 +111,7 @@ export default function LoginForm() {
           <div className="flex-1 h-px bg-gray-200" />
         </div>
         <div className="flex flex-col gap-sm">
-          <h1 className="text-on-surface-variant">New to the community?</h1>
+          <p className="text-on-surface-variant">New to the community?</p>
           <Link href={"/signup"}>
             <button className="w-full py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 cursor-pointer">
               Sign up

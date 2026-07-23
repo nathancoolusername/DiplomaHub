@@ -5,6 +5,7 @@ import { DownloadButton } from "@/components/resources/DownloadButton";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
 import { Avatar } from "@/components/avatar";
+import { DiplomaProBadge } from "@/components/DiplomaProBadge";
 import Link from "next/link";
 
 type Props = {
@@ -33,14 +34,14 @@ export default function Panel({ resource }: Props) {
             </div>
             <div className="gap-md flex flex-col">
               <div>
-                <h1 className="text-headline-md font-serif font-bold transition duration-200 group-hover:text-primary h-20">
+                <h3 className="text-headline-md font-serif font-bold transition duration-200 group-hover:text-primary h-20">
                   {resource.title}
-                </h1>
+                </h3>
               </div>
               <div>
-                <h1 className="text-on-surface-variant text-body-sm line-clamp-2">
+                <p className="text-on-surface-variant text-body-sm line-clamp-2">
                   {resource.description}
-                </h1>
+                </p>
               </div>
             </div>
             <div className="flex flex-row gap-md">
@@ -51,16 +52,16 @@ export default function Panel({ resource }: Props) {
                   size={60}
                 />
                 <div className="flex flex-col">
-                  <h1 className="text-body-md font-bold">
+                  <p className="text-body-md font-bold">
                     {resource.author.display_name}
-                  </h1>
+                  </p>
                   <div className="flex flex-row gap-sm items-center">
-                    <h1 className="text-on-surface-variant text-label-md">
+                    <p className="text-on-surface-variant text-label-md">
                       {resource.author.ib_year}
-                    </h1>{" "}
-                    <h1 className="text-on-primary-fixed-variant font-bold">
-                      {resource.author.is_pro ? "Diploma Pro" : ""}
-                    </h1>
+                    </p>{" "}
+                    {resource.author.is_pro && (
+                      <DiplomaProBadge className="text-on-primary-fixed-variant font-bold" />
+                    )}
                   </div>
                 </div>
               </div>
@@ -78,9 +79,9 @@ export default function Panel({ resource }: Props) {
               activeColor="#f50707"
             />
             <Download />
-            <h1 className="text-on-surface-variant text-body-lg ml-sm">
+            <p className="text-on-surface-variant text-body-lg ml-sm">
               {final_download}
-            </h1>
+            </p>
           </div>
           <div className="ml-auto text-primary flex flex-row items-center">
             <SaveButton

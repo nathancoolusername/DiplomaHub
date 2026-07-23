@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updatePassword } from "@/app/auth/actions";
 import { Eye } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 export default function ResetPasswordForm() {
   const router = useRouter();
@@ -39,11 +39,7 @@ export default function ResetPasswordForm() {
 
   return (
     <div className="w-full justify-content-center items-center py-20 px-md bg-surface-container h-full flex flex-col gap-margin">
-      <Link href="/">
-        <span className="font-serif text-display-lg self-center justify-center font-bold flex flex-row">
-          Diploma<h1 className="text-primary">Hub</h1>
-        </span>
-      </Link>
+      <Logo size="lg" />
       <div className="bg-surface-container-lowest p-margin border-1 border-outline-variant rounded-xl flex flex-col gap-margin w-full max-w-120">
         <h1 className="text-headline-lg font-semibold font-serif">
           Choose a new password

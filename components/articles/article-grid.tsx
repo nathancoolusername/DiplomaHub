@@ -91,7 +91,7 @@ export default function ArticleGrid({ initialItems, initialTotalCount }: Props) 
       (i === 4 && num > 4) ||
       (i === numButtons - 1 && Math.abs(i - num) > 1)
     ) {
-      buttons.push(<h1 key={`ellipsis-${i}`}>...</h1>);
+      buttons.push(<span key={`ellipsis-${i}`}>...</span>);
     }
   }
 
@@ -133,7 +133,7 @@ export default function ArticleGrid({ initialItems, initialTotalCount }: Props) 
           })}
         </div>
         <div className="flex flex-row gap-sm items-center">
-          <h1 className="text-on-surface-variant">Sort by:</h1>
+          <p className="text-on-surface-variant">Sort by:</p>
           <div>
             <SortDropdown
               options={options}

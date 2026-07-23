@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronRight } from "lucide-react";
 import {
   createDiscussion,
   updateDiscussion,
@@ -11,6 +9,8 @@ import {
 import SortDropdown from "@/components/articles/drop-down";
 import { SubjectTags, YEAR_OPTIONS } from "@/components/pills";
 import { typeTags } from "./discussion-panel";
+import { Spinner } from "@/components/spinner";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 type SubmitStatus = "idle" | "saving" | "error";
 
@@ -91,24 +91,18 @@ export default function WriteDiscussionForm({
 
   return (
     <div className="flex flex-col px-md md:px-10 xl:px-45 py-10 gap-gutter bg-surface-container-low">
-      <div className="flex flex-row gap-sm items-center">
-        <Link href={"/community"}>
-          <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
-            Community
-          </h1>
-        </Link>
-        <ChevronRight />
-        <h1 className={`text-primary text-headline-md uppercase`}>
-          {isEditing ? "edit" : "start discussion"}
-        </h1>
-      </div>
+      <Breadcrumb
+        parentLabel="Community"
+        parentHref="/community"
+        currentLabel={isEditing ? "edit" : "start discussion"}
+      />
       <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant gap-lg">
         <h1 className="text-primary font-serif text-display-lg font-bold">
           {isEditing ? "Edit Your Discussion" : "Start a Discussion"}
         </h1>
-        <h1 className="text-on-surface-variant text-body-md mb-5">
+        <p className="text-on-surface-variant text-body-md mb-5">
           Ask a question, share an idea, or get help from the IB community.
-        </h1>
+        </p>
         <form action={handleSubmit} className="space-y-4 max-w-2xl">
           <div>
             <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
@@ -177,8 +171,9 @@ export default function WriteDiscussionForm({
           <button
             type="submit"
             disabled={status === "saving"}
-            className="bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer px-lg py-sm disabled:opacity-50"
+            className="bg-primary text-on-primary rounded-lg hover:opacity-90 transition-opacity cursor-pointer px-lg py-sm disabled:opacity-50 inline-flex items-center gap-sm"
           >
+            {status === "saving" && <Spinner size={16} />}
             {status === "saving"
               ? "Saving..."
               : isEditing
