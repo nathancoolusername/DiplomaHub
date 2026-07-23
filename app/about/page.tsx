@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "About",
   description:
     "DiplomaHub's mission is to help IB students never navigate the Diploma Programme alone — meet the team behind it.",
+  alternates: { canonical: "/about" },
 };
 
 export default async function About() {

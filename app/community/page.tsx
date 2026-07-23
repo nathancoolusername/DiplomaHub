@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   title: "Community",
   description:
     "Discuss coursework, ask questions, and connect with IB students and educators worldwide.",
+  alternates: { canonical: "/community" },
 };
 
 export default async function Community() {

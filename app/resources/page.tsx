@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Resources",
   description:
     "Practical IB materials, exemplars, revision guides, and past-paper tips curated by the IB community.",
+  alternates: { canonical: "/resources" },
 };
 
 export default async function ResourcesPage() {

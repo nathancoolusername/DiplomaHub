@@ -15,6 +15,7 @@ import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
 import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
+import { JsonLd } from "@/components/JsonLd";
 
 const months = [
   "Jan",
@@ -44,6 +45,7 @@ export async function generateMetadata({
   return {
     title,
     description: stripHtml(content).slice(0, 160),
+    alternates: { canonical: `/articles/${slug}` },
   };
 }
 
@@ -81,8 +83,25 @@ export default async function ArticlePage({
       : article.view_count;
   const readTime = estimateReadTime(article.content);
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: stripHtml(article.content).slice(0, 200),
+    datePublished: article.created_at,
+    image: article.cover_image_url || undefined,
+    author: {
+      "@type": "Person",
+      name: article.author?.display_name ?? "DiplomaHub",
+    },
+    publisher: { "@type": "Organization", name: "DiplomaHub" },
+    url: `https://www.diplomahub.org/articles/${article.slug}`,
+  };
+
   return (
-    <div className="flex flex-col px-md md:px-10 xl:px-100 py-10  gap-gutter bg-surface-container-lowest">
+    <>
+      <JsonLd data={articleJsonLd} />
+      <div className="flex flex-col px-md md:px-10 xl:px-100 py-10  gap-gutter bg-surface-container-lowest">
       <div className="flex flex-row gap-sm items-center">
         <Link href={"/articles"}>
           <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
@@ -192,5 +211,6 @@ export default async function ArticlePage({
         currentUserId={currentUser?.id ?? null}
       />
     </div>
+    </>
   );
 }

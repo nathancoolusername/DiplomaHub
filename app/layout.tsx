@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import { AuthNav } from "@/components/NavAuth";
 import Footer from "@/components/Footer";
 import ScrollTopBtn from "@/components/scrollTop";
+import { JsonLd } from "@/components/JsonLd";
 import { Suspense } from "react";
 
 const description =
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     template: "%s | DiplomaHub",
   },
   description,
+  alternates: { canonical: "/" },
   // No description set here on purpose — Next.js falls back to the
   // page-resolved `description` (root default or whatever a page's own
   // `generateMetadata`/`metadata` sets) as long as openGraph/twitter don't
@@ -34,6 +36,14 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary",
   },
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "DiplomaHub",
+  url: "https://www.diplomahub.org",
+  description,
 };
 
 export const viewport: Viewport = {
@@ -64,6 +74,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
+        <JsonLd data={websiteJsonLd} />
         <div className="min-h-[100vh] relative flex flex-col bg-surface-container-lowest h-full notranslate">
           <Navbar
             authSlot={

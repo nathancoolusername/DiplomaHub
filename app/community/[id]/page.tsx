@@ -13,6 +13,7 @@ import { SaveButton } from "@/components/saveButton";
 import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
 import { formatRelativeTime } from "@/app/lib/relativeTime";
+import { JsonLd } from "@/components/JsonLd";
 
 export async function generateMetadata({
   params,
@@ -27,6 +28,7 @@ export async function generateMetadata({
   return {
     title,
     description: content.slice(0, 160),
+    alternates: { canonical: `/community/${id}` },
   };
 }
 
@@ -55,8 +57,23 @@ export default async function DiscussionPage({
         })()
       : discussion.like_count;
 
+  const discussionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "DiscussionForumPosting",
+    headline: discussion.title,
+    text: discussion.content,
+    datePublished: discussion.created_at,
+    author: {
+      "@type": "Person",
+      name: discussion.author?.display_name ?? "DiplomaHub",
+    },
+    url: `https://www.diplomahub.org/community/${discussion.id}`,
+  };
+
   return (
-    <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
+    <>
+      <JsonLd data={discussionJsonLd} />
+      <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
       <div className="flex flex-row gap-sm items-center">
         <Link href={"/community"}>
           <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
@@ -197,5 +214,6 @@ export default async function DiscussionPage({
         </div>
       </div>
     </div>
+    </>
   );
 }

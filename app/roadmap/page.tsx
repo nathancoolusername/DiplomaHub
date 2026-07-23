@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   title: "Roadmap",
   description:
     "See what we're building next for DiplomaHub and share your own ideas for the platform.",
+  alternates: { canonical: "/roadmap" },
 };
 
 // Description/tags/release-label copy stays static here — only status and

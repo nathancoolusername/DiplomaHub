@@ -20,6 +20,7 @@ import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
 import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
+import { JsonLd } from "@/components/JsonLd";
 
 const months = [
   "Jan",
@@ -49,6 +50,7 @@ export async function generateMetadata({
   return {
     title,
     description: description || `${title} — a resource shared on DiplomaHub.`,
+    alternates: { canonical: `/resources/${slug}` },
   };
 }
 
@@ -106,8 +108,20 @@ export default async function resourcePage({
     }
   })();
 
+  const resourceJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    name: resource.title,
+    description: resource.description || undefined,
+    datePublished: resource.created_at,
+    author: { "@type": "Person", name: resource.author.display_name },
+    url: `https://www.diplomahub.org/resources/${resource.id}`,
+  };
+
   return (
-    <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
+    <>
+      <JsonLd data={resourceJsonLd} />
+      <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
       <div className="flex flex-row gap-sm items-center">
         <Link href={"/resources"}>
           <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
@@ -281,5 +295,6 @@ export default async function resourcePage({
         </div>
       </div>
     </div>
+    </>
   );
 }
