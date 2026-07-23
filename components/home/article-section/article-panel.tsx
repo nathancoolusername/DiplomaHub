@@ -34,9 +34,9 @@ export default function Panel({ resource }: Props) {
             </div>
             <div className="gap-md flex flex-col">
               <div>
-                <h1 className="text-headline-md font-serif font-bold transition duration-200 group-hover:text-primary h-20">
+                <h3 className="text-headline-md font-serif font-bold transition duration-200 group-hover:text-primary h-20">
                   {resource.title}
-                </h1>
+                </h3>
               </div>
               <div>
                 <h1 className="text-on-surface-variant text-body-sm line-clamp-2">

@@ -61,9 +61,9 @@ export default function Panel({
         <Link href={linkHref}>
           <div className="gap-md mx-md flex flex-col">
             <div className="mt-md">
-              <h1 className="text-headline-md font-serif font-bold transition duration-200 group-hover:text-primary">
+              <h3 className="text-headline-md font-serif font-bold transition duration-200 group-hover:text-primary">
                 {article.title}
-              </h1>
+              </h3>
             </div>
             <div>
               <h1 className="text-on-surface-variant text-body-sm">

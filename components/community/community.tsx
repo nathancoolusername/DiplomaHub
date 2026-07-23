@@ -201,9 +201,9 @@ export default function CommunityPage({
                   <div className="px-sm bg-on-primary-fixed-variant text-on-primary text-label-md font-semibold w-30 rounded-sm justify-center">
                     <h1>MOST ACTIVE</h1>
                   </div>
-                  <h1 className="text-headline-md font-serif">
+                  <h3 className="text-headline-md font-serif">
                     {actual[0].title}
-                  </h1>
+                  </h3>
                   <div className="flex flex-row gap-sm text-on-surface-variant text-label-md items-center">
                     <h1>{actual[0].like_count} likes</h1>
                     <Dot />
@@ -219,9 +219,9 @@ export default function CommunityPage({
                   <div className="px-sm bg-secondary text-on-primary text-label-md font-semibold w-23 rounded-sm justify-center">
                     <h1>ESSENTIAL</h1>
                   </div>
-                  <h1 className="text-headline-md font-serif">
+                  <h3 className="text-headline-md font-serif">
                     {essential.title}
-                  </h1>
+                  </h3>
                   <div className="flex flex-row gap-sm text-on-surface-variant text-label-md items-center">
                     <h1>{essential.like_count} likes</h1>
                     <Dot />

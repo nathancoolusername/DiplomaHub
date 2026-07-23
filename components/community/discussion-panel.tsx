@@ -90,7 +90,7 @@ export default function Panel({ discussion, href }: Props) {
         </div>
 
         <div>
-          <h1 className="text-headline-md font-serif">{discussion.title}</h1>
+          <h3 className="text-headline-md font-serif">{discussion.title}</h3>
         </div>
 
         <h1 className="text-on-surface-variant text-body-lg">
