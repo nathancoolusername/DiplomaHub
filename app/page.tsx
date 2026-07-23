@@ -60,22 +60,22 @@ export default async function Home({
           <h1 className="text-display-lg font-serif font-bold m-md text-primary italic mb-20">
             where IB students never graduate alone.
           </h1>
-          <h1 className="text-on-surface-variant text-body-lg w-full md:w-170 self-center place-self-center">
+          <p className="text-on-surface-variant text-body-lg w-full md:w-170 self-center place-self-center">
             The community platform for IB students, alumni, and educators.
             Collaborate, share resources, and navigate the IB journey together.
-          </h1>
+          </p>
           <div className="mt-lg flex flex-col sm:flex-row gap-sm justify-center">
             <Link href={"/community"}>
               <button className="w-full sm:w-auto bg-primary text-on-primary px-lg py-md rounded-lg text-body-lg hover:opacity-90 transition-opacity cursor-pointer">
                 <div className="flex flex-row items-center justify-center">
-                  <h1 className="pr-sm">Explore community</h1>
+                  <span className="pr-sm">Explore community</span>
                 </div>
               </button>
             </Link>
             <Link href={"/resources"}>
               <button className="w-full sm:w-auto border-primary border-1 bg-surface-container-lowest text-primary px-lg py-md rounded-lg text-body-lg hover:bg-surface-container-high transition cursor-pointer">
                 <div className="flex flex-row items-center justify-center">
-                  <h1 className="pr-sm">Explore Resources</h1>
+                  <span className="pr-sm">Explore Resources</span>
                 </div>
               </button>
             </Link>

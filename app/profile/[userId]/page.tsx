@@ -8,6 +8,7 @@ import ProfileInfo from "@/components/profile/ProfileInfo";
 import { getSavedItems } from "@/app/lib/actions/saved-items";
 import { initialsFor } from "@/app/lib/initials";
 import { ShareButton } from "@/components/shareButton";
+import { DiplomaProBadge } from "@/components/DiplomaProBadge";
 
 const months = [
   "January",
@@ -73,9 +74,9 @@ export default async function ProfilePage({
               <h1 className="text-display-lg font-serif font-bold">
                 {user.display_name}
               </h1>
-              <h1 className="text-on-primary-fixed-variant text-headline-lg self-center font-bold">
-                {user.is_pro ? "Diploma Pro" : ""}
-              </h1>
+              {user.is_pro && (
+                <DiplomaProBadge className="text-on-primary-fixed-variant text-headline-lg self-center font-bold" />
+              )}
             </div>
             <div className="flex flex-row flex-wrap gap-md justify-center md:justify-start">
               <div className="flex flex-row gap-sm">

@@ -4,8 +4,10 @@ import type { Metadata } from "next";
 import { getDiscussion } from "@/app/lib/actions/discussions";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
-import { ChevronRight, Calendar, Pencil } from "lucide-react";
+import { Calendar, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
+import { Breadcrumb } from "@/components/Breadcrumb";
+import { DiplomaProBadge } from "@/components/DiplomaProBadge";
 import { typeTags } from "@/components/community/discussion-panel";
 import { DeleteDiscussionButton } from "@/components/community/DeleteDiscussionButton";
 import { LikeButton } from "@/components/likeButton";
@@ -74,17 +76,12 @@ export default async function DiscussionPage({
     <>
       <JsonLd data={discussionJsonLd} />
       <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
-      <div className="flex flex-row gap-sm items-center">
-        <Link href={"/community"}>
-          <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
-            discussions
-          </h1>
-        </Link>
-        <ChevronRight />
-        <h1 className={`text-secondary text-headline-md uppercase`}>
-          {discussion.subject_tag}
-        </h1>
-      </div>
+      <Breadcrumb
+        parentLabel="discussions"
+        parentHref="/community"
+        currentLabel={discussion.subject_tag}
+        currentClassName="text-secondary"
+      />
       <div className="flex flex-col lg:flex-row gap-margin">
         <div className="flex flex-col gap-margin lg:basis-2/3">
           <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant gap-lg">
@@ -111,9 +108,9 @@ export default async function DiscussionPage({
                   <h1 className="text-body-lg">
                     {discussion.author?.display_name}
                   </h1>
-                  <h1 className="text-on-primary-fixed-variant font-bold">
-                    {discussion.author?.is_pro ? "Diploma Pro" : ""}
-                  </h1>
+                  {discussion.author?.is_pro && (
+                    <DiplomaProBadge className="text-on-primary-fixed-variant font-bold" />
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-sm">
@@ -196,9 +193,9 @@ export default async function DiscussionPage({
                 <h1 className="text-headline-lg font-serif">
                   {discussion.author?.display_name}
                 </h1>
-                <h1 className="text-body-md text-primary">
-                  {discussion.author?.is_pro ? "Diploma Pro" : ""}
-                </h1>
+                {discussion.author?.is_pro && (
+                  <DiplomaProBadge className="text-body-md text-primary" />
+                )}
               </div>
             </div>
             <h1 className="text-body-md text-on-surface-variant">

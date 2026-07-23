@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ChevronRight,
   UploadCloud,
   FileText,
   X,
@@ -15,6 +13,7 @@ import {
 import { createResource, updateResource } from "@/app/lib/actions/resources";
 import { createClient } from "@/app/lib/supabase/client";
 import { Spinner } from "@/components/spinner";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import {
   validateFile,
   RESOURCE_FILE_TYPES,
@@ -172,17 +171,11 @@ export default function UploadResourceForm({
 
   return (
     <div className="flex flex-col px-md md:px-10 xl:px-45 py-10 gap-gutter bg-surface-container-low">
-      <div className="flex flex-row gap-sm items-center">
-        <Link href={"/resources"}>
-          <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
-            Resources
-          </h1>
-        </Link>
-        <ChevronRight />
-        <h1 className={`text-primary text-headline-md uppercase`}>
-          {isEditing ? "edit" : "upload"}
-        </h1>
-      </div>
+      <Breadcrumb
+        parentLabel="Resources"
+        parentHref="/resources"
+        currentLabel={isEditing ? "edit" : "upload"}
+      />
       <div className="flex-1 flex flex-col lg:flex-row gap-margin">
         <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant lg:basis-4/5 gap-lg">
           <h1 className="text-primary font-serif text-display-lg font-bold">

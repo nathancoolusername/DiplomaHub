@@ -4,6 +4,7 @@ import { ibYearTitleTag } from "../pills";
 import { SaveButton } from "../saveButton";
 import { LikeButton } from "../likeButton";
 import { Avatar } from "../avatar";
+import { DiplomaProBadge } from "../DiplomaProBadge";
 import { formatRelativeTime } from "@/app/lib/relativeTime";
 
 type PanelDiscussion = {
@@ -66,9 +67,9 @@ export default function Panel({ discussion, href }: Props) {
                 </h1>
                 <div className="flex flex-row gap-sm">
                   {ibYearTitleTag(discussion.author?.ib_year)}
-                  <h1 className="text-on-primary-fixed-variant font-bold">
-                    {discussion.author?.is_pro ? "Diploma Pro" : ""}
-                  </h1>
+                  {discussion.author?.is_pro && (
+                    <DiplomaProBadge className="text-on-primary-fixed-variant font-bold" />
+                  )}
                 </div>
               </div>
               <div className="flex flex-row flex-wrap gap-sm items-center">

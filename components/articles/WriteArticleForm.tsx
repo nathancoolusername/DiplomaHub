@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, ChangeEvent, DragEvent } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -8,7 +7,6 @@ import StarterKit from "@tiptap/starter-kit";
 import TiptapLink from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
-  ChevronRight,
   CircleCheck,
   ImageIcon,
   Bold,
@@ -25,6 +23,7 @@ import { uploadArticleCoverImage } from "@/app/lib/actions/upload";
 import SortDropdown from "@/components/articles/drop-down";
 import { SubjectTags } from "@/components/pills";
 import { Spinner } from "@/components/spinner";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 type SubmitStatus = "idle" | "saving" | "error";
 
@@ -176,17 +175,11 @@ export default function WriteArticleForm({
 
   return (
     <div className="flex flex-col px-md md:px-10 xl:px-45 py-10 gap-gutter bg-surface-container-low">
-      <div className="flex flex-row gap-sm items-center">
-        <Link href={"/articles"}>
-          <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
-            Articles
-          </h1>
-        </Link>
-        <ChevronRight />
-        <h1 className={`text-primary text-headline-md uppercase`}>
-          {isEditing ? "edit" : "write"}
-        </h1>
-      </div>
+      <Breadcrumb
+        parentLabel="Articles"
+        parentHref="/articles"
+        currentLabel={isEditing ? "edit" : "write"}
+      />
       <div className="flex-1 flex flex-col lg:flex-row gap-margin">
         <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant lg:basis-4/5 gap-lg">
           <h1 className="text-primary font-serif text-display-lg font-bold">

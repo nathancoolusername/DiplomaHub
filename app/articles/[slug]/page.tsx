@@ -7,8 +7,10 @@ import { stripHtml } from "@/app/lib/stripHtml";
 import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
-import { ChevronRight, Calendar, Eye, Pencil } from "lucide-react";
+import { Calendar, Eye, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
+import { Breadcrumb } from "@/components/Breadcrumb";
+import { DiplomaProBadge } from "@/components/DiplomaProBadge";
 import { DeleteArticleButton } from "@/components/articles/DeleteArticleButton";
 import { estimateReadTime } from "@/app/lib/readTime";
 import { LikeButton } from "@/components/likeButton";
@@ -102,17 +104,12 @@ export default async function ArticlePage({
     <>
       <JsonLd data={articleJsonLd} />
       <div className="flex flex-col px-md md:px-10 xl:px-100 py-10  gap-gutter bg-surface-container-lowest">
-      <div className="flex flex-row gap-sm items-center">
-        <Link href={"/articles"}>
-          <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
-            articles
-          </h1>
-        </Link>
-        <ChevronRight />
-        <h1 className={`text-secondary text-headline-md uppercase`}>
-          {article.topic}
-        </h1>
-      </div>
+      <Breadcrumb
+        parentLabel="articles"
+        parentHref="/articles"
+        currentLabel={article.topic}
+        currentClassName="text-secondary"
+      />
 
       <h1 className={`font-serif text-display-lg font-bold`}>
         {article.title}
@@ -127,9 +124,9 @@ export default async function ArticlePage({
           />
           <div className="flex flex-col">
             <h1 className="text-body-lg">{article.author?.display_name}</h1>
-            <h1 className="text-label-md text-on-surface-variant">
-              {article.author?.is_pro ? "Diploma Pro" : ""}
-            </h1>
+            {article.author?.is_pro && (
+              <DiplomaProBadge className="text-label-md text-on-surface-variant" />
+            )}
           </div>
         </div>
         <div className="flex flex-row items-center gap-sm">

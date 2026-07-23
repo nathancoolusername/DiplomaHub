@@ -5,14 +5,9 @@ import { getResourceDetail } from "@/app/lib/actions/resources";
 import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUser } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
-import {
-  ChevronRight,
-  Calendar,
-  FileText,
-  BadgeCheck,
-  Pencil,
-} from "lucide-react";
+import { Calendar, FileText, BadgeCheck, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { SubjectTags, ResourceTypeTag } from "@/components/pills";
 import { DownloadButton } from "@/components/resources/DownloadButton";
 import { DeleteResourceButton } from "@/components/resources/DeleteResourceButton";
@@ -122,17 +117,12 @@ export default async function resourcePage({
     <>
       <JsonLd data={resourceJsonLd} />
       <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
-      <div className="flex flex-row gap-sm items-center">
-        <Link href={"/resources"}>
-          <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
-            Resources
-          </h1>
-        </Link>
-        <ChevronRight />
-        <h1 className={`text-secondary text-headline-md uppercase`}>
-          {resource.subject_tag}
-        </h1>
-      </div>
+      <Breadcrumb
+        parentLabel="Resources"
+        parentHref="/resources"
+        currentLabel={resource.subject_tag}
+        currentClassName="text-secondary"
+      />
       <div className="flex flex-col lg:flex-row gap-margin">
         <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant lg:basis-2/3 gap-lg">
           <div className="flex flex-row justify-between">

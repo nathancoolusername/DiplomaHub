@@ -1,9 +1,9 @@
 // app/signup/page.tsx
 "use client";
-import Link from "next/link";
 import { useState } from "react";
 import { signUp } from "../auth/actions";
 import { Eye } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
@@ -41,11 +41,7 @@ export default function SignupPage() {
   return (
     <div className="py-20 px-md bg-surface-container h-full flex flex-col gap-margin items-center">
       <div className="w-full max-w-140 flex flex-col gap-gutter bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant">
-        <Link href="/">
-          <span className="font-serif text-display-lg self-center justify-center font-bold flex flex-row">
-            Join Diploma<h1 className="text-primary">Hub</h1>
-          </span>
-        </Link>
+        <Logo size="lg" prefix="Join " />
 
         <form action={handleSubmit} className="space-y-4">
           <div>

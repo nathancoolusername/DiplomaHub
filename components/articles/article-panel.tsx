@@ -5,6 +5,7 @@ import { stripHtml } from "@/app/lib/stripHtml";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
 import { Avatar } from "@/components/avatar";
+import { DiplomaProBadge } from "@/components/DiplomaProBadge";
 
 type PanelArticle = {
   id: string | number;
@@ -85,9 +86,9 @@ export default function Panel({
               <h1 className="text-body-md">
                 {article.author?.display_name ?? article.author?.name}
               </h1>
-              <h1 className="text-on-primary-fixed-variant font-bold text-label-sm">
-                {article.author?.is_pro ? "Diploma Pro" : ""}
-              </h1>
+              {article.author?.is_pro && (
+                <DiplomaProBadge className="text-on-primary-fixed-variant font-bold text-label-sm" />
+              )}
             </div>
           </div>
           <div className="flex flex-row items-center ml-auto text-primary">

@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronRight } from "lucide-react";
 import {
   createDiscussion,
   updateDiscussion,
@@ -12,6 +10,7 @@ import SortDropdown from "@/components/articles/drop-down";
 import { SubjectTags, YEAR_OPTIONS } from "@/components/pills";
 import { typeTags } from "./discussion-panel";
 import { Spinner } from "@/components/spinner";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 type SubmitStatus = "idle" | "saving" | "error";
 
@@ -92,17 +91,11 @@ export default function WriteDiscussionForm({
 
   return (
     <div className="flex flex-col px-md md:px-10 xl:px-45 py-10 gap-gutter bg-surface-container-low">
-      <div className="flex flex-row gap-sm items-center">
-        <Link href={"/community"}>
-          <h1 className={`text-on-surface-variant text-headline-md uppercase`}>
-            Community
-          </h1>
-        </Link>
-        <ChevronRight />
-        <h1 className={`text-primary text-headline-md uppercase`}>
-          {isEditing ? "edit" : "start discussion"}
-        </h1>
-      </div>
+      <Breadcrumb
+        parentLabel="Community"
+        parentHref="/community"
+        currentLabel={isEditing ? "edit" : "start discussion"}
+      />
       <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant gap-lg">
         <h1 className="text-primary font-serif text-display-lg font-bold">
           {isEditing ? "Edit Your Discussion" : "Start a Discussion"}

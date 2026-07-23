@@ -3,6 +3,7 @@ import { ibYearTitleTag } from "../pills";
 import { LikeButton } from "../likeButton";
 import { Avatar } from "../avatar";
 import { Spinner } from "../spinner";
+import { DiplomaProBadge } from "../DiplomaProBadge";
 import { formatRelativeTime } from "@/app/lib/relativeTime";
 
 type Author = {
@@ -54,9 +55,7 @@ export default function Comment({
               </h1>
               {ibYearTitleTag(author?.ib_year)}
               {author?.is_pro && (
-                <h1 className="text-on-primary-fixed-variant font-bold">
-                  Diploma Pro
-                </h1>
+                <DiplomaProBadge className="text-on-primary-fixed-variant font-bold" />
               )}
             </div>
             <div className="flex flex-row items-center gap-sm shrink-0">

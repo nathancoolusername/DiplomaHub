@@ -5,6 +5,7 @@ import { DownloadButton } from "@/components/resources/DownloadButton";
 import { LikeButton } from "@/components/likeButton";
 import { SaveButton } from "@/components/saveButton";
 import { Avatar } from "@/components/avatar";
+import { DiplomaProBadge } from "@/components/DiplomaProBadge";
 import Link from "next/link";
 
 type Props = {
@@ -58,9 +59,9 @@ export default function Panel({ resource }: Props) {
                     <h1 className="text-on-surface-variant text-label-md">
                       {resource.author.ib_year}
                     </h1>{" "}
-                    <h1 className="text-on-primary-fixed-variant font-bold">
-                      {resource.author.is_pro ? "Diploma Pro" : ""}
-                    </h1>
+                    {resource.author.is_pro && (
+                      <DiplomaProBadge className="text-on-primary-fixed-variant font-bold" />
+                    )}
                   </div>
                 </div>
               </div>
