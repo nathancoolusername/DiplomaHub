@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { requestPasswordReset } from "@/app/auth/actions";
 import { Logo } from "@/components/Logo";
 import { Spinner } from "@/components/spinner";
@@ -18,6 +18,11 @@ export default function ForgotPasswordForm() {
     setLoading(false);
   }
 
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    handleSubmit(new FormData(e.currentTarget));
+  }
+
   return (
     <div className="w-full justify-content-center items-center py-20 px-md bg-surface-container h-full flex flex-col gap-margin">
       <Logo size="lg" />
@@ -32,7 +37,7 @@ export default function ForgotPasswordForm() {
             a link to reset your password. Check your inbox.
           </p>
         ) : (
-          <form action={handleSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
             <div>
               <label className="block text-body-lg font-medium mb-1">
                 Email Address

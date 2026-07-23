@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updatePassword } from "@/app/auth/actions";
 import { Eye } from "lucide-react";
@@ -38,6 +38,11 @@ export default function ResetPasswordForm() {
     setTimeout(() => router.push("/"), 1500);
   }
 
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    handleSubmit(new FormData(e.currentTarget));
+  }
+
   return (
     <div className="w-full justify-content-center items-center py-20 px-md bg-surface-container h-full flex flex-col gap-margin">
       <Logo size="lg" />
@@ -51,7 +56,7 @@ export default function ResetPasswordForm() {
             Password updated — redirecting you in...
           </p>
         ) : (
-          <form action={handleSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
             <div>
               <label className="block text-body-lg font-medium mb-1">
                 New password
