@@ -11,9 +11,9 @@ export default function TermsOfService() {
       <h1 className="font-serif text-headline-lg font-bold">
         DiplomaHub Terms of Service
       </h1>
-      <h1 className="text-on-surface-variant text-body-lg">
+      <p className="text-on-surface-variant text-body-lg">
         Last updated: 07/07/2026
-      </h1>
+      </p>
 
       <p className="text-body-md">
         Welcome to DiplomaHub, a community platform for IB Diploma Programme
@@ -24,7 +24,7 @@ export default function TermsOfService() {
       </p>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">1. Eligibility</h1>
+        <h2 className="font-bold text-headline-md">1. Eligibility</h2>
         <p className="text-body-md">
           You must be at least 13 years old to use DiplomaHub. If you are
           under the age of majority in your jurisdiction, you represent that
@@ -45,7 +45,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">2. Your Account</h1>
+        <h2 className="font-bold text-headline-md">2. Your Account</h2>
         <ul className="list-disc pl-lg flex flex-col gap-xs text-body-md">
           <li>
             You are responsible for maintaining the confidentiality of your
@@ -64,7 +64,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">3. User-Generated Content</h1>
+        <h2 className="font-bold text-headline-md">3. User-Generated Content</h2>
         <p className="text-body-md">
           DiplomaHub allows users to submit articles, resources, discussion
           posts, comments, and other content (&quot;User Content&quot;).
@@ -108,7 +108,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">4. Notice and Takedown</h1>
+        <h2 className="font-bold text-headline-md">4. Notice and Takedown</h2>
         <p className="text-body-md">
           DiplomaHub acts as a host for User Content and does not actively
           monitor all submissions for copyright infringement before they are
@@ -152,7 +152,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">5. Academic Integrity</h1>
+        <h2 className="font-bold text-headline-md">5. Academic Integrity</h2>
         <p className="text-body-md">
           DiplomaHub is a resource and discussion platform, not a substitute
           for your own academic work. Content shared on the Platform (notes,
@@ -165,7 +165,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">6. Community Conduct</h1>
+        <h2 className="font-bold text-headline-md">6. Community Conduct</h2>
         <p className="text-body-md">Users agree not to:</p>
         <ul className="list-disc pl-lg flex flex-col gap-xs text-body-md">
           <li>Harass, bully, or discriminate against other users</li>
@@ -181,9 +181,9 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">
+        <h2 className="font-bold text-headline-md">
           7. Reputation &amp; Trust Features
-        </h1>
+        </h2>
         <p className="text-body-md">
           DiplomaHub may display badges, contribution scores, or trust
           indicators based on user activity. These are intended to reflect
@@ -193,7 +193,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">8. Disclaimers</h1>
+        <h2 className="font-bold text-headline-md">8. Disclaimers</h2>
         <ul className="list-disc pl-lg flex flex-col gap-xs text-body-md">
           <li>The Platform and its content are provided &quot;as is,&quot; without warranties of any kind.</li>
           <li>
@@ -209,7 +209,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">9. Limitation of Liability</h1>
+        <h2 className="font-bold text-headline-md">9. Limitation of Liability</h2>
         <p className="text-body-md">
           To the fullest extent permitted by law, DiplomaHub and its
           founders/contributors are not liable for any indirect, incidental,
@@ -222,9 +222,9 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">
+        <h2 className="font-bold text-headline-md">
           10. Changes to the Platform or Terms
-        </h1>
+        </h2>
         <p className="text-body-md">
           We may update these Terms or modify/discontinue features of the
           Platform at any time. We will post updated Terms on this page with
@@ -234,9 +234,9 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">
+        <h2 className="font-bold text-headline-md">
           11. Governing Law and Jurisdiction
-        </h1>
+        </h2>
         <p className="text-body-md">
           These Terms are governed by the laws of the{" "}
           <span className="font-bold">Federal Republic of Germany</span>,
@@ -249,7 +249,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">12. Contact</h1>
+        <h2 className="font-bold text-headline-md">12. Contact</h2>
         <p className="text-body-md">
           Questions about these Terms can be directed to:{" "}
           <a
@@ -262,7 +262,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">13. Severability</h1>
+        <h2 className="font-bold text-headline-md">13. Severability</h2>
         <p className="text-body-md">
           If any provision of these Terms is found invalid or unenforceable,
           the remaining provisions will remain in full force and effect,
@@ -272,7 +272,7 @@ export default function TermsOfService() {
       </section>
 
       <section className="flex flex-col gap-sm">
-        <h1 className="font-bold text-headline-md">14. Operator Information</h1>
+        <h2 className="font-bold text-headline-md">14. Operator Information</h2>
         <p className="text-body-md">DiplomaHub is operated by:</p>
         <p className="text-body-md font-bold">
           ANDY NATHAN PIEUME TCHIYEP —{" "}

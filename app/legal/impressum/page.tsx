@@ -9,9 +9,9 @@ export default function Impressum() {
   return (
     <div className="flex flex-col gap-lg max-w-[800px] mx-auto px-margin py-[60px]">
       <h1 className="font-serif text-headline-lg font-bold">Impressum</h1>
-      <h1 className="text-on-surface-variant text-body-lg">
+      <p className="text-on-surface-variant text-body-lg">
         Angaben gemäß § 5 DDG
-      </h1>
+      </p>
 
       <div className="flex flex-col gap-xs text-body-md">
         <p>DiplomaHub</p>
@@ -20,12 +20,12 @@ export default function Impressum() {
       </div>
 
       <div className="flex flex-col gap-xs">
-        <h1 className="font-bold text-headline-md">Vertreten durch</h1>
+        <h2 className="font-bold text-headline-md">Vertreten durch</h2>
         <p className="text-body-md">Andy Nathan Pieume Tchiyep</p>
       </div>
 
       <div className="flex flex-col gap-xs">
-        <h1 className="font-bold text-headline-md">Kontakt</h1>
+        <h2 className="font-bold text-headline-md">Kontakt</h2>
         <p className="text-body-md">Telefon: +49-1021003</p>
         <p className="text-body-md">
           E-Mail:{" "}
@@ -39,9 +39,9 @@ export default function Impressum() {
       </div>
 
       <div className="flex flex-col gap-xs">
-        <h1 className="font-bold text-headline-md">
+        <h2 className="font-bold text-headline-md">
           Verbraucherstreitbeilegung / Universalschlichtungsstelle
-        </h1>
+        </h2>
         <p className="text-body-md">
           Wir nehmen nicht an Streitbeilegungsverfahren vor einer
           Verbraucherschlichtungsstelle teil und sind dazu auch nicht
@@ -50,10 +50,10 @@ export default function Impressum() {
       </div>
 
       <div className="flex flex-col gap-md">
-        <h1 className="font-bold text-headline-md">Haftungsausschluss</h1>
+        <h2 className="font-bold text-headline-md">Haftungsausschluss</h2>
 
         <div className="flex flex-col gap-xs">
-          <h1 className="font-bold text-body-lg">Haftung für Inhalte</h1>
+          <h3 className="font-bold text-body-lg">Haftung für Inhalte</h3>
           <p className="text-body-md">
             Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt.
             Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte
@@ -73,7 +73,7 @@ export default function Impressum() {
         </div>
 
         <div className="flex flex-col gap-xs">
-          <h1 className="font-bold text-body-lg">Urheberrecht</h1>
+          <h3 className="font-bold text-body-lg">Urheberrecht</h3>
           <p className="text-body-md">
             Die durch die Seitenbetreiber erstellten Inhalte und Werke auf
             diesen Seiten unterliegen dem deutschen Urheberrecht. Die
