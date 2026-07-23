@@ -123,7 +123,7 @@ export default async function ArticlePage({
             size={40}
           />
           <div className="flex flex-col">
-            <h1 className="text-body-lg">{article.author?.display_name}</h1>
+            <p className="text-body-lg">{article.author?.display_name}</p>
             {article.author?.is_pro && (
               <DiplomaProBadge className="text-label-md text-on-surface-variant" />
             )}
@@ -131,11 +131,11 @@ export default async function ArticlePage({
         </div>
         <div className="flex flex-row items-center gap-sm">
           <Calendar />
-          <h1>{final}</h1>
+          <p>{final}</p>
         </div>
-        <h1 className="text-on-surface-variant self-center">
+        <p className="text-on-surface-variant self-center">
           {readTime} min read
-        </h1>
+        </p>
       </div>
 
       <div className="relative w-full aspect-video rounded-xl overflow-hidden">
@@ -172,9 +172,9 @@ export default async function ArticlePage({
           <div className="text-on-surface-variant transition hover:text-primary p-sm">
             <Eye size={30} />
           </div>
-          <h1 className="text-on-surface-variant text-body-lg ml-sm">
+          <p className="text-on-surface-variant text-body-lg ml-sm">
             {final_view} views
-          </h1>
+          </p>
         </div>
         <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row gap-md items-center">
           <SaveButton

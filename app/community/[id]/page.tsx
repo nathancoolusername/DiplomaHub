@@ -85,13 +85,13 @@ export default async function DiscussionPage({
       <div className="flex flex-col lg:flex-row gap-margin">
         <div className="flex flex-col gap-margin lg:basis-2/3">
           <div className="flex flex-col bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant gap-lg">
-            <h1
+            <p
               className={
                 discussion.type_tag ? typeTags[discussion.type_tag] : ""
               }
             >
               {discussion.type_tag}
-            </h1>
+            </p>
 
             <h1 className={`font-serif text-display-lg font-bold`}>
               {discussion.title}
@@ -105,34 +105,34 @@ export default async function DiscussionPage({
                   size={40}
                 />
                 <div className="flex flex-col">
-                  <h1 className="text-body-lg">
+                  <p className="text-body-lg">
                     {discussion.author?.display_name}
-                  </h1>
+                  </p>
                   {discussion.author?.is_pro && (
                     <DiplomaProBadge className="text-on-primary-fixed-variant font-bold" />
                   )}
                 </div>
               </div>
               <div className="flex flex-col gap-sm">
-                <h1 className="text-body-lg">Posted</h1>
+                <p className="text-body-lg">Posted</p>
                 <div className="flex flex-row items-center gap-sm">
                   <Calendar className="text-on-surface-variant" />
-                  <h1 className="text-on-surface-variant text-label-md">
+                  <p className="text-on-surface-variant text-label-md">
                     {finalTime}
-                  </h1>
+                  </p>
                 </div>
               </div>
               <div className="flex flex-col gap-sm">
-                <h1 className="text-body-lg">Likes</h1>
-                <h1 className="text-label-md text-on-surface-variant">
+                <p className="text-body-lg">Likes</p>
+                <p className="text-label-md text-on-surface-variant">
                   {final_like}
-                </h1>
+                </p>
               </div>
             </div>
             <div className="flex flex-col gap-lg mt-md">
-              <h1 className="text-on-surface-variant text-body-lg">
+              <p className="text-on-surface-variant text-body-lg">
                 {discussion.content}
-              </h1>
+              </p>
               <div className="ml-auto text-primary flex flex-row flex-wrap">
                 <LikeButton
                   target={{ discussion_id: discussion.id }}
@@ -180,9 +180,9 @@ export default async function DiscussionPage({
         </div>
         <div className="lg:basis-1/3 flex flex-col gap-margin">
           <div className="h-65 w-full bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-            <h1 className="text-body-lg uppercase text-primary">
+            <h2 className="text-body-lg uppercase text-primary">
               About the Author
-            </h1>
+            </h2>
             <div className="flex flex-row items-center gap-md">
               <Avatar
                 src={discussion.author?.avatar_url}
@@ -190,18 +190,18 @@ export default async function DiscussionPage({
                 size={50}
               />
               <div className="flex flex-col">
-                <h1 className="text-headline-lg font-serif">
+                <p className="text-headline-lg font-serif">
                   {discussion.author?.display_name}
-                </h1>
+                </p>
                 {discussion.author?.is_pro && (
                   <DiplomaProBadge className="text-body-md text-primary" />
                 )}
               </div>
             </div>
-            <h1 className="text-body-md text-on-surface-variant">
+            <p className="text-body-md text-on-surface-variant">
               {discussion.author?.display_name} has contributed to the IBPeople
               community.
-            </h1>
+            </p>
             <Link href={`/profile/${discussion.author_id}`}>
               <button className="bg-surface-variant-lowest text-primary border-1 border-primary py-sm hover:bg-surface-container cursor-pointer w-full">
                 View Full Profile
