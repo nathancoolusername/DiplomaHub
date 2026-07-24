@@ -94,6 +94,30 @@ export async function getAllUsersForAdmin(): Promise<
   return { success: true, data };
 }
 
+export async function deleteUserAsAdmin(
+  targetUserId: string,
+): Promise<ActionResult<null>> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { success: false, error: "Not authorized" };
+
+  // Refuse to delete any hardcoded admin account (including the caller's
+  // own) — ADMIN_USER_IDS is a fixed array in source, so deleting that auth
+  // user would just brick admin access until a redeploy, not actually
+  // remove them from the admin list.
+  if (isAdmin(targetUserId)) {
+    return { success: false, error: "Cannot delete an admin account" };
+  }
+
+  // Cascades to all their resources/articles/discussions/comments/etc at
+  // the DB level (ON DELETE CASCADE) — see PROJECT_CONTEXT.md.
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.deleteUser(targetUserId);
+
+  if (error) return { success: false, error: error.message };
+  revalidatePath("/admin/users");
+  return { success: true, data: null };
+}
+
 export async function updateAuthorTrustScore(
   userId: string,
   score: number,

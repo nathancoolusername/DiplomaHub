@@ -5,7 +5,7 @@ import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Camera } from "lucide-react";
-import { updateProfile } from "@/app/auth/actions";
+import { updateProfile, deleteAccount } from "@/app/auth/actions";
 import { uploadAvatar } from "@/app/lib/actions/upload";
 import { initialsFor } from "@/app/lib/initials";
 import { Spinner } from "@/components/spinner";
@@ -24,6 +24,8 @@ export function ProfileForm({
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleAvatarChange(e: ChangeEvent<HTMLInputElement>) {
@@ -61,11 +63,31 @@ export function ProfileForm({
     handleSubmit(new FormData(e.currentTarget));
   }
 
+  async function handleDeleteAccount() {
+    if (
+      !confirm(
+        "Permanently delete your account? This removes your account and everything you've created (resources, articles, discussions, comments). This can't be undone.",
+      )
+    )
+      return;
+
+    setDeleting(true);
+    setDeleteError(null);
+    const result = await deleteAccount();
+    // deleteAccount() redirects to "/" on success, so we only ever get here
+    // on failure (redirect() throws internally and never returns a value).
+    if (result && !result.success) {
+      setDeleteError(result.error);
+      setDeleting(false);
+    }
+  }
+
   return (
-    <form
-      onSubmit={onSubmit}
-      className="space-y-4 flex flex-col gap-margin h-full py-margin px-gutter bg-surface-container-lowest border-1 border-outline-variant rounded-xl"
-    >
+    <div className="flex flex-col gap-margin">
+      <form
+        onSubmit={onSubmit}
+        className="space-y-4 flex flex-col gap-margin h-full py-margin px-gutter bg-surface-container-lowest border-1 border-outline-variant rounded-xl"
+      >
       <div className="flex flex-col items-center gap-sm">
         <button
           type="button"
@@ -154,5 +176,27 @@ export function ProfileForm({
         {loading ? "Saving..." : "Save changes"}
       </button>
     </form>
+
+      <div className="flex flex-col gap-sm py-margin px-gutter bg-surface-container-lowest border-1 border-red-200 rounded-xl">
+        <p className="font-bold text-body-lg text-red-600">Danger Zone</p>
+        <p className="text-body-md text-on-surface-variant">
+          Permanently delete your account and everything you&apos;ve created —
+          resources, articles, discussions, comments. This can&apos;t be
+          undone.
+        </p>
+        {deleteError && (
+          <p className="text-sm text-red-500">{deleteError}</p>
+        )}
+        <button
+          type="button"
+          onClick={handleDeleteAccount}
+          disabled={deleting}
+          className="self-start py-2 px-lg rounded-lg border-1 border-red-500 text-red-600 font-medium hover:bg-red-50 disabled:opacity-50 cursor-pointer inline-flex items-center justify-center gap-sm"
+        >
+          {deleting && <Spinner size={16} />}
+          {deleting ? "Deleting..." : "Delete Account"}
+        </button>
+      </div>
+    </div>
   );
 }

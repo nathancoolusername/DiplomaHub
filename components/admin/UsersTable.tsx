@@ -5,18 +5,26 @@ import Link from "next/link";
 import {
   updateAuthorTrustScore,
   setUserPro,
+  deleteUserAsAdmin,
   type AdminUserRow,
 } from "@/app/lib/actions/admin";
+import { isAdmin } from "@/app/lib/admin";
 import { Avatar } from "@/components/avatar";
+import { Spinner } from "@/components/spinner";
 
 export function UsersTable({ users }: { users: AdminUserRow[] }) {
+  const [items, setItems] = useState(users);
   const [search, setSearch] = useState("");
   const query = search.toLowerCase();
-  const filtered = users.filter(
+  const filtered = items.filter(
     (u) =>
       u.display_name.toLowerCase().includes(query) ||
       u.email.toLowerCase().includes(query),
   );
+
+  function removeUser(id: string) {
+    setItems((prev) => prev.filter((u) => u.id !== id));
+  }
 
   return (
     <div className="flex flex-col gap-md">
@@ -35,11 +43,12 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
               <th className="p-md">Trust Score</th>
               <th className="p-md">Pro</th>
               <th className="p-md">Joined</th>
+              <th className="p-md">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((u) => (
-              <UserRow key={u.id} user={u} />
+              <UserRow key={u.id} user={u} onDelete={() => removeUser(u.id)} />
             ))}
           </tbody>
         </table>
@@ -48,11 +57,18 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
   );
 }
 
-function UserRow({ user }: { user: AdminUserRow }) {
+function UserRow({
+  user,
+  onDelete,
+}: {
+  user: AdminUserRow;
+  onDelete: () => void;
+}) {
   const [score, setScore] = useState(user.author_trust_score);
   const [isPro, setIsPro] = useState(user.is_pro);
   const [savingScore, setSavingScore] = useState(false);
   const [savingPro, setSavingPro] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSaveScore() {
@@ -71,6 +87,24 @@ function UserRow({ user }: { user: AdminUserRow }) {
     if (result.success) setIsPro(nextIsPro);
     else setError(result.error);
     setSavingPro(false);
+  }
+
+  async function handleDelete() {
+    if (
+      !confirm(
+        `Permanently delete ${user.display_name}'s account? This removes their account and everything they created (resources, articles, discussions, comments). This can't be undone.`,
+      )
+    )
+      return;
+
+    setDeleting(true);
+    setError(null);
+    const result = await deleteUserAsAdmin(user.id);
+    if (result.success) onDelete();
+    else {
+      setError(result.error);
+      setDeleting(false);
+    }
   }
 
   return (
@@ -127,6 +161,20 @@ function UserRow({ user }: { user: AdminUserRow }) {
       </td>
       <td className="p-md text-on-surface-variant text-label-md">
         {new Date(user.created_at).toLocaleDateString()}
+      </td>
+      <td className="p-md">
+        {isAdmin(user.id) ? (
+          <span className="text-on-surface-variant text-label-sm">—</span>
+        ) : (
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="text-red-500 font-semibold cursor-pointer hover:underline disabled:opacity-50 disabled:no-underline inline-flex items-center gap-xs"
+          >
+            {deleting && <Spinner size={14} />}
+            Delete
+          </button>
+        )}
       </td>
     </tr>
   );
