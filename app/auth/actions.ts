@@ -2,6 +2,7 @@
 "use server";
 
 import { createClient } from "../lib/supabase/server";
+import { createAdminClient } from "../lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { resolveOrigin } from "../lib/resolveOrigin";
@@ -139,6 +140,26 @@ export async function resendConfirmation(
 
   if (error) return { success: false, error: error.message };
   return { success: true, data: null };
+}
+
+// Deleting an auth user requires the service-role client — there's no
+// client-facing "delete my own account" API on the regular session client.
+// The actual cascade (removing all their resources/articles/discussions/
+// comments/etc.) happens at the DB level via ON DELETE CASCADE foreign keys,
+// not here — see PROJECT_CONTEXT.md's account-deletion section.
+export async function deleteAccount(): Promise<ActionResult<null> | void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not logged in" };
+
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.deleteUser(user.id);
+  if (error) return { success: false, error: error.message };
+
+  await supabase.auth.signOut();
+  redirect("/");
 }
 
 // app/actions.ts — add this
