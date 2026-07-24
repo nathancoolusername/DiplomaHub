@@ -60,7 +60,9 @@ export default function UploadResourceForm({
     resource?.type_tag === "External Link" ? (resource.file_url ?? "") : "",
   );
   const [existingFileUrl, setExistingFileUrl] = useState(
-    resource?.type_tag !== "External Link" ? (resource?.file_url ?? null) : null,
+    resource?.type_tag !== "External Link"
+      ? (resource?.file_url ?? null)
+      : null,
   );
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -125,7 +127,11 @@ export default function UploadResourceForm({
       }
       fileUrl = linkUrl;
     } else if (file) {
-      const validated = validateFile(file, RESOURCE_FILE_TYPES, RESOURCE_FILE_MAX_BYTES);
+      const validated = validateFile(
+        file,
+        RESOURCE_FILE_TYPES,
+        RESOURCE_FILE_MAX_BYTES,
+      );
       if ("error" in validated) {
         setError(validated.error);
         setStatus("error");
@@ -271,7 +277,10 @@ export default function UploadResourceForm({
               </label>
               {isExternalLink ? (
                 <div className="flex flex-row items-center gap-sm border-1 border-outline-variant rounded-lg px-3 py-4">
-                  <Link2 className="text-on-surface-variant shrink-0" size={20} />
+                  <Link2
+                    className="text-on-surface-variant shrink-0"
+                    size={20}
+                  />
                   <input
                     type="url"
                     value={linkUrl}
@@ -418,13 +427,11 @@ export default function UploadResourceForm({
                 <div className="flex flex-col gap-sm">
                   <div className="flex flex-row gap-sm items-center">
                     <Hd className="text-primary" />
-                    <h3 className="font-semibold text-body-md">
-                      Original Work
-                    </h3>
+                    <h3 className="font-semibold text-body-md">Consent</h3>
                   </div>
                   <p className="text-label-lg text-on-surface-variant pl-8 mb-5">
-                    Contributions should be your own summaries, notes, diagrams,
-                    helpful study aids...
+                    Contributions should be your own or from someone you have
+                    consent from to post...
                   </p>
                 </div>
               </div>
