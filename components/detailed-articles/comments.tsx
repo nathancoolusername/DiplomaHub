@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { User } from "lucide-react";
@@ -129,8 +129,8 @@ export default function Comments(props: Props) {
               </div>
             </form>
           ) : (
-            <p className="text-on-surface-variant self-center">
-              Log in to join the discussion.
+            <p className="text-on-surface-variant self-center hover:text-primary">
+              <Link href={`/login`}>Log in to join the discussion.</Link>
             </p>
           )}
         </div>

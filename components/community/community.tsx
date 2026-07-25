@@ -20,7 +20,13 @@ import Panel, { typeTags } from "./discussion-panel";
 import { SubjectTags, YEAR_OPTIONS } from "../pills";
 import { initialsFor } from "@/app/lib/initials";
 
-const optionsSubject = ["All Subjects", ...Object.keys(SubjectTags)];
+const subjectKeys = Object.keys(SubjectTags);
+// Parenthesized count on the "All Subjects" option is a scroll affordance —
+// SortDropdown's option list only scrolls once there are more than 4
+// options (see components/articles/drop-down.tsx), and with no scrollbar
+// styling on that list, the closed dropdown gave no hint there was more to
+// see below the fold.
+const optionsSubject = [`All Subjects (${subjectKeys.length})`, ...subjectKeys];
 const opttionsType = ["All Types", ...Object.keys(typeTags)];
 const optionsYear = ["Any Year", ...YEAR_OPTIONS];
 const PAGE_SIZE = 6;
