@@ -65,27 +65,39 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
 
     let cancelled = false;
 
-    async function fetchPage() {
-      setLoading(true);
-      const result = await getResourcesPage({
-        subject: active === "All" ? undefined : active,
-        type: type === opttionsType[0] ? undefined : type,
-        year: year === optionsYear[0] ? undefined : year,
-        sort: SORT_MAP[selected],
-        page: num,
-        pageSize: PAGE_SIZE,
-      });
-      if (cancelled) return;
-      if (result.success) {
-        setItems(result.data.items);
-        setTotalCount(result.data.totalCount);
+    // Server Actions called directly (not via <form action>) go through
+    // Next's internal fetch with no way to pass/trigger an AbortSignal —
+    // there's no public API for it. So rapid filter/sort/page changes were
+    // each firing their own concurrent POST with nothing to stop them
+    // piling up (the `cancelled` flag only ignores a stale *response*, it
+    // never touches the in-flight request). Debouncing the trigger instead
+    // collapses a burst of rapid changes into a single request once the
+    // user pauses, which is what actually prevents the pileup.
+    const timeoutId = setTimeout(() => {
+      async function fetchPage() {
+        setLoading(true);
+        const result = await getResourcesPage({
+          subject: active === "All" ? undefined : active,
+          type: type === opttionsType[0] ? undefined : type,
+          year: year === optionsYear[0] ? undefined : year,
+          sort: SORT_MAP[selected],
+          page: num,
+          pageSize: PAGE_SIZE,
+        });
+        if (cancelled) return;
+        if (result.success) {
+          setItems(result.data.items);
+          setTotalCount(result.data.totalCount);
+        }
+        setLoading(false);
       }
-      setLoading(false);
-    }
 
-    fetchPage();
+      fetchPage();
+    }, 300);
+
     return () => {
       cancelled = true;
+      clearTimeout(timeoutId);
     };
   }, [active, type, year, selected, num]);
 

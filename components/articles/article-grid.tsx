@@ -48,25 +48,33 @@ export default function ArticleGrid({ initialItems, initialTotalCount }: Props) 
 
     let cancelled = false;
 
-    async function fetchPage() {
-      setLoading(true);
-      const result = await getArticlesPage({
-        topic: active === "All" ? undefined : active,
-        sort: SORT_MAP[selected],
-        page: num,
-        pageSize: PAGE_SIZE,
-      });
-      if (cancelled) return;
-      if (result.success) {
-        setItems(result.data.items);
-        setTotalCount(result.data.totalCount);
+    // See resources-grid.tsx for why this is debounced rather than
+    // cancelled via AbortController — Next's direct Server Action calls
+    // don't expose a signal, so debouncing the trigger is what actually
+    // stops rapid filter/sort/page changes from piling up concurrent POSTs.
+    const timeoutId = setTimeout(() => {
+      async function fetchPage() {
+        setLoading(true);
+        const result = await getArticlesPage({
+          topic: active === "All" ? undefined : active,
+          sort: SORT_MAP[selected],
+          page: num,
+          pageSize: PAGE_SIZE,
+        });
+        if (cancelled) return;
+        if (result.success) {
+          setItems(result.data.items);
+          setTotalCount(result.data.totalCount);
+        }
+        setLoading(false);
       }
-      setLoading(false);
-    }
 
-    fetchPage();
+      fetchPage();
+    }, 300);
+
     return () => {
       cancelled = true;
+      clearTimeout(timeoutId);
     };
   }, [active, selected, num]);
 
