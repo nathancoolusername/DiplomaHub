@@ -104,110 +104,110 @@ export default async function ArticlePage({
     <>
       <JsonLd data={articleJsonLd} />
       <div className="flex flex-col px-md md:px-10 xl:px-100 py-10  gap-gutter bg-surface-container-lowest">
-      <Breadcrumb
-        parentLabel="articles"
-        parentHref="/articles"
-        currentLabel={article.topic}
-        currentClassName="text-secondary"
-      />
-
-      <h1 className={`font-serif text-display-lg font-bold`}>
-        {article.title}
-      </h1>
-
-      <div className="border-b-1 border-outline-variant flex flex-row flex-wrap gap-y-sm pb-md gap-gutter">
-        <div className="flex flex-row items-center gap-sm">
-          <Avatar
-            src={article.author?.avatar_url}
-            name={article.author?.display_name ?? "?"}
-            size={40}
-          />
-          <div className="flex flex-col">
-            <p className="text-body-lg">{article.author?.display_name}</p>
-            {article.author?.is_pro && (
-              <DiplomaProBadge className="text-label-md text-on-surface-variant" />
-            )}
-          </div>
-        </div>
-        <div className="flex flex-row items-center gap-sm">
-          <Calendar />
-          <p>{final}</p>
-        </div>
-        <p className="text-on-surface-variant self-center">
-          {readTime} min read
-        </p>
-      </div>
-
-      <div className="relative w-full aspect-video rounded-xl overflow-hidden">
-        <Image
-          src={
-            article.cover_image_url ||
-            "/option-pics/StudentLife/StudentLife1.jpg"
-          }
-          alt={article.title}
-          fill
-          sizes="(max-width: 1200px) 100vw, 1200px"
-          className="object-cover"
-          priority
+        <Breadcrumb
+          parentLabel="articles"
+          parentHref="/articles"
+          currentLabel={article.topic}
+          currentClassName="text-secondary"
         />
-      </div>
 
-      <div className="pb-10 border-b-1 border-outline-variant">
-        <div
-          className="article-content font-sans text-body-lg text-on-surface"
-          dangerouslySetInnerHTML={{ __html: article.content }}
-        />
-      </div>
+        <h1 className={`font-serif text-display-lg font-bold`}>
+          {article.title}
+        </h1>
 
-      <div className=" pt-md flex flex-row flex-wrap gap-y-sm">
-        <div className="flex flex-row items-center">
-          <LikeButton
-            target={{ article_id: article.id }}
-            initiallyLiked={article.isLiked ?? false}
-            initialCount={article.like_count}
-            path={`/articles/${article.slug}`}
-            size={30}
-            className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1 flex flex-row items-center"
-          />
-          <div className="text-on-surface-variant transition hover:text-primary p-sm">
-            <Eye size={30} />
+        <div className="border-b-1 border-outline-variant flex flex-row flex-wrap gap-y-sm pb-md gap-gutter">
+          <div className="flex flex-row items-center gap-sm">
+            <Avatar
+              src={article.author?.avatar_url}
+              name={article.author?.display_name ?? "?"}
+              size={40}
+            />
+            <div className="flex flex-col">
+              <p className="text-body-lg">{article.author?.display_name}</p>
+              {article.author?.is_pro && (
+                <DiplomaProBadge className="text-label-md text-on-surface-variant" />
+              )}
+            </div>
           </div>
-          <p className="text-on-surface-variant text-body-lg ml-sm">
-            {final_view} views
+          <div className="flex flex-row items-center gap-sm">
+            <Calendar />
+            <p>{final}</p>
+          </div>
+          <p className="text-on-surface-variant self-center">
+            {readTime} min read
           </p>
         </div>
-        <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row gap-md items-center">
-          <SaveButton
-            target={{ article_id: article.id }}
-            initiallySaved={article.isSaved ?? false}
-            path={`/articles/${article.slug}`}
-            size={50}
-            className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
-          />
-          <ShareButton
-            size={50}
-            className="rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
-          />
-          {isOwner && (
-            <Link href={`/articles/${article.slug}/edit`}>
-              <div className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer">
-                <Pencil size={30} />
-              </div>
-            </Link>
-          )}
-          {isOwner && <DeleteArticleButton articleId={article.id} />}
-        </div>
-      </div>
 
-      <Comments
-        kind="comment"
-        target={{ article_id: article.id }}
-        initialItems={comments}
-        path={`/articles/${article.slug}`}
-        isLoggedIn={!!currentUser}
-        currentUserId={currentUser?.id ?? null}
-      />
-    </div>
+        <div className="relative w-full aspect-video rounded-xl overflow-hidden">
+          <Image
+            src={
+              article.cover_image_url ||
+              "/option-pics/StudentLife/StudentLife1.jpg"
+            }
+            alt={article.title}
+            fill
+            sizes="(max-width: 1200px) 100vw, 1200px"
+            className="object-cover"
+            priority
+          />
+        </div>
+
+        <div className="pb-10 border-b-1 border-outline-variant">
+          <div
+            className="article-content font-sans text-body-lg text-on-surface"
+            dangerouslySetInnerHTML={{ __html: article.content }}
+          />
+        </div>
+
+        <div className=" pt-md flex flex-row flex-wrap gap-y-sm">
+          <div className="flex flex-row items-center">
+            <LikeButton
+              target={{ article_id: article.id }}
+              initiallyLiked={article.isLiked ?? false}
+              initialCount={article.like_count}
+              path={`/articles/${article.slug}`}
+              size={30}
+              className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1 flex flex-row items-center"
+            />
+            <div className="text-on-surface-variant transition hover:text-primary p-sm">
+              <Eye size={30} />
+            </div>
+            <p className="text-on-surface-variant text-body-lg ml-sm">
+              {final_view} views
+            </p>
+          </div>
+          <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row gap-md items-center">
+            <SaveButton
+              target={{ article_id: article.id }}
+              initiallySaved={article.isSaved ?? false}
+              path={`/articles/${article.slug}`}
+              size={36}
+              className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
+            />
+            <ShareButton
+              size={36}
+              className="rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
+            />
+            {isOwner && (
+              <Link href={`/articles/${article.slug}/edit`}>
+                <div className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer">
+                  <Pencil size={30} />
+                </div>
+              </Link>
+            )}
+            {isOwner && <DeleteArticleButton articleId={article.id} />}
+          </div>
+        </div>
+
+        <Comments
+          kind="comment"
+          target={{ article_id: article.id }}
+          initialItems={comments}
+          path={`/articles/${article.slug}`}
+          isLoggedIn={!!currentUser}
+          currentUserId={currentUser?.id ?? null}
+        />
+      </div>
     </>
   );
 }
