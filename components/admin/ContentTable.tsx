@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { deleteResource } from "@/app/lib/actions/resources";
 import { deleteArticle } from "@/app/lib/actions/articles";
@@ -8,11 +8,31 @@ import { deleteDiscussion } from "@/app/lib/actions/discussions";
 import {
   setResourcePublished,
   setArticlePublished,
+  getAdminResourcesPage,
+  getAdminArticlesPage,
+  getAdminDiscussionsPage,
   type AdminContentRow,
 } from "@/app/lib/actions/admin";
 import { Spinner } from "@/components/spinner";
+import { Pagination } from "@/components/Pagination";
 
 type Tab = "resources" | "articles" | "discussions";
+type Counts = Record<Tab, number>;
+
+const PAGE_SIZE = 10;
+
+const FETCH_PAGE: Record<
+  Tab,
+  (filters: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }) => ReturnType<typeof getAdminResourcesPage>
+> = {
+  resources: getAdminResourcesPage,
+  articles: getAdminArticlesPage,
+  discussions: getAdminDiscussionsPage,
+};
 
 function contentLink(tab: Tab, item: AdminContentRow): string {
   if (tab === "resources") return `/resources/${item.id}`;
@@ -21,39 +41,42 @@ function contentLink(tab: Tab, item: AdminContentRow): string {
 }
 
 export function ContentTable({
-  resources,
-  articles,
-  discussions,
+  initialItems,
+  initialTotalCount,
+  initialCounts,
 }: {
-  resources: AdminContentRow[];
-  articles: AdminContentRow[];
-  discussions: AdminContentRow[];
+  initialItems: AdminContentRow[];
+  initialTotalCount: number;
+  initialCounts: Counts;
 }) {
   const [tab, setTab] = useState<Tab>("resources");
-  const [items, setItems] = useState({ resources, articles, discussions });
+  const [counts, setCounts] = useState<Counts>(initialCounts);
+  const [items, setItems] = useState(initialItems);
+  const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
-  const current = items[tab];
-  const query = search.toLowerCase();
-  const filtered = current.filter(
-    (item) =>
-      item.title.toLowerCase().includes(query) ||
-      item.author_display_name?.toLowerCase().includes(query),
-  );
+  function handleTabChange(t: Tab) {
+    setTab(t);
+    setSearch("");
+    setPage(1);
+  }
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    setPage(1);
+  }
 
   function removeItem(id: string) {
-    setItems((prev) => ({
-      ...prev,
-      [tab]: prev[tab].filter((i) => i.id !== id),
-    }));
+    setItems((prev) => prev.filter((i) => i.id !== id));
+    setTotalCount((prev) => prev - 1);
+    setCounts((prev) => ({ ...prev, [tab]: prev[tab] - 1 }));
   }
 
   function updateItem(id: string, patch: Partial<AdminContentRow>) {
-    setItems((prev) => ({
-      ...prev,
-      [tab]: prev[tab].map((i) => (i.id === id ? { ...i, ...patch } : i)),
-    }));
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
   }
 
   async function handleDelete(id: string) {
@@ -83,32 +106,69 @@ export function ContentTable({
     setPendingId(null);
   }
 
+  // Same debounced-fetch shape as the public resource/article/discussion
+  // grids — see resources-grid.tsx for why this is debounced rather than
+  // cancelled via AbortController (Server Actions expose no signal).
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    let cancelled = false;
+    const timeoutId = setTimeout(() => {
+      async function fetchPage() {
+        setLoading(true);
+        const result = await FETCH_PAGE[tab]({
+          search,
+          page,
+          pageSize: PAGE_SIZE,
+        });
+        if (cancelled) return;
+        if (result.success) {
+          setItems(result.data.items);
+          setTotalCount(result.data.totalCount);
+        }
+        setLoading(false);
+      }
+      fetchPage();
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [tab, search, page]);
+
   return (
     <div className="flex flex-col gap-md">
       <div className="flex flex-row gap-sm">
         {(["resources", "articles", "discussions"] as Tab[]).map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => handleTabChange(t)}
             className={`px-md py-sm rounded-xl font-semibold capitalize cursor-pointer transition ${
               tab === t
                 ? "bg-primary text-on-primary"
                 : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
             }`}
           >
-            {t} ({items[t].length})
+            {t} ({counts[t]})
           </button>
         ))}
       </div>
 
       <input
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search by title or author..."
+        onChange={(e) => handleSearchChange(e.target.value)}
+        placeholder="Search by title..."
         className="border rounded-lg px-md py-sm w-full max-w-100"
       />
 
-      <div className="overflow-x-auto bg-surface-container-lowest border-1 border-outline-variant rounded-xl">
+      <div
+        className={`overflow-x-auto bg-surface-container-lowest border-1 border-outline-variant rounded-xl transition-opacity ${loading ? "opacity-50" : ""}`}
+      >
         <table className="w-full text-left">
           <thead>
             <tr className="border-b-1 border-outline-variant text-on-surface-variant text-label-md uppercase">
@@ -122,7 +182,7 @@ export function ContentTable({
             </tr>
           </thead>
           <tbody>
-            {filtered.map((item) => (
+            {items.map((item) => (
               <tr
                 key={item.id}
                 className="border-b-1 border-outline-variant last:border-b-0"
@@ -180,7 +240,7 @@ export function ContentTable({
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {!loading && items.length === 0 && (
               <tr>
                 <td className="p-md text-on-surface-variant" colSpan={6}>
                   No {tab} found.
@@ -190,6 +250,12 @@ export function ContentTable({
           </tbody>
         </table>
       </div>
+      <Pagination
+        page={page}
+        totalCount={totalCount}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

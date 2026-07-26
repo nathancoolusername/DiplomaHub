@@ -1,40 +1,86 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   updateAuthorTrustScore,
   setUserPro,
   deleteUserAsAdmin,
+  getUsersPage,
   type AdminUserRow,
 } from "@/app/lib/actions/admin";
 import { isAdmin } from "@/app/lib/admin";
 import { Avatar } from "@/components/avatar";
 import { Spinner } from "@/components/spinner";
+import { Pagination } from "@/components/Pagination";
 
-export function UsersTable({ users }: { users: AdminUserRow[] }) {
-  const [items, setItems] = useState(users);
+const PAGE_SIZE = 10;
+
+export function UsersTable({
+  initialItems,
+  initialTotalCount,
+}: {
+  initialItems: AdminUserRow[];
+  initialTotalCount: number;
+}) {
+  const [items, setItems] = useState(initialItems);
+  const [totalCount, setTotalCount] = useState(initialTotalCount);
   const [search, setSearch] = useState("");
-  const query = search.toLowerCase();
-  const filtered = items.filter(
-    (u) =>
-      u.display_name.toLowerCase().includes(query) ||
-      u.email.toLowerCase().includes(query),
-  );
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    setPage(1);
+  }
 
   function removeUser(id: string) {
     setItems((prev) => prev.filter((u) => u.id !== id));
+    setTotalCount((prev) => prev - 1);
   }
+
+  // Same debounced-fetch shape as the public resource/article/discussion
+  // grids — see resources-grid.tsx for why this is debounced rather than
+  // cancelled via AbortController (Server Actions expose no signal).
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    let cancelled = false;
+    const timeoutId = setTimeout(() => {
+      async function fetchPage() {
+        setLoading(true);
+        const result = await getUsersPage({ search, page, pageSize: PAGE_SIZE });
+        if (cancelled) return;
+        if (result.success) {
+          setItems(result.data.items);
+          setTotalCount(result.data.totalCount);
+        }
+        setLoading(false);
+      }
+      fetchPage();
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [search, page]);
 
   return (
     <div className="flex flex-col gap-md">
       <input
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => handleSearchChange(e.target.value)}
         placeholder="Search by name or email..."
         className="border rounded-lg px-md py-sm w-full max-w-100"
       />
-      <div className="overflow-x-auto bg-surface-container-lowest border-1 border-outline-variant rounded-xl">
+      <div
+        className={`overflow-x-auto bg-surface-container-lowest border-1 border-outline-variant rounded-xl transition-opacity ${loading ? "opacity-50" : ""}`}
+      >
         <table className="w-full text-left">
           <thead>
             <tr className="border-b-1 border-outline-variant text-on-surface-variant text-label-md uppercase">
@@ -47,12 +93,25 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((u) => (
+            {items.map((u) => (
               <UserRow key={u.id} user={u} onDelete={() => removeUser(u.id)} />
             ))}
+            {!loading && items.length === 0 && (
+              <tr>
+                <td className="p-md text-on-surface-variant" colSpan={6}>
+                  No users found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+      <Pagination
+        page={page}
+        totalCount={totalCount}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </div>
   );
 }
