@@ -206,7 +206,8 @@ export default function UploadResourceForm({
           </h1>
           <p className="text-on-surface-variant text-body-md mb-5">
             Contribute to the IB community with high-quality resources. All
-            submissions will be reviewed for academic integrity.
+            submissions will be reviewed for academic integrity (To upload a
+            link, select external link in the type dropdown)
           </p>
           <form onSubmit={onSubmit} className="space-y-4">
             <div>
