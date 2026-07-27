@@ -1,8 +1,8 @@
-import { getAllFeedback } from "@/app/lib/actions/admin";
+import { getFeedbackPage } from "@/app/lib/actions/admin";
 import { FeedbackTable } from "@/components/admin/FeedbackTable";
 
 export default async function AdminFeedbackPage() {
-  const result = await getAllFeedback();
+  const result = await getFeedbackPage({ page: 1 });
 
   if (!result.success) {
     return (
@@ -10,5 +10,10 @@ export default async function AdminFeedbackPage() {
     );
   }
 
-  return <FeedbackTable feedback={result.data} />;
+  return (
+    <FeedbackTable
+      initialItems={result.data.items}
+      initialTotalCount={result.data.totalCount}
+    />
+  );
 }

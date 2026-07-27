@@ -77,21 +77,39 @@ export type AdminUserRow = {
   created_at: string;
 };
 
-export async function getAllUsersForAdmin(): Promise<
-  ActionResult<AdminUserRow[]>
-> {
+export async function getUsersPage(filters: {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<ActionResult<{ items: AdminUserRow[]; totalCount: number }>> {
   const ctx = await requireAdmin();
   if (!ctx) return { success: false, error: "Not authorized" };
 
-  const { data, error } = await ctx.supabase
+  const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const pageSize =
+    filters.pageSize && filters.pageSize > 0 ? filters.pageSize : 10;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  const search = filters.search?.trim();
+
+  let query = ctx.supabase
     .from("users")
     .select(
       "id, display_name, email, points, is_pro, author_trust_score, ib_year, avatar_url, created_at",
+      { count: "exact" },
     )
     .order("created_at", { ascending: false });
 
+  if (search) {
+    query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%`);
+  }
+
+  const { data, error, count } = await query.range(from, to);
   if (error) return { success: false, error: error.message };
-  return { success: true, data };
+  return {
+    success: true,
+    data: { items: data ?? [], totalCount: count ?? 0 },
+  };
 }
 
 export async function deleteUserAsAdmin(
@@ -196,65 +214,97 @@ export type AdminContentRow = {
   like_count: number;
 };
 
-export async function getAllContentForAdmin(): Promise<
-  ActionResult<{
-    resources: AdminContentRow[];
-    articles: AdminContentRow[];
-    discussions: AdminContentRow[];
-  }>
-> {
+type AdminContentFilters = {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+async function getAdminContentPage(
+  table: "resources" | "articles" | "discussions",
+  selectCols: string,
+  filters: AdminContentFilters,
+): Promise<ActionResult<{ items: AdminContentRow[]; totalCount: number }>> {
   const ctx = await requireAdmin();
   if (!ctx) return { success: false, error: "Not authorized" };
-  const { supabase } = ctx;
 
-  const [
-    { data: resources, error: resourcesError },
-    { data: articles, error: articlesError },
-    { data: discussions, error: discussionsError },
-  ] = await Promise.all([
-    supabase
-      .from("resources")
-      .select(
-        "id, title, author_id, created_at, published, community_trust, like_count, author:users(display_name)",
-      )
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("articles")
-      .select(
-        "id, title, slug, author_id, created_at, published, like_count, author:users(display_name)",
-      )
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("discussions")
-      .select(
-        "id, title, author_id, created_at, like_count, author:users(display_name)",
-      )
-      .order("created_at", { ascending: false }),
-  ]);
+  const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const pageSize =
+    filters.pageSize && filters.pageSize > 0 ? filters.pageSize : 10;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  const search = filters.search?.trim();
 
-  if (resourcesError) return { success: false, error: resourcesError.message };
-  if (articlesError) return { success: false, error: articlesError.message };
-  if (discussionsError)
-    return { success: false, error: discussionsError.message };
+  let query = ctx.supabase
+    .from(table)
+    .select(selectCols, { count: "exact" })
+    .order("created_at", { ascending: false });
+
+  if (search) query = query.ilike("title", `%${search}%`);
+
+  const { data, error, count } = await query.range(from, to);
+  if (error) return { success: false, error: error.message };
 
   type RawRow = Omit<AdminContentRow, "author_display_name"> & {
     author: { display_name: string } | { display_name: string }[] | null;
   };
 
-  const flatten = (rows: RawRow[] | null): AdminContentRow[] =>
-    (rows ?? []).map((r) => ({
-      ...r,
-      author_display_name:
-        (Array.isArray(r.author) ? r.author[0]?.display_name : r.author?.display_name) ??
-        "Deleted user",
-    }));
+  const items = ((data ?? []) as unknown as RawRow[]).map((r) => ({
+    ...r,
+    author_display_name:
+      (Array.isArray(r.author)
+        ? r.author[0]?.display_name
+        : r.author?.display_name) ?? "Deleted user",
+  }));
+
+  return { success: true, data: { items, totalCount: count ?? 0 } };
+}
+
+export async function getAdminResourcesPage(filters: AdminContentFilters) {
+  return getAdminContentPage(
+    "resources",
+    "id, title, author_id, created_at, published, community_trust, like_count, author:users(display_name)",
+    filters,
+  );
+}
+
+export async function getAdminArticlesPage(filters: AdminContentFilters) {
+  return getAdminContentPage(
+    "articles",
+    "id, title, slug, author_id, created_at, published, like_count, author:users(display_name)",
+    filters,
+  );
+}
+
+export async function getAdminDiscussionsPage(filters: AdminContentFilters) {
+  return getAdminContentPage(
+    "discussions",
+    "id, title, author_id, created_at, like_count, author:users(display_name)",
+    filters,
+  );
+}
+
+export async function getAdminContentCounts(): Promise<
+  ActionResult<{ resources: number; articles: number; discussions: number }>
+> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { success: false, error: "Not authorized" };
+
+  const [{ count: resources }, { count: articles }, { count: discussions }] =
+    await Promise.all([
+      ctx.supabase.from("resources").select("*", { count: "exact", head: true }),
+      ctx.supabase.from("articles").select("*", { count: "exact", head: true }),
+      ctx.supabase
+        .from("discussions")
+        .select("*", { count: "exact", head: true }),
+    ]);
 
   return {
     success: true,
     data: {
-      resources: flatten(resources),
-      articles: flatten(articles),
-      discussions: flatten(discussions),
+      resources: resources ?? 0,
+      articles: articles ?? 0,
+      discussions: discussions ?? 0,
     },
   };
 }
@@ -303,21 +353,35 @@ export type AdminFeedbackRow = {
   author_display_name: string | null;
 };
 
-export async function getAllFeedback(): Promise<
-  ActionResult<AdminFeedbackRow[]>
-> {
+export async function getFeedbackPage(filters: {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<ActionResult<{ items: AdminFeedbackRow[]; totalCount: number }>> {
   const ctx = await requireAdmin();
   if (!ctx) return { success: false, error: "Not authorized" };
+
+  const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const pageSize =
+    filters.pageSize && filters.pageSize > 0 ? filters.pageSize : 10;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  const search = filters.search?.trim();
 
   // `feedback` has no select policy at all (submitters shouldn't be able to
   // read each other's feedback) — the regular session client would just get
   // an empty result under RLS, so this needs the service-role client.
   const admin = createAdminClient();
-  const { data, error } = await admin
+  let query = admin
     .from("feedback")
-    .select("id, user_id, content, created_at, author:users(display_name)")
+    .select("id, user_id, content, created_at, author:users(display_name)", {
+      count: "exact",
+    })
     .order("created_at", { ascending: false });
 
+  if (search) query = query.ilike("content", `%${search}%`);
+
+  const { data, error, count } = await query.range(from, to);
   if (error) return { success: false, error: error.message };
 
   type RawFeedbackRow = {
@@ -328,18 +392,17 @@ export async function getAllFeedback(): Promise<
     author: { display_name: string } | { display_name: string }[] | null;
   };
 
-  return {
-    success: true,
-    data: (data as RawFeedbackRow[]).map((f) => ({
-      id: f.id,
-      user_id: f.user_id,
-      content: f.content,
-      created_at: f.created_at,
-      author_display_name: Array.isArray(f.author)
-        ? (f.author[0]?.display_name ?? null)
-        : (f.author?.display_name ?? null),
-    })),
-  };
+  const items = ((data ?? []) as unknown as RawFeedbackRow[]).map((f) => ({
+    id: f.id,
+    user_id: f.user_id,
+    content: f.content,
+    created_at: f.created_at,
+    author_display_name: Array.isArray(f.author)
+      ? (f.author[0]?.display_name ?? null)
+      : (f.author?.display_name ?? null),
+  }));
+
+  return { success: true, data: { items, totalCount: count ?? 0 } };
 }
 
 export async function deleteFeedback(

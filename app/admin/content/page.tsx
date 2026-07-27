@@ -1,18 +1,29 @@
-import { getAllContentForAdmin } from "@/app/lib/actions/admin";
+import { getAdminResourcesPage, getAdminContentCounts } from "@/app/lib/actions/admin";
 import { ContentTable } from "@/components/admin/ContentTable";
 
 export default async function AdminContentPage() {
-  const result = await getAllContentForAdmin();
+  const [resourcesResult, countsResult] = await Promise.all([
+    getAdminResourcesPage({ page: 1 }),
+    getAdminContentCounts(),
+  ]);
 
-  if (!result.success) {
-    return <p className="text-red-500">Failed to load content: {result.error}</p>;
+  if (!resourcesResult.success) {
+    return (
+      <p className="text-red-500">
+        Failed to load content: {resourcesResult.error}
+      </p>
+    );
   }
 
   return (
     <ContentTable
-      resources={result.data.resources}
-      articles={result.data.articles}
-      discussions={result.data.discussions}
+      initialItems={resourcesResult.data.items}
+      initialTotalCount={resourcesResult.data.totalCount}
+      initialCounts={
+        countsResult.success
+          ? countsResult.data
+          : { resources: 0, articles: 0, discussions: 0 }
+      }
     />
   );
 }
