@@ -391,42 +391,61 @@ export async function getResourcesPage(filters: {
   };
 }
 
-// lib/actions/resources.ts
-export async function getResourcesWithUserState(filters?: {
-  subject?: string;
-  type?: string;
-  limit?: number;
-}): Promise<ActionResult<Resource[]>> {
+// Homepage "Featured Resources": ranked like the community page's Hot sort
+// (like_count + a time-decayed engagement term) via the get_featured_resources
+// RPC, which also caps results to at most one resource per subject_tag via
+// DISTINCT ON — entirely in the database, never fetches more than `limit`
+// rows regardless of table size. See get_featured_resources.sql handed to
+// the user for the SQL (no migration files in this repo).
+export async function getFeaturedResources(
+  limit = 6,
+): Promise<ActionResult<Resource[]>> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Step 1: fetch resources + author info in ONE query using embedded select
-  let query = supabase
-    .from("resources")
-    .select(
-      `
-      *,
-      author:users(display_name, is_pro, ib_year, avatar_url)
-    `,
-    )
-    .eq("published", true)
-    .order("created_at", { ascending: false });
+  // Raw RPC rows aren't typed (no generated Supabase types in this project).
+  const { data: rows, error } = await supabase.rpc("get_featured_resources", {
+    p_limit: limit,
+  });
 
-  if (filters?.subject) query = query.eq("subject_tag", filters.subject);
-  if (filters?.type) query = query.eq("type_tag", filters.type);
-  if (filters?.limit) query = query.limit(filters.limit);
+  let resources = rows as (Omit<Resource, "author" | "isLiked" | "isSaved">)[] | null;
 
-  const { data: resources, error } = await query;
-  if (error) return { success: false, error: error.message };
+  // Falls back to a plain newest-first query if the RPC doesn't exist yet
+  // (schema changes here go through the Supabase SQL editor by hand, not
+  // migrations) — keeps the homepage from breaking mid-rollout.
+  if (error) {
+    const fallback = await supabase
+      .from("resources")
+      .select("*")
+      .eq("published", true)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (fallback.error) return { success: false, error: fallback.error.message };
+    resources = fallback.data;
+  }
 
-  // Step 2: if logged in, fetch which of THESE resources the user liked/saved
-  // (skip entirely for logged-out visitors — no wasted query)
+  if (!resources || resources.length === 0) {
+    return { success: true, data: [] };
+  }
+
+  const authorIds = [...new Set(resources.map((r) => r.author_id))];
+  const { data: authors } = await supabase
+    .from("users")
+    .select("id, display_name, is_pro, ib_year, avatar_url")
+    .in("id", authorIds);
+  const authorById = new Map(authors?.map((a) => [a.id, a]));
+
+  const normalized = resources.map((r) => ({
+    ...r,
+    author: authorById.get(r.author_id)!,
+  }));
+
   if (!user) {
     return {
       success: true,
-      data: resources.map((r) => ({ ...r, isLiked: false, isSaved: false })),
+      data: normalized.map((r) => ({ ...r, isLiked: false, isSaved: false })),
     };
   }
 
@@ -448,11 +467,12 @@ export async function getResourcesWithUserState(filters?: {
   const likedIds = new Set(likes?.map((l) => l.resource_id));
   const savedIds = new Set(saves?.map((s) => s.resource_id));
 
-  const enriched = resources.map((r) => ({
-    ...r,
-    isLiked: likedIds.has(r.id),
-    isSaved: savedIds.has(r.id),
-  }));
-
-  return { success: true, data: enriched };
+  return {
+    success: true,
+    data: normalized.map((r) => ({
+      ...r,
+      isLiked: likedIds.has(r.id),
+      isSaved: savedIds.has(r.id),
+    })),
+  };
 }

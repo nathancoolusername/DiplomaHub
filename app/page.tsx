@@ -3,7 +3,7 @@ import ResourceHome from "../components/home/article-section/article-home";
 import Trending from "../components/home/trending";
 import Image from "next/image";
 import Link from "next/link";
-import { getResourcesWithUserState } from "@/app/lib/actions/resources";
+import { getFeaturedResources } from "@/app/lib/actions/resources";
 import { getDiscussions } from "@/app/lib/actions/discussions";
 
 export default async function Home({
@@ -11,7 +11,7 @@ export default async function Home({
 }: {
   searchParams: Promise<{ error_code?: string }>;
 }) {
-  const resourcesResult = await getResourcesWithUserState({ limit: 6 });
+  const resourcesResult = await getFeaturedResources(6);
   const resources = resourcesResult.success ? resourcesResult.data : [];
 
   const discussionsResult = await getDiscussions();
