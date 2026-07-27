@@ -419,9 +419,10 @@ export default function CommunityPage({
           ) : (
             <div className="flex flex-col gap-md">
               {topContributors.map((contributor, i) => (
-                <div
+                <Link
                   key={contributor.id}
-                  className="flex flex-row items-center gap-md"
+                  href={`/profile/${contributor.id}`}
+                  className="flex flex-row items-center gap-md hover:bg-surface-container-low rounded-xl transition p-sm -m-sm"
                 >
                   <span className="text-primary font-bold w-6">{i + 1}</span>
                   {contributor.avatar_url ? (
@@ -450,7 +451,7 @@ export default function CommunityPage({
                       Diploma Pro
                     </span>
                   )}
-                </div>
+                </Link>
               ))}
             </div>
           )}
