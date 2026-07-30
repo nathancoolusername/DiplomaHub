@@ -237,11 +237,11 @@ export const ResourceTypeTag: Record<string, JSX.Element> = {
       subject notes
     </span>
   ),
-  "Past Paper Tips": (
+  "Past Paper": (
     <span
       className={`px-md py-sm rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
     >
-      past paper tips
+      past paper
     </span>
   ),
   Exemplar: (
