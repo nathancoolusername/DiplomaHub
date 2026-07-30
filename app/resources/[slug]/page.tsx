@@ -90,14 +90,15 @@ export default async function resourcePage({
           return `${shortened % 1 === 0 ? shortened : shortened.toFixed(1)}k`;
         })()
       : resource.like_count;
-  const isExternalLink = resource.type_tag === "External Link";
-  const fileExtension = !isExternalLink
+  const hasFile = !!resource.file_url;
+  const hasLink = !!resource.link_url;
+  const fileExtension = hasFile
     ? resource.file_url?.split("?")[0].split(".").pop()?.toUpperCase()
     : undefined;
   const linkHostname = (() => {
-    if (!isExternalLink || !resource.file_url) return null;
+    if (!resource.link_url) return null;
     try {
-      return new URL(resource.file_url).hostname.replace(/^www\./, "");
+      return new URL(resource.link_url).hostname.replace(/^www\./, "");
     } catch {
       return null;
     }
@@ -183,17 +184,26 @@ export default async function resourcePage({
                 <div className="flex flex-col gap-lg self-start">
                   <div className="flex flex-col">
                     <p className="font-bold">
-                      {isExternalLink
-                        ? (linkHostname ?? "External Link")
-                        : `Resource ${fileExtension ?? "File"}`}
+                      {hasFile && `Resource ${fileExtension ?? "File"}`}
+                      {hasFile && hasLink && " · "}
+                      {hasLink && (linkHostname ?? "Link")}
                     </p>
                   </div>
                   <div className="ml-auto text-primary flex flex-row flex-wrap items-center">
-                    <DownloadButton
-                      resourceId={resource.id}
-                      fileName={resource.title}
-                      isExternalLink={isExternalLink}
-                    />
+                    {hasFile && (
+                      <DownloadButton
+                        resourceId={resource.id}
+                        fileName={resource.title}
+                        kind="file"
+                      />
+                    )}
+                    {hasLink && (
+                      <DownloadButton
+                        resourceId={resource.id}
+                        fileName={resource.title}
+                        kind="link"
+                      />
+                    )}
                     <LikeButton
                       target={{ resource_id: resource.id }}
                       initiallyLiked={resource.isLiked ?? false}

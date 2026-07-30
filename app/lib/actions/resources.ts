@@ -45,8 +45,15 @@ function validateResourceFields(formData: FormData) {
   const year_tag = requireOneOf(formData.get("year_tag"), "Year", YEAR_OPTIONS);
   if ("error" in year_tag) return year_tag;
 
-  const file_url = requireField(formData.get("file_url"), "File", 2000);
+  const file_url = optionalField(formData.get("file_url"), "File", 2000);
   if ("error" in file_url) return file_url;
+
+  const link_url = optionalField(formData.get("link_url"), "Link", 2000);
+  if ("error" in link_url) return link_url;
+
+  if (!file_url.value && !link_url.value) {
+    return { error: "Attach a file or a link to the resource" };
+  }
 
   return {
     value: {
@@ -56,6 +63,7 @@ function validateResourceFields(formData: FormData) {
       type_tag: type_tag.value,
       year_tag: year_tag.value,
       file_url: file_url.value,
+      link_url: link_url.value,
     },
   };
 }
@@ -244,6 +252,7 @@ export async function deleteResource(
 
 export async function downloadResource(
   resourceId: string,
+  kind: "file" | "link" = "file",
 ): Promise<ActionResult<{ fileUrl: string }>> {
   const supabase = await createClient();
   const {
@@ -258,14 +267,23 @@ export async function downloadResource(
 
   const { data: resource, error: fetchError } = await admin
     .from("resources")
-    .select("file_url, title, author_id, download_count")
+    .select("file_url, link_url, title, author_id, download_count")
     .eq("id", resourceId)
     .single();
 
   if (fetchError || !resource)
     return { success: false, error: "Resource not found" };
-  if (!resource.file_url)
-    return { success: false, error: "No file attached to this resource" };
+
+  const url = kind === "link" ? resource.link_url : resource.file_url;
+  if (!url) {
+    return {
+      success: false,
+      error:
+        kind === "link"
+          ? "No link attached to this resource"
+          : "No file attached to this resource",
+    };
+  }
 
   const { error: rpcError } = await admin.rpc("increment_download_count", {
     target_resource_id: resourceId,
@@ -287,7 +305,7 @@ export async function downloadResource(
   }
 
   revalidatePath("/resources");
-  return { success: true, data: { fileUrl: resource.file_url } };
+  return { success: true, data: { fileUrl: url } };
 }
 
 export type ResourceSort =

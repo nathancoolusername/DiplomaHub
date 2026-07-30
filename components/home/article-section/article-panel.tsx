@@ -92,7 +92,7 @@ export default function Panel({ resource }: Props) {
             <DownloadButton
               resourceId={resource.id}
               fileName={resource.title}
-              isExternalLink={resource.type_tag === "External Link"}
+              kind={resource.file_url ? "file" : "link"}
             />
           </div>
         </div>

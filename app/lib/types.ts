@@ -6,6 +6,7 @@ export type Resource = {
   type_tag: string;
   year_tag: string | null;
   file_url: string | null;
+  link_url: string | null;
   author_id: string;
   download_count: number;
   like_count: number;
