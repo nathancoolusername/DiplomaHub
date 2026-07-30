@@ -251,13 +251,6 @@ export const ResourceTypeTag: Record<string, JSX.Element> = {
       exemplar
     </span>
   ),
-  "External Link": (
-    <span
-      className={`px-md py-sm rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
-    >
-      external link
-    </span>
-  ),
   Other: (
     <span
       className={`px-md py-sm rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}

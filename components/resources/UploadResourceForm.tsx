@@ -40,6 +40,7 @@ type EditableResource = {
   type_tag: string;
   year_tag: string | null;
   file_url: string | null;
+  link_url: string | null;
 };
 
 const optionsSubject = Object.keys(SubjectTags);
@@ -56,13 +57,9 @@ export default function UploadResourceForm({
   const [type, setType] = useState(resource?.type_tag ?? "");
   const [year, setYear] = useState(resource?.year_tag ?? "");
   const [file, setFile] = useState<File | null>(null);
-  const [linkUrl, setLinkUrl] = useState(
-    resource?.type_tag === "External Link" ? (resource.file_url ?? "") : "",
-  );
+  const [linkUrl, setLinkUrl] = useState(resource?.link_url ?? "");
   const [existingFileUrl, setExistingFileUrl] = useState(
-    resource?.type_tag !== "External Link"
-      ? (resource?.file_url ?? null)
-      : null,
+    resource?.file_url ?? null,
   );
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +69,6 @@ export default function UploadResourceForm({
   const handleClickY = (select: string) => setYear(select);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isExternalLink = type === "External Link";
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (e.target.files?.[0]) {
@@ -116,17 +112,16 @@ export default function UploadResourceForm({
       return;
     }
 
+    if (!file && !existingFileUrl && !linkUrl) {
+      setError("Attach a file or a link to the resource");
+      setStatus("error");
+      return;
+    }
+
     setStatus("uploading");
 
     let fileUrl = existingFileUrl ?? "";
-    if (isExternalLink) {
-      if (!linkUrl) {
-        setError("Enter a link to the resource");
-        setStatus("error");
-        return;
-      }
-      fileUrl = linkUrl;
-    } else if (file) {
+    if (file) {
       const validated = validateFile(
         file,
         RESOURCE_FILE_TYPES,
@@ -165,6 +160,7 @@ export default function UploadResourceForm({
     }
 
     formData.set("file_url", fileUrl);
+    formData.set("link_url", linkUrl);
     formData.set("subject_tag", subject);
     formData.set("type_tag", type);
     formData.set("year_tag", year);
@@ -206,8 +202,8 @@ export default function UploadResourceForm({
           </h1>
           <p className="text-on-surface-variant text-body-md mb-5">
             Contribute to the IB community with high-quality resources. All
-            submissions will be reviewed for academic integrity (To upload a
-            link, select external link in the type dropdown)
+            submissions will be reviewed for academic integrity. Attach a
+            file, a link, or both.
           </p>
           <form onSubmit={onSubmit} className="space-y-4">
             <div>
@@ -274,101 +270,103 @@ export default function UploadResourceForm({
 
             <div>
               <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
-                {isExternalLink ? "Resource Link" : "File Upload"}
+                File Upload
               </label>
-              {isExternalLink ? (
-                <div className="flex flex-row items-center gap-sm border-1 border-outline-variant rounded-lg px-3 py-4">
-                  <Link2
-                    className="text-on-surface-variant shrink-0"
-                    size={20}
-                  />
-                  <input
-                    type="url"
-                    value={linkUrl}
-                    onChange={(e) => setLinkUrl(e.target.value)}
-                    required
-                    className="w-full outline-none"
-                    placeholder="https://example.com/helpful-resource"
-                  />
-                </div>
-              ) : (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setIsDragging(true);
-                  }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={handleDrop}
-                  className={`flex flex-col items-center justify-center gap-sm text-center rounded-lg border-2 border-dashed px-3 py-10 cursor-pointer transition-colors ${
-                    isDragging
-                      ? "border-primary bg-surface-container"
-                      : "border-outline-variant hover:border-primary"
-                  }`}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  {file ? (
-                    <>
-                      <FileText className="text-primary" size={32} />
-                      <p className="text-body-md font-semibold text-on-surface">
-                        {file.name}
-                      </p>
-                      <p className="text-sm text-on-surface-variant">
-                        {(file.size / 1024).toFixed(2)} KB
-                      </p>
-                      <button
-                        type="button"
-                        onClick={clearFile}
-                        className="flex items-center gap-xs text-sm text-red-500 hover:underline cursor-pointer"
-                      >
-                        <X size={14} /> Remove
-                      </button>
-                    </>
-                  ) : existingFileUrl ? (
-                    <>
-                      <FileText className="text-primary" size={32} />
-                      <p className="text-body-md font-semibold text-on-surface">
-                        {decodeURIComponent(
-                          existingFileUrl.split("?")[0].split("/").pop() ||
-                            "Current file",
-                        )}
-                      </p>
-                      <p className="text-sm text-on-surface-variant">
-                        Click to replace, or remove it
-                      </p>
-                      <button
-                        type="button"
-                        onClick={clearFile}
-                        className="flex items-center gap-xs text-sm text-red-500 hover:underline cursor-pointer"
-                      >
-                        <X size={14} /> Remove
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <UploadCloud
-                        className="text-on-surface-variant"
-                        size={32}
-                      />
-                      <p className="text-body-md text-on-surface">
-                        <span className="text-primary font-semibold">
-                          Click to upload
-                        </span>{" "}
-                        or drag and drop
-                      </p>
-                      <p className="text-sm text-on-surface-variant">
-                        PDF, DOC, DOCX, PNG, or JPG
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
+                className={`flex flex-col items-center justify-center gap-sm text-center rounded-lg border-2 border-dashed px-3 py-10 cursor-pointer transition-colors ${
+                  isDragging
+                    ? "border-primary bg-surface-container"
+                    : "border-outline-variant hover:border-primary"
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                {file ? (
+                  <>
+                    <FileText className="text-primary" size={32} />
+                    <p className="text-body-md font-semibold text-on-surface">
+                      {file.name}
+                    </p>
+                    <p className="text-sm text-on-surface-variant">
+                      {(file.size / 1024).toFixed(2)} KB
+                    </p>
+                    <button
+                      type="button"
+                      onClick={clearFile}
+                      className="flex items-center gap-xs text-sm text-red-500 hover:underline cursor-pointer"
+                    >
+                      <X size={14} /> Remove
+                    </button>
+                  </>
+                ) : existingFileUrl ? (
+                  <>
+                    <FileText className="text-primary" size={32} />
+                    <p className="text-body-md font-semibold text-on-surface">
+                      {decodeURIComponent(
+                        existingFileUrl.split("?")[0].split("/").pop() ||
+                          "Current file",
+                      )}
+                    </p>
+                    <p className="text-sm text-on-surface-variant">
+                      Click to replace, or remove it
+                    </p>
+                    <button
+                      type="button"
+                      onClick={clearFile}
+                      className="flex items-center gap-xs text-sm text-red-500 hover:underline cursor-pointer"
+                    >
+                      <X size={14} /> Remove
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud
+                      className="text-on-surface-variant"
+                      size={32}
+                    />
+                    <p className="text-body-md text-on-surface">
+                      <span className="text-primary font-semibold">
+                        Click to upload
+                      </span>{" "}
+                      or drag and drop
+                    </p>
+                    <p className="text-sm text-on-surface-variant">
+                      PDF, DOC, DOCX, PNG, or JPG
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
+                Resource Link (optional)
+              </label>
+              <div className="flex flex-row items-center gap-sm border-1 border-outline-variant rounded-lg px-3 py-4">
+                <Link2
+                  className="text-on-surface-variant shrink-0"
+                  size={20}
+                />
+                <input
+                  type="url"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  className="w-full outline-none"
+                  placeholder="https://example.com/helpful-resource"
+                />
+              </div>
             </div>
 
             {error && <p className="text-sm text-red-500">{error}</p>}

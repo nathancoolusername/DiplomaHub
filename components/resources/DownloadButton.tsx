@@ -26,20 +26,21 @@ function sanitizeFileName(name: string) {
 export function DownloadButton({
   resourceId,
   fileName,
-  isExternalLink = false,
+  kind = "file",
 }: {
   resourceId: string;
   fileName?: string;
-  isExternalLink?: boolean;
+  kind?: "file" | "link";
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isExternalLink = kind === "link";
 
   async function handleDownload() {
     setLoading(true);
     setError(null);
 
-    const result = await downloadResource(resourceId);
+    const result = await downloadResource(resourceId, kind);
 
     if (!result.success) {
       setError(result.error);
