@@ -202,8 +202,8 @@ export default function UploadResourceForm({
           </h1>
           <p className="text-on-surface-variant text-body-md mb-5">
             Contribute to the IB community with high-quality resources. All
-            submissions will be reviewed for academic integrity. Attach a
-            file, a link, or both.
+            submissions will be reviewed for academic integrity. Attach a file,
+            a link, or both.
           </p>
           <form onSubmit={onSubmit} className="space-y-4">
             <div>
@@ -352,13 +352,10 @@ export default function UploadResourceForm({
 
             <div>
               <label className="block text-body-md text-on-surface-variant mb-1 font-semibold">
-                Resource Link (optional)
+                Resource Link
               </label>
               <div className="flex flex-row items-center gap-sm border-1 border-outline-variant rounded-lg px-3 py-4">
-                <Link2
-                  className="text-on-surface-variant shrink-0"
-                  size={20}
-                />
+                <Link2 className="text-on-surface-variant shrink-0" size={20} />
                 <input
                   type="url"
                   value={linkUrl}
@@ -410,8 +407,8 @@ export default function UploadResourceForm({
                   </h3>
                 </div>
                 <p className="text-label-lg text-on-surface-variant pl-8 mb-5">
-                  Do not upload copyrighted materials, official IB exam papers,
-                  or work that is not yours.
+                  Do not copy work that is not yours for your own submissions.
+                  Use resources responsibly and according to the IB rules.
                 </p>
                 <div className="flex flex-col gap-sm">
                   <div className="flex flex-row gap-sm items-center">
@@ -429,8 +426,8 @@ export default function UploadResourceForm({
                     <h3 className="font-semibold text-body-md">Consent</h3>
                   </div>
                   <p className="text-label-lg text-on-surface-variant pl-8 mb-5">
-                    Contributions should be your own or from someone you have
-                    consent from to post...
+                    Contributions should be your own, from someone you have
+                    consent from to post, or open source resources online.
                   </p>
                 </div>
               </div>
