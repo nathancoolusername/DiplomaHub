@@ -5,7 +5,12 @@ import { createAdminClient } from "../supabase/admin";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "../admin";
 import { createNotification } from "./notifications";
-import { requireField, optionalField, requireOneOf } from "../validation";
+import {
+  requireField,
+  optionalField,
+  requireOneOf,
+  splitKeywords,
+} from "../validation";
 import { checkRateLimit } from "../ratelimit";
 import { SubjectTags, ResourceTypeTag, YEAR_OPTIONS } from "@/components/pills";
 import type { ActionResult, Resource } from "../types";
@@ -321,6 +326,7 @@ export async function getResourcesPage(filters: {
   subject?: string;
   type?: string;
   year?: string;
+  search?: string;
   sort?: ResourceSort;
   page?: number;
   pageSize?: number;
@@ -350,6 +356,9 @@ export async function getResourcesPage(filters: {
   if (filters.subject) query = query.eq("subject_tag", filters.subject);
   if (filters.type) query = query.eq("type_tag", filters.type);
   if (filters.year) query = query.eq("year_tag", filters.year);
+  for (const word of splitKeywords(filters.search)) {
+    query = query.ilike("title", `%${word}%`);
+  }
 
   switch (filters.sort) {
     case "oldest":

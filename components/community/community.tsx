@@ -9,6 +9,7 @@ import {
   SquarePen,
   ChevronLeft,
   ChevronRight,
+  Search,
 } from "lucide-react";
 import type { Discussion, UserProfile } from "@/app/lib/types";
 import type { TopContributor } from "@/app/lib/actions/profile";
@@ -56,6 +57,7 @@ export default function CommunityPage({
   const [selectedT, setSelectedT] = useState(opttionsType[0]);
   const [selectedY, setSelectedY] = useState(optionsYear[0]);
   const [order, setOrder] = useState("Newest");
+  const [search, setSearch] = useState("");
   const [num, setNum] = useState(1);
 
   const [items, setItems] = useState(initialItems);
@@ -107,6 +109,7 @@ export default function CommunityPage({
           subject: selectedS === optionsSubject[0] ? undefined : selectedS,
           type: selectedT === opttionsType[0] ? undefined : selectedT,
           year: selectedY === optionsYear[0] ? undefined : selectedY,
+          search: search.trim() || undefined,
           sort: SORT_MAP[order],
           page: num,
           pageSize: PAGE_SIZE,
@@ -126,7 +129,7 @@ export default function CommunityPage({
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [selectedS, selectedT, selectedY, order, num]);
+  }, [selectedS, selectedT, selectedY, search, order, num]);
 
   const numButtons = Math.ceil(totalCount / PAGE_SIZE);
   const buttons: React.ReactNode[] = [];
@@ -157,6 +160,19 @@ export default function CommunityPage({
       <div className="flex flex-col gap-margin lg:basis-2/3">
         <div className="flex-col flex w-full">
           <h2 className="font-serif text-headline-md">Filter Discussions</h2>
+          <div className="flex flex-row items-center gap-sm border-1 border-outline-variant rounded-lg px-3 py-2 mt-margin">
+            <Search size={18} className="text-on-surface-variant shrink-0" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setNum(1);
+              }}
+              className="w-full outline-none text-body-md"
+              placeholder="Search discussions by title..."
+            />
+          </div>
           <div className="flex flex-col sm:flex-row mt-margin gap-margin">
             <div className="flex flex-col gap-sm sm:basis-2/7">
               <p className="text-on-surface-variant text-body-md">Subject</p>

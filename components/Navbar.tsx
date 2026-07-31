@@ -44,14 +44,14 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
           </nav>
         </div>
 
-        <div className="flex items-center gap-md">
+        <div className="flex items-center gap-sm sm:gap-md">
           {authSlot}
           <button
             onClick={() => setMenuOpen((open) => !open)}
             className="md:hidden p-sm -mr-sm text-on-surface-variant hover:text-primary cursor-pointer"
             aria-label="Toggle menu"
           >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>

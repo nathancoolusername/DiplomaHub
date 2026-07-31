@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import SortDropdown from "../articles/drop-down";
 import Panel from "../home/article-section/article-panel";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import type { Resource } from "@/app/lib/types";
 import {
   getResourcesPage,
@@ -34,6 +34,7 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
   const [year, setYear] = useState("Any Year");
   const [selected, setSelected] = useState("Most Downloaded");
   const [active, setActive] = useState("All");
+  const [search, setSearch] = useState("");
   const [num, setNum] = useState(1);
 
   const [items, setItems] = useState(initialItems);
@@ -80,6 +81,7 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
           subject: active === "All" ? undefined : active,
           type: type === opttionsType[0] ? undefined : type,
           year: year === optionsYear[0] ? undefined : year,
+          search: search.trim() || undefined,
           sort: SORT_MAP[selected],
           page: num,
           pageSize: PAGE_SIZE,
@@ -99,7 +101,7 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [active, type, year, selected, num]);
+  }, [active, type, year, search, selected, num]);
 
   const numButtons = Math.ceil(totalCount / PAGE_SIZE);
   const buttons: React.ReactNode[] = [];
@@ -129,6 +131,19 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
   return (
     <div className="flex flex-col gap-gutter">
       <div className="flex flex-col bg-surface-container-lowest border-1 border-outline-variant p-lg rounded-xl gap-margin">
+        <div className="flex flex-row items-center gap-sm border-1 border-outline-variant rounded-lg px-3 py-2">
+          <Search size={18} className="text-on-surface-variant shrink-0" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setNum(1);
+            }}
+            className="w-full outline-none text-body-md"
+            placeholder="Search resources by title..."
+          />
+        </div>
         <div className="flex flex-col gap-md">
           <h2>Subject Areas</h2>
           <div className="flex flex-row gap-sm flex-wrap">

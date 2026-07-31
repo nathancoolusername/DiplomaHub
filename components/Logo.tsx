@@ -12,7 +12,7 @@ export function Logo({
   const sizeClass =
     size === "lg"
       ? "text-display-lg self-center justify-center"
-      : "text-headline-md";
+      : "text-body-lg sm:text-headline-md";
 
   return (
     <Link href="/">

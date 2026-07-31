@@ -5,7 +5,7 @@ import { createAdminClient } from "../supabase/admin";
 import { revalidatePath } from "next/cache";
 import sanitizeHtml from "sanitize-html";
 import { isAdmin } from "../admin";
-import { requireField, optionalField } from "../validation";
+import { requireField, optionalField, splitKeywords } from "../validation";
 import type { ActionResult, Article } from "../types";
 
 const ARTICLE_CONTENT_MAX_LENGTH = 100_000;
@@ -126,6 +126,7 @@ export type ArticleSort = "newest" | "oldest" | "most_liked" | "most_viewed";
 // itself constrained to the same SubjectTags option set in the write form).
 export async function getArticlesPage(filters: {
   topic?: string;
+  search?: string;
   sort?: ArticleSort;
   page?: number;
   pageSize?: number;
@@ -149,6 +150,9 @@ export async function getArticlesPage(filters: {
     .eq("published", true);
 
   if (filters.topic) query = query.eq("topic", filters.topic);
+  for (const word of splitKeywords(filters.search)) {
+    query = query.ilike("title", `%${word}%`);
+  }
 
   switch (filters.sort) {
     case "oldest":

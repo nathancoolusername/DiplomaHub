@@ -34,6 +34,14 @@ export function optionalField(
   return { value: trimmed };
 }
 
+// Splits a search query into individual keywords so multi-word searches
+// don't require the words to appear contiguously or in the same order as
+// the title (e.g. "chemistry ia" should match "IA Chemistry Template").
+export function splitKeywords(value: string | undefined): string[] {
+  if (!value) return [];
+  return value.trim().split(/\s+/).filter(Boolean);
+}
+
 export function requireOneOf(
   value: FormDataEntryValue | null,
   fieldName: string,
