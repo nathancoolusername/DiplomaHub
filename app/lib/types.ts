@@ -105,12 +105,17 @@ export type ActionResult<T> =
 
 export type RoadmapStatus = "completed" | "in_progress" | "planned";
 
+export type RoadmapTag = { label: string; icon: string };
+
 export type RoadmapItem = {
   id: string;
   title: string;
   status: RoadmapStatus;
   completion_percentage: number | null;
   sort_order: number;
+  release_label: string | null;
+  description: string | null;
+  tags: RoadmapTag[];
 };
 
 export type UserProfile = {

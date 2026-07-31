@@ -1,15 +1,8 @@
-import {
-  Check,
-  WandSparkles,
-  Clock,
-  Medal,
-  Podium,
-  BadgeCheck,
-  type LucideIcon,
-} from "lucide-react";
+import { Check, WandSparkles, Clock, Medal, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getRoadmapItems } from "@/app/lib/actions/roadmap";
+import { ROADMAP_TAG_ICONS } from "@/components/roadmap/icons";
 import type { RoadmapItem, RoadmapStatus } from "@/app/lib/types";
 
 export const metadata: Metadata = {
@@ -19,40 +12,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/roadmap" },
 };
 
-// Description/tags/release-label copy stays static here — only status and
-// completion_percentage are admin-editable (see /admin/roadmap), since those
-// are the two fields that actually go stale as work progresses.
-const ROADMAP_CONTENT: Record<
-  string,
-  {
-    releaseLabel: string;
-    description: string;
-    tags: { label: string; icon: LucideIcon }[];
-  }
-> = {
-  "ib-pro-status": {
-    releaseLabel: "Released Sept 2026",
-    description: `Developed a robust reputation system where users earn "Scholarly Cred" for likes, views, or downloads on their comments, discussions, or resources`,
-    tags: [
-      { label: "IB Pro badges", icon: Medal },
-      { label: "XP Leaderboards", icon: Podium },
-    ],
-  },
-  "ib-news": {
-    releaseLabel: "Active development",
-    description:
-      "Launching the integrated news portal sourcing official updates from the IB organization.",
-    tags: [
-      { label: "Verifed Sources", icon: BadgeCheck },
-      { label: "Quickly Updated", icon: Clock },
-    ],
-  },
-  "university-section": {
-    releaseLabel: "Estimated Jan 2027",
-    description:
-      "Brand new page for university resources, discussions and much more, tailored to IB students around the world.",
-    tags: [],
-  },
+// Only the first 3 items (after sorting) are shown, so the page always
+// reads as "what's done, what's active, what's next" rather than a long
+// scrolling list.
+const VISIBLE_COUNT = 3;
+const STATUS_PRIORITY: Record<RoadmapStatus, number> = {
+  completed: 0,
+  in_progress: 1,
+  planned: 2,
 };
 
 const STATUS_META: Record<
@@ -92,7 +59,8 @@ const STATUS_META: Record<
   },
   planned: {
     icon: Clock,
-    railIconClass: "p-1 bg-inverse-on-surface rounded-xl text-on-surface-variant",
+    railIconClass:
+      "p-1 bg-inverse-on-surface rounded-xl text-on-surface-variant",
     labelClass: "text-headline-md text-on-surface-variant uppercase rounded-xl",
     medalClass: "text-on-surface-variant ml-auto",
     cardClass:
@@ -104,20 +72,20 @@ const STATUS_META: Record<
 };
 
 function RoadmapCard({ item }: { item: RoadmapItem }) {
-  const content = ROADMAP_CONTENT[item.id];
   const meta = STATUS_META[item.status];
-  if (!content) return null;
 
   return (
     <div
       className={`flex flex-col w-full p-lg rounded-xl ${meta.gapClass} transition ${meta.cardClass}`}
     >
       <div className="justify-between flex flex-row items-center">
-        <p className={meta.labelClass}>{content.releaseLabel}</p>
+        <p className={meta.labelClass}>{item.release_label}</p>
         <Medal size={30} className={meta.medalClass} />
       </div>
       <h3 className={meta.titleClass}>{item.title}</h3>
-      <p className={meta.descriptionClass}>{content.description}</p>
+      {item.description && (
+        <p className={meta.descriptionClass}>{item.description}</p>
+      )}
 
       {item.status === "in_progress" && item.completion_percentage !== null && (
         <div className="flex flex-col gap-sm">
@@ -136,17 +104,20 @@ function RoadmapCard({ item }: { item: RoadmapItem }) {
         </div>
       )}
 
-      {content.tags.length > 0 && (
+      {item.tags.length > 0 && (
         <div className="gap-md flex flex-row flex-wrap items-center">
-          {content.tags.map((tag) => (
-            <div
-              key={tag.label}
-              className="rounded-xl p-md bg-surface-container-low flex flex-row gap-sm items-center"
-            >
-              <p className="text-primary text-body-lg">{tag.label}</p>
-              <tag.icon size={30} className="text-primary" />
-            </div>
-          ))}
+          {item.tags.map((tag) => {
+            const Icon = ROADMAP_TAG_ICONS[tag.icon];
+            return (
+              <div
+                key={tag.label}
+                className="rounded-xl p-md bg-surface-container-low flex flex-row gap-sm items-center"
+              >
+                <p className="text-primary text-body-lg">{tag.label}</p>
+                {Icon && <Icon size={30} className="text-primary" />}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -155,7 +126,16 @@ function RoadmapCard({ item }: { item: RoadmapItem }) {
 
 export default async function Roadmap() {
   const result = await getRoadmapItems();
-  const items = result.success ? result.data : [];
+  const allItems = result.success ? result.data : [];
+
+  // Completed first, then in-progress, then planned/"coming" — ties within
+  // a status broken by the admin-set sort_order.
+  const items = [...allItems]
+    .sort((a, b) => {
+      const statusDiff = STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status];
+      return statusDiff !== 0 ? statusDiff : a.sort_order - b.sort_order;
+    })
+    .slice(0, VISIBLE_COUNT);
 
   return (
     <div className="flex flex-col px-md lg:px-[60px] py-margin bg-surface-container-low gap-gutter">
@@ -181,9 +161,7 @@ export default async function Roadmap() {
                 size={30}
                 className="p-1 bg-secondary rounded-xl text-on-primary"
               />
-              <p className="text-body-lg text-on-surface-variant">
-                Completed
-              </p>
+              <p className="text-body-lg text-on-surface-variant">Completed</p>
             </div>
             <div className="flex flex-row gap-sm items-center">
               <WandSparkles

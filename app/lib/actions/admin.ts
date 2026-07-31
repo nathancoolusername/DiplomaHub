@@ -5,7 +5,8 @@ import { createAdminClient } from "../supabase/admin";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "../admin";
 import { createNotification } from "./notifications";
-import type { ActionResult, RoadmapStatus } from "../types";
+import { ROADMAP_TAG_ICON_NAMES } from "../roadmapTagIcons";
+import type { ActionResult, RoadmapStatus, RoadmapItem, RoadmapTag } from "../types";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -419,34 +420,139 @@ export async function deleteFeedback(
   return { success: true, data: null };
 }
 
+export type RoadmapItemInput = {
+  title: string;
+  status: RoadmapStatus;
+  completion_percentage: number | null;
+  release_label: string | null;
+  description: string | null;
+  tags: RoadmapTag[];
+  sort_order: number;
+};
+
+const ROADMAP_STATUSES: RoadmapStatus[] = ["completed", "in_progress", "planned"];
+
+function validateRoadmapInput(
+  input: RoadmapItemInput,
+): { error: string } | { value: RoadmapItemInput } {
+  const title = input.title?.trim();
+  if (!title) return { error: "Title is required" };
+  if (title.length > 200) return { error: "Title must be under 200 characters" };
+
+  if (!ROADMAP_STATUSES.includes(input.status)) {
+    return { error: "Invalid status" };
+  }
+
+  if (
+    input.completion_percentage !== null &&
+    (!Number.isInteger(input.completion_percentage) ||
+      input.completion_percentage < 0 ||
+      input.completion_percentage > 100)
+  ) {
+    return { error: "Percentage must be an integer between 0 and 100" };
+  }
+
+  const releaseLabel = input.release_label?.trim() || null;
+  if (releaseLabel && releaseLabel.length > 100) {
+    return { error: "Release label must be under 100 characters" };
+  }
+
+  const description = input.description?.trim() || null;
+  if (description && description.length > 2000) {
+    return { error: "Description must be under 2000 characters" };
+  }
+
+  if (!Array.isArray(input.tags) || input.tags.length > 10) {
+    return { error: "A roadmap item can have at most 10 tags" };
+  }
+  for (const tag of input.tags) {
+    if (!tag.label?.trim() || tag.label.trim().length > 50) {
+      return { error: "Each tag label must be 1-50 characters" };
+    }
+    if (!ROADMAP_TAG_ICON_NAMES.includes(tag.icon as (typeof ROADMAP_TAG_ICON_NAMES)[number])) {
+      return { error: `Unknown tag icon: ${tag.icon}` };
+    }
+  }
+
+  if (!Number.isInteger(input.sort_order)) {
+    return { error: "Sort order must be an integer" };
+  }
+
+  return {
+    value: {
+      title,
+      status: input.status,
+      completion_percentage:
+        input.status === "in_progress" ? input.completion_percentage : null,
+      release_label: releaseLabel,
+      description,
+      tags: input.tags.map((t) => ({ label: t.label.trim(), icon: t.icon })),
+      sort_order: input.sort_order,
+    },
+  };
+}
+
+// roadmap_items has no client-writable grant at all (it's public-read,
+// admin-write with no author to scope RLS to) — same shape as the
+// feedback table, so writes go through the service-role client.
+export async function createRoadmapItem(
+  input: RoadmapItemInput,
+): Promise<ActionResult<RoadmapItem>> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { success: false, error: "Not authorized" };
+
+  const fields = validateRoadmapInput(input);
+  if ("error" in fields) return { success: false, error: fields.error };
+
+  const baseSlug = fields.value.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  // Mirrors the article slug pattern — a short random suffix avoids
+  // collisions between items with the same/similar title.
+  const id = `${baseSlug}-${crypto.randomUUID().slice(0, 8)}`;
+
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("roadmap_items")
+    .insert({ id, ...fields.value })
+    .select()
+    .single();
+
+  if (error) return { success: false, error: error.message };
+  revalidatePath("/admin/roadmap");
+  revalidatePath("/roadmap");
+  return { success: true, data };
+}
+
 export async function updateRoadmapItem(
   id: string,
-  status: RoadmapStatus,
-  completionPercentage: number | null,
+  input: RoadmapItemInput,
 ): Promise<ActionResult<null>> {
   const ctx = await requireAdmin();
   if (!ctx) return { success: false, error: "Not authorized" };
 
-  if (
-    completionPercentage !== null &&
-    (!Number.isInteger(completionPercentage) ||
-      completionPercentage < 0 ||
-      completionPercentage > 100)
-  ) {
-    return {
-      success: false,
-      error: "Percentage must be an integer between 0 and 100",
-    };
-  }
+  const fields = validateRoadmapInput(input);
+  if ("error" in fields) return { success: false, error: fields.error };
 
-  // roadmap_items has no client-writable grant at all (it's public-read,
-  // admin-write with no author to scope RLS to) — same shape as the
-  // feedback table, so writes go through the service-role client.
   const admin = createAdminClient();
   const { error } = await admin
     .from("roadmap_items")
-    .update({ status, completion_percentage: completionPercentage })
+    .update(fields.value)
     .eq("id", id);
+
+  if (error) return { success: false, error: error.message };
+  revalidatePath("/admin/roadmap");
+  revalidatePath("/roadmap");
+  return { success: true, data: null };
+}
+
+export async function deleteRoadmapItem(id: string): Promise<ActionResult<null>> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { success: false, error: "Not authorized" };
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("roadmap_items").delete().eq("id", id);
 
   if (error) return { success: false, error: error.message };
   revalidatePath("/admin/roadmap");

@@ -225,3 +225,34 @@ export async function getTopContributors(
   if (error) return { success: false, error: error.message };
   return { success: true, data };
 }
+
+// Full site-wide leaderboard (paginated + searchable by name) — unlike
+// getTopContributors above, which only grabs the top few for the community
+// page sidebar, this backs a dedicated page listing everyone.
+export async function getLeaderboardPage(filters: {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<ActionResult<{ items: TopContributor[]; totalCount: number }>> {
+  const supabase = await createClient();
+
+  const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const pageSize =
+    filters.pageSize && filters.pageSize > 0 ? filters.pageSize : 20;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase
+    .from("users")
+    .select("id, display_name, points, is_pro, avatar_url", {
+      count: "exact",
+    })
+    .order("points", { ascending: false });
+
+  const search = filters.search?.trim();
+  if (search) query = query.ilike("display_name", `%${search}%`);
+
+  const { data, error, count } = await query.range(from, to);
+  if (error) return { success: false, error: error.message };
+  return { success: true, data: { items: data, totalCount: count ?? 0 } };
+}

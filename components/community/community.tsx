@@ -425,7 +425,15 @@ export default function CommunityPage({
         </Link>
 
         <div className="w-full bg-surface-container-lowest p-lg border-1 border-outline-variant rounded-xl flex flex-col gap-md">
-          <h2 className="font-serif text-headline-md">Top Contributors</h2>
+          <div className="flex flex-row justify-between items-center">
+            <h2 className="font-serif text-headline-md">Top Contributors</h2>
+            <Link
+              href="/leaderboard"
+              className="text-primary text-label-md font-semibold hover:underline"
+            >
+              View Full Leaderboard
+            </Link>
+          </div>
           {topContributors.length === 0 ? (
             <div className="bg-surface-container-low w-full h-24 rounded-xl flex items-center justify-center">
               <p className="font-semibold text-headline-md font-serif text-on-primary-fixed">

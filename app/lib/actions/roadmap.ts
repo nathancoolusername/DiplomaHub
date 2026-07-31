@@ -8,7 +8,9 @@ export async function getRoadmapItems(): Promise<ActionResult<RoadmapItem[]>> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("roadmap_items")
-    .select("id, title, status, completion_percentage, sort_order")
+    .select(
+      "id, title, status, completion_percentage, sort_order, release_label, description, tags",
+    )
     .order("sort_order");
 
   if (error) return { success: false, error: error.message };
