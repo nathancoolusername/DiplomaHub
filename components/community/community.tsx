@@ -370,9 +370,9 @@ export default function CommunityPage({
             ) : (
               <>
                 <div className="flex flex-row justify-between text-label-md text-on-surface-variant">
-                  <span>
+                  <Link href="/leaderboard" className="hover:underline">
                     {currentUserProfile.points} / {DIPLOMA_PRO_THRESHOLD} points
-                  </span>
+                  </Link>
                 </div>
                 <div className="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
                   <div

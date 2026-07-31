@@ -44,6 +44,7 @@ export default async function ProfilePage({
     total_downloads,
     commentsWritten,
     drafts,
+    rank,
   } = result.data;
   const month = months[new Date(user.created_at).getMonth()];
   const final = month + " " + new Date(user.created_at).getFullYear();
@@ -79,12 +80,15 @@ export default async function ProfilePage({
               )}
             </div>
             <div className="flex flex-row flex-wrap gap-md justify-center md:justify-start">
-              <div className="flex flex-row gap-sm">
+              <Link
+                href="/leaderboard"
+                className="flex flex-row gap-sm items-center hover:underline"
+              >
                 <Medal className="text-primary" />
                 <p className="text-body-lg text-on-surface-variant font-bold">
-                  {user.points} points
+                  {user.points} points · Rank #{rank}
                 </p>
-              </div>
+              </Link>
               <div className="flex flex-row gap-sm">
                 <Calendar className="text-primary" />
                 <p className="text-body-lg text-on-surface-variant font-bold">

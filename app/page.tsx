@@ -1,10 +1,12 @@
 import { GraduationCap } from "lucide-react";
 import ResourceHome from "../components/home/article-section/article-home";
 import Trending from "../components/home/trending";
+import TopContributorsHome from "../components/home/top-contributors";
 import Image from "next/image";
 import Link from "next/link";
 import { getFeaturedResources } from "@/app/lib/actions/resources";
 import { getDiscussions } from "@/app/lib/actions/discussions";
+import { getTopContributors } from "@/app/lib/actions/profile";
 
 export default async function Home({
   searchParams,
@@ -16,6 +18,11 @@ export default async function Home({
 
   const discussionsResult = await getDiscussions();
   const discussions = discussionsResult.success ? discussionsResult.data : [];
+
+  const contributorsResult = await getTopContributors(3);
+  const topContributors = contributorsResult.success
+    ? contributorsResult.data
+    : [];
 
   // Supabase redirects here (not to our /auth routes) when an email link's
   // OTP is invalid/expired — e.g. the recovery or signup-confirmation link
@@ -88,6 +95,8 @@ export default async function Home({
       <ResourceHome data={resources} />
 
       <Trending discussions={discussions} />
+
+      <TopContributorsHome contributors={topContributors} />
 
       <div className="min-h-[300px] md:h-[400px] bg-primary py-lg px-md place-content-center">
         <div className="bg-primary-container flex flex-col md:flex-row rounded-xl justify-between items-center gap-md py-lg px-lg">

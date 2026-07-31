@@ -31,6 +31,7 @@ export async function getPublicProfile(userId: string): Promise<
     totalLikes: number;
     total_downloads: number;
     drafts: Article[] | null;
+    rank: number;
   }>
 > {
   const supabase = await createClient();
@@ -47,6 +48,7 @@ export async function getPublicProfile(userId: string): Promise<
     { data: articles, error: articlesError },
     { data: resources, error: resourcesError },
     { data: discussions, error: discussionsError },
+    { count: higherRankedCount },
   ] = await Promise.all([
     supabase
       .from("articles")
@@ -65,7 +67,13 @@ export async function getPublicProfile(userId: string): Promise<
       .select("*, author:users(display_name, is_pro, avatar_url)")
       .eq("author_id", userId)
       .order("created_at", { ascending: false }),
+    // Leaderboard rank — count of users strictly ahead on points, +1.
+    supabase
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .gt("points", user.points),
   ]);
+  const rank = (higherRankedCount ?? 0) + 1;
 
   const { data: drafts, error: draftError } = await supabase
     .from("articles")
@@ -199,6 +207,7 @@ export async function getPublicProfile(userId: string): Promise<
       total_downloads,
       commentsWritten: commentsWritten ?? [],
       drafts: normalizedDrafts ?? null,
+      rank,
     },
   };
 }

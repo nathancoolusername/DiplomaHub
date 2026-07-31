@@ -35,23 +35,28 @@ export default function ProfileDropdown({
 
   return (
     <div className="relative w-full" ref={ref}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className=" flex flex-row cursor-pointer text-body-md text-on-surface hover:border-primary transition-colors w-full justify-between"
-      >
-        <span className="text-body-md sm:text-body-lg text-primary font-bold font-serif flex flex-col min-w-0">
-          <span className="break-words">
-            {display_name}
-            <span className="hidden sm:inline"> · {points}pts</span>
+      <div className="flex flex-row items-center gap-sm w-full justify-between">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex flex-row cursor-pointer text-body-md text-on-surface hover:border-primary transition-colors flex-1 min-w-0 justify-between"
+        >
+          <span className="text-body-md sm:text-body-lg text-primary font-bold font-serif flex flex-col min-w-0">
+            <span className="break-words">{display_name}</span>
+            {is_pro && (
+              <DiplomaProBadge className="hidden sm:block text-on-primary-fixed-variant text-label-md self-start font-bold" />
+            )}
           </span>
-          {is_pro && (
-            <DiplomaProBadge className="hidden sm:block text-on-primary-fixed-variant text-label-md self-start font-bold" />
-          )}
-        </span>
-        <ChevronDown
-          className={`w-4 h-4 sm:w-[22px] sm:h-[22px] shrink-0 text-on-primary-fixed-variant font-bold transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
+          <ChevronDown
+            className={`w-4 h-4 sm:w-[22px] sm:h-[22px] shrink-0 text-on-primary-fixed-variant font-bold transition-transform ${isOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+        <Link
+          href="/leaderboard"
+          className="hidden sm:inline text-label-md text-on-surface-variant hover:text-primary hover:underline shrink-0 whitespace-nowrap"
+        >
+          {points}pts
+        </Link>
+      </div>
       {isOpen && (
         <div
           className={`absolute right-0 top-full mt-xs bg-surface-container-lowest border border-outline-variant rounded-xl shadow-md z-10 min-w-full overflow-hidden`}

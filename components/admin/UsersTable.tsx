@@ -184,7 +184,11 @@ function UserRow({
           </div>
         </Link>
       </td>
-      <td className="p-md">{user.points.toLocaleString()}</td>
+      <td className="p-md">
+        <Link href="/leaderboard" className="hover:underline">
+          {user.points.toLocaleString()}
+        </Link>
+      </td>
       <td className="p-md">
         <div className="flex flex-row items-center gap-sm">
           <input
