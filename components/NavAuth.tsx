@@ -26,7 +26,7 @@ export async function AuthNav() {
     .single();
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-1 sm:gap-3">
       <NotificationBell />
       <ProfileDropdown
         display_name={profile?.display_name}

@@ -39,7 +39,7 @@ export default function ProfileDropdown({
         onClick={() => setIsOpen(!isOpen)}
         className=" flex flex-row cursor-pointer text-body-md text-on-surface hover:border-primary transition-colors w-full justify-between"
       >
-        <span className="text-body-lg text-primary font-bold font-serif flex flex-col min-w-0">
+        <span className="text-body-md sm:text-body-lg text-primary font-bold font-serif flex flex-col min-w-0">
           <span className="break-words">
             {display_name}
             <span className="hidden sm:inline"> · {points}pts</span>
@@ -49,8 +49,7 @@ export default function ProfileDropdown({
           )}
         </span>
         <ChevronDown
-          size={22}
-          className={`shrink-0 text-on-primary-fixed-variant font-bold transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 sm:w-[22px] sm:h-[22px] shrink-0 text-on-primary-fixed-variant font-bold transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (

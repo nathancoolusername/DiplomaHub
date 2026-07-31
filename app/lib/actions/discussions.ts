@@ -378,6 +378,7 @@ export async function getDiscussionsPage(filters: {
   subject?: string;
   type?: string;
   year?: string;
+  search?: string;
   sort?: DiscussionSort;
   page?: number;
   pageSize?: number;
@@ -401,11 +402,13 @@ export async function getDiscussionsPage(filters: {
         p_sort: filters.sort ?? "newest",
         p_limit: pageSize,
         p_offset: offset,
+        p_search: filters.search ?? null,
       }),
       supabase.rpc("count_discussions", {
         p_subject: filters.subject ?? null,
         p_type: filters.type ?? null,
         p_year: filters.year ?? null,
+        p_search: filters.search ?? null,
       }),
     ]);
 

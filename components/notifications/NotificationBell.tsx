@@ -88,7 +88,7 @@ export function NotificationBell() {
         className="relative p-sm rounded-xl hover:bg-surface-container transition cursor-pointer"
         aria-label="Notifications"
       >
-        <Bell size={22} className="text-primary" />
+        <Bell className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px] text-primary" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center">
             {unreadCount > 99 ? "99+" : unreadCount}
@@ -97,7 +97,7 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-xs w-80 max-h-100 overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-md z-20">
+        <div className="fixed inset-x-4 top-16 max-h-[70vh] overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-md z-20 sm:absolute sm:inset-x-auto sm:left-auto sm:right-0 sm:top-full sm:mt-xs sm:w-80 sm:max-h-100">
           <div className="flex flex-row justify-between items-center px-md py-sm border-b border-outline-variant sticky top-0 bg-surface-container-lowest">
             <h2 className="font-serif font-bold text-body-md">Notifications</h2>
             {notifications && notifications.some((n) => !n.read) && (

@@ -288,7 +288,8 @@ export default async function resourcePage({
               </h2>
               <div className="flex flex-row justify-between">
                 <p className="text-body-lg text-on-primary border-b-1 pb-5 border-outline-variant">
-                  Obtained from author activity and user engagement.
+                  Obtained from author activity and user engagement (default
+                  50%).
                 </p>
                 <BadgeCheck className="text-secondary-container" size={50} />
               </div>

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import SortDropdown from "./drop-down";
 import Panel from "./article-panel";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { SubjectTags, ActiveSubjectTags } from "../pills";
 import { getArticlesPage, type ArticleSort } from "@/app/lib/actions/articles";
 import type { Article } from "@/app/lib/types";
@@ -25,6 +25,7 @@ const SORT_MAP: Record<string, ArticleSort> = {
 export default function ArticleGrid({ initialItems, initialTotalCount }: Props) {
   const [selected, setSelected] = useState("Newest");
   const [active, setActive] = useState("All");
+  const [search, setSearch] = useState("");
   const [num, setNum] = useState(1);
 
   const [items, setItems] = useState(initialItems);
@@ -57,6 +58,7 @@ export default function ArticleGrid({ initialItems, initialTotalCount }: Props) 
         setLoading(true);
         const result = await getArticlesPage({
           topic: active === "All" ? undefined : active,
+          search: search.trim() || undefined,
           sort: SORT_MAP[selected],
           page: num,
           pageSize: PAGE_SIZE,
@@ -76,7 +78,7 @@ export default function ArticleGrid({ initialItems, initialTotalCount }: Props) 
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [active, selected, num]);
+  }, [active, search, selected, num]);
 
   const numButtons = Math.ceil(totalCount / PAGE_SIZE);
   const buttons: React.ReactNode[] = [];
@@ -106,6 +108,19 @@ export default function ArticleGrid({ initialItems, initialTotalCount }: Props) 
   return (
     <div className="flex flex-col gap-gutter">
       <div className="flex flex-col gap-margin">
+        <div className="flex flex-row items-center gap-sm border-1 border-outline-variant rounded-lg px-3 py-2">
+          <Search size={18} className="text-on-surface-variant shrink-0" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setNum(1);
+            }}
+            className="w-full outline-none text-body-md"
+            placeholder="Search articles by title..."
+          />
+        </div>
         <div className="flex flex-row gap-sm flex-wrap">
           <button
             onClick={() => {
