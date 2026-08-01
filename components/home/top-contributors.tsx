@@ -11,7 +11,7 @@ export default function TopContributorsHome({
   if (contributors.length === 0) return null;
 
   return (
-    <div className="bg-surface-container-low min-h-fit flex flex-col px-md lg:px-30 py-lg gap-gutter">
+    <div className="bg-surface-container-lowest min-h-fit flex flex-col px-lg py-lg gap-gutter justify-content-center lg:pb-[100px]">
       <div className="bg-primary text-on-primary px-sm py-sm rounded text-label-md w-fit">
         <p>Community Leaders</p>
       </div>
@@ -42,9 +42,7 @@ export default function TopContributorsHome({
                 {i + 1}
               </span>
             </div>
-            <p className="font-bold text-body-lg">
-              {contributor.display_name}
-            </p>
+            <p className="font-bold text-body-lg">{contributor.display_name}</p>
             <p className="text-on-surface-variant text-label-md">
               {contributor.points.toLocaleString()} XP
             </p>
