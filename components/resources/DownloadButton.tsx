@@ -2,7 +2,10 @@
 "use client";
 import { Download, ExternalLink } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
+import Link from "next/link";
 import { downloadResource } from "@/app/lib/actions/resources";
+import { LOGIN_REQUIRED_TO_DOWNLOAD } from "@/app/lib/authMessages";
 
 function getFileNameFromUrl(url: string) {
   try {
@@ -34,6 +37,7 @@ export function DownloadButton({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const isExternalLink = kind === "link";
 
   async function handleDownload() {
@@ -43,7 +47,12 @@ export function DownloadButton({
     const result = await downloadResource(resourceId, kind);
 
     if (!result.success) {
-      setError(result.error);
+      if (result.error === LOGIN_REQUIRED_TO_DOWNLOAD) {
+        setShowLoginPrompt(true);
+        setTimeout(() => setShowLoginPrompt(false), 3000);
+      } else {
+        setError(result.error);
+      }
       setLoading(false);
       return;
     }
@@ -80,7 +89,7 @@ export function DownloadButton({
   }
 
   return (
-    <div>
+    <div className="relative inline-block">
       <button
         onClick={handleDownload}
         disabled={loading}
@@ -96,6 +105,19 @@ export function DownloadButton({
             ? "Visit Link"
             : "Download"}
       </button>
+      {showLoginPrompt &&
+        createPortal(
+          // Portaled to <body> (not positioned relative to the button) so it
+          // can't be clipped by a resource card's overflow-hidden — cards on
+          // the grid pages crop anything that pokes past their rounded edge.
+          <Link
+            href="/login"
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-100 whitespace-nowrap bg-red-50 text-red-700 border border-red-200 text-label-md font-semibold px-lg py-sm rounded-full shadow-lg hover:underline"
+          >
+            {LOGIN_REQUIRED_TO_DOWNLOAD}
+          </Link>,
+          document.body,
+        )}
       {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
     </div>
   );

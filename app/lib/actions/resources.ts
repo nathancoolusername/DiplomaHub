@@ -13,11 +13,14 @@ import {
 } from "../validation";
 import { checkRateLimit } from "../ratelimit";
 import { SubjectTags, ResourceTypeTag, YEAR_OPTIONS } from "@/components/pills";
+import { LOGIN_REQUIRED_TO_DOWNLOAD } from "../authMessages";
 import type { ActionResult, Resource } from "../types";
 
 // Notify the resource owner once total downloads first cross one of these
 // thresholds, rather than on every single download.
-const DOWNLOAD_MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
+const DOWNLOAD_MILESTONES = [
+  10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000,
+];
 
 const SUBJECT_OPTIONS = Object.keys(SubjectTags);
 const RESOURCE_TYPE_OPTIONS = Object.keys(ResourceTypeTag);
@@ -181,7 +184,10 @@ export async function getResourceDetail(
   };
 
   if (!user) {
-    return { success: true, data: { ...resource, isLiked: false, isSaved: false } };
+    return {
+      success: true,
+      data: { ...resource, isLiked: false, isSaved: false },
+    };
   }
 
   const [{ data: like }, { data: save }] = await Promise.all([
@@ -263,7 +269,11 @@ export async function downloadResource(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Log in to download resources" };
+  if (!user)
+    return {
+      success: false,
+      error: LOGIN_REQUIRED_TO_DOWNLOAD,
+    };
 
   const rateLimit = await checkRateLimit("download", user.id);
   if (!rateLimit.allowed) return { success: false, error: rateLimit.error };
@@ -437,7 +447,9 @@ export async function getFeaturedResources(
     p_limit: limit,
   });
 
-  let resources = rows as (Omit<Resource, "author" | "isLiked" | "isSaved">)[] | null;
+  let resources = rows as
+    | Omit<Resource, "author" | "isLiked" | "isSaved">[]
+    | null;
 
   // Falls back to a plain newest-first query if the RPC doesn't exist yet
   // (schema changes here go through the Supabase SQL editor by hand, not
@@ -449,7 +461,8 @@ export async function getFeaturedResources(
       .eq("published", true)
       .order("created_at", { ascending: false })
       .limit(limit);
-    if (fallback.error) return { success: false, error: fallback.error.message };
+    if (fallback.error)
+      return { success: false, error: fallback.error.message };
     resources = fallback.data;
   }
 
