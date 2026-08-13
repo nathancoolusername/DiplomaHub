@@ -26,7 +26,19 @@ const SORT_MAP: Record<string, ResourceSort> = {
   "Most Liked": "most_liked",
   "Most Downloaded": "most_downloaded",
 };
-const opttionsType = ["All Types", ...Object.keys(ResourceTypeTag)];
+// "Exemplar" isn't a real type_tag value on its own (see resources.ts) —
+// it's a browse-only filter that matches Exemplar - IA/EE/TOK together.
+// Inserted right before the specific Exemplar - * entries.
+const RESOURCE_TYPE_KEYS = Object.keys(ResourceTypeTag);
+const exemplarIndex = RESOURCE_TYPE_KEYS.findIndex((t) =>
+  t.startsWith("Exemplar"),
+);
+const opttionsType = [
+  "All Types",
+  ...RESOURCE_TYPE_KEYS.slice(0, exemplarIndex),
+  "Exemplar",
+  ...RESOURCE_TYPE_KEYS.slice(exemplarIndex),
+];
 const optionsYear = ["Any Year", ...YEAR_OPTIONS];
 
 export default function ResourceGrid({ initialItems, initialTotalCount }: Props) {
