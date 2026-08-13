@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import SortDropdown from "../articles/drop-down";
 import Panel from "../home/article-section/article-panel";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
@@ -48,6 +49,7 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
   const [active, setActive] = useState("All");
   const [search, setSearch] = useState("");
   const [num, setNum] = useState(1);
+  const [showEENotice, setShowEENotice] = useState(false);
 
   const [items, setItems] = useState(initialItems);
   const [totalCount, setTotalCount] = useState(initialTotalCount);
@@ -142,6 +144,13 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
 
   return (
     <div className="flex flex-col gap-gutter">
+      {showEENotice &&
+        createPortal(
+          <span className="fixed bottom-8 left-1/2 -translate-x-1/2 z-100 whitespace-nowrap bg-secondary-container text-secondary text-label-md font-semibold px-lg py-sm rounded-full shadow-lg">
+            EE exemplars are now organized under their subject
+          </span>,
+          document.body,
+        )}
       <div className="flex flex-col bg-surface-container-lowest border-1 border-outline-variant p-lg rounded-xl gap-margin">
         <div className="flex flex-row items-center gap-sm border-1 border-outline-variant rounded-lg px-3 py-2">
           <Search size={18} className="text-on-surface-variant shrink-0" />
@@ -183,6 +192,10 @@ export default function ResourceGrid({ initialItems, initialTotalCount }: Props)
                   onClick={() => {
                     setActive(pill);
                     setNum(1);
+                    if (pill === "EE") {
+                      setShowEENotice(true);
+                      setTimeout(() => setShowEENotice(false), 4000);
+                    }
                   }}
                   key={pill}
                   className="cursor-pointer my-1"
