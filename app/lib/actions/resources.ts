@@ -25,6 +25,14 @@ const DOWNLOAD_MILESTONES = [
 const SUBJECT_OPTIONS = Object.keys(SubjectTags);
 const RESOURCE_TYPE_OPTIONS = Object.keys(ResourceTypeTag);
 
+// "Exemplar" isn't a real type_tag value (Exemplar - IA/EE/TOK are, so a
+// resource can be both "an exemplar" and "specifically about the EE/TOK,
+// not one subject") — the browse-page filter still offers a broad
+// "Exemplar" option that matches all three underlying values.
+const EXEMPLAR_TYPE_VALUES = RESOURCE_TYPE_OPTIONS.filter((t) =>
+  t.startsWith("Exemplar"),
+);
+
 function validateResourceFields(formData: FormData) {
   const title = requireField(formData.get("title"), "Title", 200);
   if ("error" in title) return title;
@@ -364,7 +372,11 @@ export async function getResourcesPage(filters: {
     .eq("published", true);
 
   if (filters.subject) query = query.eq("subject_tag", filters.subject);
-  if (filters.type) query = query.eq("type_tag", filters.type);
+  if (filters.type === "Exemplar") {
+    query = query.in("type_tag", EXEMPLAR_TYPE_VALUES);
+  } else if (filters.type) {
+    query = query.eq("type_tag", filters.type);
+  }
   if (filters.year) query = query.eq("year_tag", filters.year);
   for (const word of splitKeywords(filters.search)) {
     query = query.ilike("title", `%${word}%`);

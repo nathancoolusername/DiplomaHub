@@ -77,6 +77,13 @@ export const SubjectTags: Record<string, JSX.Element> = {
       business
     </span>
   ),
+  Theatre: (
+    <span
+      className={`px-md py-sm rounded-xl text-label-md bg-tertiary-container text-tertiary font-bold uppercase`}
+    >
+      theatre
+    </span>
+  ),
   TOK: (
     <span
       className={`px-md py-sm rounded-xl text-label-md bg-surface-container text-primary font-bold uppercase`}
@@ -185,6 +192,13 @@ export const ActiveSubjectTags: Record<string, JSX.Element> = {
       business
     </span>
   ),
+  Theatre: (
+    <span
+      className={`px-md py-sm rounded-xl text-label-md bg-tertiary text-on-primary font-bold uppercase`}
+    >
+      theatre
+    </span>
+  ),
   TOK: (
     <span
       className={`px-md py-sm rounded-xl text-label-md bg-primary text-on-primary font-bold uppercase`}
@@ -216,6 +230,27 @@ export const ActiveSubjectTags: Record<string, JSX.Element> = {
 };
 
 export const ResourceTypeTag: Record<string, JSX.Element> = {
+  "Exemplar - IA": (
+    <span
+      className={`px-md py-sm rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
+    >
+      exemplar - ia
+    </span>
+  ),
+  "Exemplar - EE": (
+    <span
+      className={`px-md py-sm rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
+    >
+      exemplar - ee
+    </span>
+  ),
+  "Exemplar - TOK": (
+    <span
+      className={`px-md py-sm rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
+    >
+      exemplar - tok
+    </span>
+  ),
   Template: (
     <span
       className={`px-md py-sm rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
@@ -242,13 +277,6 @@ export const ResourceTypeTag: Record<string, JSX.Element> = {
       className={`px-md py-sm rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
     >
       past paper
-    </span>
-  ),
-  Exemplar: (
-    <span
-      className={`px-md py-sm rounded-xl text-label-md bg-secondary-container text-secondary font-bold uppercase`}
-    >
-      exemplar
     </span>
   ),
   Other: (
