@@ -44,9 +44,19 @@ export function DownloadButton({
     setLoading(true);
     setError(null);
 
+    // Safari (and strict popup blockers generally) only treats window.open()
+    // as a trusted, user-initiated action if it's called synchronously
+    // inside the click handler — once we `await` the server action below,
+    // the async gap makes it look like an unrequested popup and it gets
+    // blocked. Opening a blank tab right now, before the await, and
+    // redirecting it once we know the real URL keeps it inside that
+    // trusted window instead.
+    const newTab = isExternalLink ? window.open("", "_blank") : null;
+
     const result = await downloadResource(resourceId, kind);
 
     if (!result.success) {
+      newTab?.close();
       if (result.error === LOGIN_REQUIRED_TO_DOWNLOAD) {
         setShowLoginPrompt(true);
         setTimeout(() => setShowLoginPrompt(false), 3000);
@@ -60,7 +70,13 @@ export function DownloadButton({
     if (isExternalLink) {
       // External links can't be fetched cross-origin (CORS) and shouldn't
       // be force-downloaded anyway — just open them like a normal link.
-      window.open(result.data.fileUrl, "_blank", "noopener,noreferrer");
+      if (newTab) {
+        newTab.location.href = result.data.fileUrl;
+      } else {
+        // Popup blocked even for the synchronous open (e.g. popups disabled
+        // site-wide) — fall back to same-tab navigation rather than a dead end.
+        window.location.href = result.data.fileUrl;
+      }
       setLoading(false);
       return;
     }
