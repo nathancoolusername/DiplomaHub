@@ -65,7 +65,14 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/(.*)",
+        // Excludes Next's own static/image-optimization routes — CSP etc.
+        // don't do anything meaningful on those responses, and routing
+        // every JS chunk/font/resized-image request through header
+        // attachment was a real chunk of Vercel's edge "middleware" CPU
+        // usage (next.config.ts headers()/redirects()/rewrites() are
+        // implemented via Vercel's edge routing layer even with no
+        // middleware.ts file in the repo).
+        source: "/((?!_next/static|_next/image|favicon.ico).*)",
         headers: securityHeaders,
       },
     ];
