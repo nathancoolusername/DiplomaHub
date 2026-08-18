@@ -26,17 +26,43 @@ export function NotificationBell() {
 
   useEffect(() => {
     let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
 
     async function poll() {
       const result = await getUnreadNotificationCount();
       if (!cancelled && result.success) setUnreadCount(result.data);
     }
 
-    poll();
-    const interval = setInterval(poll, POLL_INTERVAL_MS);
+    // A background/inactive tab has no user to notify — polling it every
+    // 30s anyway was pure wasted Vercel function invocations that scaled
+    // with "tabs left open," not with actual usage. Pausing while hidden
+    // and catching up immediately on return keeps active tabs just as
+    // fresh while cutting that idle cost entirely.
+    function startPolling() {
+      if (interval) return;
+      poll();
+      interval = setInterval(poll, POLL_INTERVAL_MS);
+    }
+
+    function stopPolling() {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") startPolling();
+      else stopPolling();
+    }
+
+    if (document.visibilityState === "visible") startPolling();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       cancelled = true;
-      clearInterval(interval);
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
