@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { getArticle } from "@/app/lib/actions/articles";
 import { stripHtml } from "@/app/lib/stripHtml";
 import { getComments } from "@/app/lib/actions/comments";
-import { getCurrentUser } from "@/app/lib/get-current-user";
+import { getCurrentUserId } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
 import { Calendar, Eye, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
@@ -57,9 +57,9 @@ export default async function ArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [result, currentUser] = await Promise.all([
+  const [result, currentUserId] = await Promise.all([
     getArticle(slug),
-    getCurrentUser(),
+    getCurrentUserId(),
   ]);
 
   if (!result.success) notFound();
@@ -69,7 +69,7 @@ export default async function ArticlePage({
   const comments = commentsResult.success ? commentsResult.data : [];
 
   const isOwner =
-    currentUser?.id === article.author_id || isAdmin(currentUser?.id);
+    currentUserId === article.author_id || isAdmin(currentUserId);
 
   const createdAt = new Date(article.created_at);
   const month = months[createdAt.getMonth()];
@@ -204,8 +204,8 @@ export default async function ArticlePage({
           target={{ article_id: article.id }}
           initialItems={comments}
           path={`/articles/${article.slug}`}
-          isLoggedIn={!!currentUser}
-          currentUserId={currentUser?.id ?? null}
+          isLoggedIn={!!currentUserId}
+          currentUserId={currentUserId ?? null}
         />
       </div>
     </>

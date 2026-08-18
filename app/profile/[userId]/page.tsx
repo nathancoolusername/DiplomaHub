@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/app/lib/get-current-user";
+import { getCurrentUserId } from "@/app/lib/get-current-user";
 import { notFound } from "next/navigation";
 import { getPublicProfile } from "@/app/lib/actions/profile";
 import Image from "next/image";
@@ -32,8 +32,8 @@ export default async function ProfilePage({
 }) {
   const { userId } = await params;
   const result = await getPublicProfile(userId);
-  const currentUser = await getCurrentUser();
-  const isOwnProfile = currentUser?.id === userId;
+  const currentUserId = await getCurrentUserId();
+  const isOwnProfile = currentUserId === userId;
   if (!result.success) notFound();
   const {
     user,
