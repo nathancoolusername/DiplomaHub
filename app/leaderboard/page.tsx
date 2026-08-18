@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getLeaderboardPage } from "@/app/lib/actions/profile";
-import { getCurrentUser } from "@/app/lib/get-current-user";
+import { getCurrentUserId } from "@/app/lib/get-current-user";
 import LeaderboardList from "@/components/leaderboard/LeaderboardList";
 
 export const metadata: Metadata = {
@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 const PAGE_SIZE = 20;
 
 export default async function LeaderboardPage() {
-  const [result, currentUser] = await Promise.all([
+  const [result, currentUserId] = await Promise.all([
     getLeaderboardPage({ page: 1, pageSize: PAGE_SIZE }),
-    getCurrentUser(),
+    getCurrentUserId(),
   ]);
 
   if (!result.success) {
@@ -39,7 +39,7 @@ export default async function LeaderboardPage() {
       <LeaderboardList
         initialItems={result.data.items}
         initialTotalCount={result.data.totalCount}
-        currentUserId={currentUser?.id ?? null}
+        currentUserId={currentUserId ?? null}
       />
     </div>
   );

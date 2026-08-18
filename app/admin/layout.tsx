@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getCurrentUser } from "@/app/lib/get-current-user";
+import { getCurrentUserId } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
 
 export default async function AdminLayout({
@@ -8,8 +8,8 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
-  if (!isAdmin(user?.id)) redirect("/");
+  const userId = await getCurrentUserId();
+  if (!isAdmin(userId)) redirect("/");
 
   return (
     <div className="flex flex-col bg-surface-container-low min-h-full px-md md:px-10 xl:px-30 py-lg gap-margin">

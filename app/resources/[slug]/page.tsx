@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getResourceDetail } from "@/app/lib/actions/resources";
 import { getComments } from "@/app/lib/actions/comments";
-import { getCurrentUser } from "@/app/lib/get-current-user";
+import { getCurrentUserId } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
 import { Calendar, FileText, BadgeCheck, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
@@ -56,9 +56,9 @@ export default async function resourcePage({
 }) {
   const { slug } = await params;
 
-  const [result, currentUser] = await Promise.all([
+  const [result, currentUserId] = await Promise.all([
     getResourceDetail(slug),
-    getCurrentUser(),
+    getCurrentUserId(),
   ]);
 
   if (!result.success) {
@@ -70,7 +70,7 @@ export default async function resourcePage({
   const comments = commentsResult.success ? commentsResult.data : [];
 
   const isOwner =
-    currentUser?.id === resource.author_id || isAdmin(currentUser?.id);
+    currentUserId === resource.author_id || isAdmin(currentUserId);
 
   const createdAt = new Date(resource.created_at);
   const month = months[createdAt.getMonth()];
@@ -246,8 +246,8 @@ export default async function resourcePage({
               target={{ resource_id: resource.id }}
               initialItems={comments}
               path={`/resources/${resource.id}`}
-              isLoggedIn={!!currentUser}
-              currentUserId={currentUser?.id ?? null}
+              isLoggedIn={!!currentUserId}
+              currentUserId={currentUserId ?? null}
             />
           </div>
 

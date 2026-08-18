@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getCurrentUser } from "@/app/lib/get-current-user";
+import { getCurrentUserId } from "@/app/lib/get-current-user";
 
 export const metadata: Metadata = {
   title: "About",
@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default async function About() {
-  const user = await getCurrentUser();
-  const ctaHref = user ? "/" : "/login";
+  const userId = await getCurrentUserId();
+  const ctaHref = userId ? "/" : "/login";
 
   return (
     <div className="flex flex-col gap-[70px] bg-surface-container-low ">

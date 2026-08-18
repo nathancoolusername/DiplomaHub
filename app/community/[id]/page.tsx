@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getDiscussion } from "@/app/lib/actions/discussions";
-import { getCurrentUser } from "@/app/lib/get-current-user";
+import { getCurrentUserId } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
 import { Calendar, Pencil } from "lucide-react";
 import Comments from "@/components/detailed-articles/comments";
@@ -40,15 +40,15 @@ export default async function DiscussionPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [result, currentUser] = await Promise.all([
+  const [result, currentUserId] = await Promise.all([
     getDiscussion(id),
-    getCurrentUser(),
+    getCurrentUserId(),
   ]);
   if (!result.success) notFound();
   const { discussion, replies } = result.data;
 
   const isOwner =
-    currentUser?.id === discussion.author_id || isAdmin(currentUser?.id);
+    currentUserId === discussion.author_id || isAdmin(currentUserId);
 
   const finalTime = formatRelativeTime(discussion.created_at);
   const final_like =
@@ -174,8 +174,8 @@ export default async function DiscussionPage({
               target={{ discussion_id: discussion.id }}
               initialItems={replies}
               path={`/community/${discussion.id}`}
-              isLoggedIn={!!currentUser}
-              currentUserId={currentUser?.id ?? null}
+              isLoggedIn={!!currentUserId}
+              currentUserId={currentUserId ?? null}
             />
           </div>
           <div className="lg:basis-1/3 flex flex-col gap-margin">
