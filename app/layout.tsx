@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import ScrollTopBtn from "@/components/scrollTop";
 import { JsonLd } from "@/components/JsonLd";
 import { Suspense } from "react";
+import { Analytics } from "@vercel/analytics/next";
 
 const description =
   "The community platform for IB Diploma Programme students, alumni, and educators. Share resources, discuss coursework, and navigate the IB journey together.";
@@ -91,6 +92,7 @@ export default function RootLayout({
           <Footer />
           <ScrollTopBtn />
         </div>
+        <Analytics />
       </body>
     </html>
   );
