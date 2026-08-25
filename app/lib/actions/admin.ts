@@ -66,6 +66,141 @@ export async function getAdminStats(): Promise<ActionResult<AdminStats>> {
   };
 }
 
+export type DailyCount = { date: string; count: number };
+export type CountBreakdown = { label: string; count: number };
+
+export type AdminAnalytics = {
+  newUsers: DailyCount[];
+  newResources: DailyCount[];
+  newArticles: DailyCount[];
+  newDiscussions: DailyCount[];
+  topResources: { id: string; title: string; download_count: number }[];
+  resourcesBySubject: CountBreakdown[];
+  resourcesByType: CountBreakdown[];
+  totalDownloads: number;
+  totalLikes: number;
+};
+
+const ANALYTICS_WINDOW_DAYS = 30;
+
+// Zero-fills every day in the window so a quiet day shows as 0, not a gap —
+// there's no historical event log for this (created_at is the only
+// timestamp these tables have), so this reflects rows *created* in the
+// window, not e.g. a rolling total.
+function bucketByDay(
+  timestamps: string[],
+  days: number,
+): DailyCount[] {
+  const counts = new Map<string, number>();
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  start.setUTCDate(start.getUTCDate() - (days - 1));
+
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start);
+    d.setUTCDate(d.getUTCDate() + i);
+    counts.set(d.toISOString().slice(0, 10), 0);
+  }
+
+  for (const ts of timestamps) {
+    const day = ts.slice(0, 10);
+    if (counts.has(day)) counts.set(day, (counts.get(day) ?? 0) + 1);
+  }
+
+  return Array.from(counts.entries()).map(([date, count]) => ({
+    date,
+    count,
+  }));
+}
+
+function countByLabel(rows: { label: string | null }[]): CountBreakdown[] {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    const label = row.label ?? "(none)";
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export async function getAdminAnalytics(): Promise<ActionResult<AdminAnalytics>> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { success: false, error: "Not authorized" };
+  const { supabase } = ctx;
+
+  const since = new Date();
+  since.setUTCDate(since.getUTCDate() - (ANALYTICS_WINDOW_DAYS - 1));
+  since.setUTCHours(0, 0, 0, 0);
+  const sinceIso = since.toISOString();
+
+  const [
+    { data: userRows },
+    { data: resourceRows },
+    { data: articleRows },
+    { data: discussionRows },
+    { data: topResources },
+    { data: subjectRows },
+    { data: typeRows },
+    { data: totalsRows },
+  ] = await Promise.all([
+    supabase.from("users").select("created_at").gte("created_at", sinceIso),
+    supabase
+      .from("resources")
+      .select("created_at")
+      .gte("created_at", sinceIso),
+    supabase.from("articles").select("created_at").gte("created_at", sinceIso),
+    supabase
+      .from("discussions")
+      .select("created_at")
+      .gte("created_at", sinceIso),
+    supabase
+      .from("resources")
+      .select("id, title, download_count")
+      .order("download_count", { ascending: false })
+      .limit(8),
+    supabase.from("resources").select("label:subject_tag"),
+    supabase.from("resources").select("label:type_tag"),
+    supabase.from("resources").select("download_count, like_count"),
+  ]);
+
+  const totalDownloads = (totalsRows ?? []).reduce(
+    (sum, r) => sum + (r.download_count ?? 0),
+    0,
+  );
+  const totalLikes = (totalsRows ?? []).reduce(
+    (sum, r) => sum + (r.like_count ?? 0),
+    0,
+  );
+
+  return {
+    success: true,
+    data: {
+      newUsers: bucketByDay(
+        (userRows ?? []).map((r) => r.created_at),
+        ANALYTICS_WINDOW_DAYS,
+      ),
+      newResources: bucketByDay(
+        (resourceRows ?? []).map((r) => r.created_at),
+        ANALYTICS_WINDOW_DAYS,
+      ),
+      newArticles: bucketByDay(
+        (articleRows ?? []).map((r) => r.created_at),
+        ANALYTICS_WINDOW_DAYS,
+      ),
+      newDiscussions: bucketByDay(
+        (discussionRows ?? []).map((r) => r.created_at),
+        ANALYTICS_WINDOW_DAYS,
+      ),
+      topResources: topResources ?? [],
+      resourcesBySubject: countByLabel(subjectRows ?? []),
+      resourcesByType: countByLabel(typeRows ?? []),
+      totalDownloads,
+      totalLikes,
+    },
+  };
+}
+
 export type AdminUserRow = {
   id: string;
   display_name: string;
