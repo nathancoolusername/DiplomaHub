@@ -1,7 +1,17 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import {
+  NextResponse,
+  type NextRequest,
+  type NextFetchEvent,
+} from "next/server";
 
-export async function proxy(request: NextRequest) {
+// Gates the last_active_at write on a cookie rather than a DB read, so the
+// throttle check itself never touches the database — a session with 50
+// page views in a day still costs exactly one write, not 50.
+const LAST_ACTIVE_COOKIE = "la-ping";
+const LAST_ACTIVE_COOKIE_MAX_AGE = 60 * 60 * 24; // 24h
+
+export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const requestHeaders = new Headers(request.headers);
 
   // Link prefetches (hover/viewport) only ever fetch the static loading
@@ -63,6 +73,29 @@ export async function proxy(request: NextRequest) {
   pendingCookies.forEach(({ name, value, options }) =>
     response.cookies.set(name, value, options),
   );
+
+  // Real (non-prefetch) navigation from a logged-in user, and it's been a
+  // while since we last recorded activity for them — update in the
+  // background via waitUntil so this never adds latency to the response,
+  // and the cookie means the write only happens ~once/day/user regardless
+  // of how many pages they view.
+  if (data?.claims.sub && !request.cookies.has(LAST_ACTIVE_COOKIE)) {
+    response.cookies.set(LAST_ACTIVE_COOKIE, "1", {
+      maxAge: LAST_ACTIVE_COOKIE_MAX_AGE,
+      path: "/",
+    });
+    event.waitUntil(
+      Promise.resolve(
+        supabase
+          .from("users")
+          .update({ last_active_at: new Date().toISOString() })
+          .eq("id", data.claims.sub),
+      ).then(
+        () => {},
+        () => {},
+      ),
+    );
+  }
 
   return response;
 }

@@ -88,6 +88,17 @@ export default async function AdminDashboardPage() {
             />
           </div>
 
+          <div className="flex flex-row gap-margin flex-wrap">
+            <StatCard
+              label="Active Users (7 days)"
+              value={analyticsResult.data.activeUsers7d}
+            />
+            <StatCard
+              label="Active Users (30 days)"
+              value={analyticsResult.data.activeUsers30d}
+            />
+          </div>
+
           <div className="flex flex-col lg:flex-row gap-margin">
             <ChartCard
               title="New Content"

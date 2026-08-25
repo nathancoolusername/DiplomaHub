@@ -79,6 +79,8 @@ export type AdminAnalytics = {
   resourcesByType: CountBreakdown[];
   totalDownloads: number;
   totalLikes: number;
+  activeUsers7d: number;
+  activeUsers30d: number;
 };
 
 const ANALYTICS_WINDOW_DAYS = 30;
@@ -134,6 +136,11 @@ export async function getAdminAnalytics(): Promise<ActionResult<AdminAnalytics>>
   since.setUTCHours(0, 0, 0, 0);
   const sinceIso = since.toISOString();
 
+  const since7d = new Date();
+  since7d.setUTCDate(since7d.getUTCDate() - 7);
+  const since30d = new Date();
+  since30d.setUTCDate(since30d.getUTCDate() - 30);
+
   const [
     { data: userRows },
     { data: resourceRows },
@@ -143,6 +150,8 @@ export async function getAdminAnalytics(): Promise<ActionResult<AdminAnalytics>>
     { data: subjectRows },
     { data: typeRows },
     { data: totalsRows },
+    { count: activeUsers7d },
+    { count: activeUsers30d },
   ] = await Promise.all([
     supabase.from("users").select("created_at").gte("created_at", sinceIso),
     supabase
@@ -162,6 +171,14 @@ export async function getAdminAnalytics(): Promise<ActionResult<AdminAnalytics>>
     supabase.from("resources").select("label:subject_tag"),
     supabase.from("resources").select("label:type_tag"),
     supabase.from("resources").select("download_count, like_count"),
+    supabase
+      .from("users")
+      .select("*", { count: "exact", head: true })
+      .gte("last_active_at", since7d.toISOString()),
+    supabase
+      .from("users")
+      .select("*", { count: "exact", head: true })
+      .gte("last_active_at", since30d.toISOString()),
   ]);
 
   const totalDownloads = (totalsRows ?? []).reduce(
@@ -197,6 +214,8 @@ export async function getAdminAnalytics(): Promise<ActionResult<AdminAnalytics>>
       resourcesByType: countByLabel(typeRows ?? []),
       totalDownloads,
       totalLikes,
+      activeUsers7d: activeUsers7d ?? 0,
+      activeUsers30d: activeUsers30d ?? 0,
     },
   };
 }
