@@ -20,6 +20,7 @@
     "@tiptap/starter-kit": "^3.27.3",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
+    "@vercel/analytics": "^2.0.1",
     "bootstrap": "^5.3.8",
     "lucide-react": "^1.21.0",
     "next": "^16.2.9",
