@@ -743,8 +743,13 @@ export default function Hub({
       )}
 
       {importToast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-100 flex items-center gap-md bg-surface-container-lowest border border-outline-variant rounded-full shadow-lg px-lg py-sm">
-          <span className="text-label-md text-on-surface">
+        // w-[calc(100%-2rem)]+max-w-md on mobile so the sentence gets real
+        // room to wrap onto at most a couple of lines instead of forcing a
+        // narrow shrink-to-fit pill that wrapped every couple of words;
+        // sm:w-auto brings back the original compact single-line pill once
+        // there's enough width for it to actually fit on one line.
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-100 w-[calc(100%-2rem)] max-w-[28rem] sm:w-auto flex flex-wrap items-center justify-center gap-sm sm:gap-md bg-surface-container-lowest border border-outline-variant rounded-2xl sm:rounded-full shadow-lg px-lg py-sm">
+          <span className="text-label-md text-on-surface text-center">
             Imported {importToast.count} item{importToast.count === 1 ? "" : "s"}.
           </span>
           <button
@@ -782,8 +787,8 @@ export default function Hub({
       )}
 
       {showGuestSaveBanner && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-100 flex items-center gap-md bg-surface-container-lowest border border-outline-variant rounded-full shadow-lg px-lg py-sm">
-          <span className="text-label-md text-on-surface">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-100 w-[calc(100%-2rem)] max-w-[28rem] sm:w-auto flex flex-wrap items-center justify-center gap-sm sm:gap-md bg-surface-container-lowest border border-outline-variant rounded-2xl sm:rounded-full shadow-lg px-lg py-sm">
+          <span className="text-label-md text-on-surface text-center">
             Planning as a guest — sign in to save your progress.
           </span>
           <Link

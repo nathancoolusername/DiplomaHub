@@ -61,7 +61,12 @@ export default function FocusTimerCard({
         </span>
       </div>
 
-      <div className="flex items-center justify-between gap-sm bg-surface-container-low py-sm px-md rounded-lg border border-outline-variant/50">
+      {/* flex-wrap — this card can end up quite narrow (e.g. the 3-of-12
+          grid column it sits in on an iPad-width layout), and without it
+          the button group's shrink-0 refusal to shrink just pushed the
+          buttons over the top of the (also-shrinking) countdown text
+          instead of dropping to its own line. */}
+      <div className="flex flex-wrap items-center justify-between gap-sm bg-surface-container-low py-sm px-md rounded-lg border border-outline-variant/50">
         <div className="flex flex-col min-w-0">
           <span className="font-mono text-headline-lg font-bold tracking-tight text-on-surface tabular-nums">
             {formatTimer(remainingMs)}
