@@ -8,7 +8,7 @@ import { Logo } from "./Logo";
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "Community", href: "/community" },
+  { label: "Hub", href: "/hub" },
   { label: "Resources", href: "/resources" },
   { label: "Articles", href: "/articles" },
   { label: "Roadmap", href: "/roadmap" },

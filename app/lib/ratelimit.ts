@@ -27,6 +27,7 @@ const LIMITERS = {
   write: makeLimiter(10, "1 m"), // comments/discussions/replies/feedback
   download: makeLimiter(30, "1 m"), // resource downloads
   toggle: makeLimiter(60, "1 m"), // like/save — higher limit, legitimately clicked a lot while browsing
+  feed: makeLimiter(30, "1 m"), // public .ics calendar feed fetches, keyed by IP (no session)
 };
 
 export type RateLimitKind = keyof typeof LIMITERS;

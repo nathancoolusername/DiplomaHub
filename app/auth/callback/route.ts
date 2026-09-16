@@ -3,11 +3,13 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { resolveOrigin } from "@/app/lib/resolveOrigin";
+import { isSafeNext } from "@/app/lib/isSafeNext";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const origin = resolveOrigin(request.headers);
   const code = searchParams.get("code");
+  const safeNext = isSafeNext(searchParams.get("next"));
 
   if (code) {
     const cookieStore = await cookies();
@@ -42,7 +44,7 @@ export async function GET(request: Request) {
       .eq("id", data.user.id)
       .single();
 
-    const destination = profile?.ib_year ? "/" : "/profile/edit";
+    const destination = profile?.ib_year ? (safeNext ?? "/") : "/profile/edit";
 
     return NextResponse.redirect(`${origin}${destination}`, {
       headers: response.headers, // carry over the session cookies we set above

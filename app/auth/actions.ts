@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { resolveOrigin } from "../lib/resolveOrigin";
 import { requireField, requireOneOf } from "../lib/validation";
 import { checkRateLimit, getClientIp } from "../lib/ratelimit";
+import { isSafeNext } from "../lib/isSafeNext";
 import type { ActionResult } from "../lib/types";
 
 const IB_YEAR_OPTIONS = ["Pre-IB", "DP1", "DP2", "Alumni", "Educator"];
@@ -61,17 +62,22 @@ export async function signIn(
   });
 
   if (error) return { success: false, error: error.message };
-  redirect("/");
+  const safeNext = isSafeNext(formData.get("next") as string | null);
+  redirect(safeNext ?? "/");
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(formData: FormData) {
   const supabase = await createClient();
   const origin = resolveOrigin(await headers());
+  const safeNext = isSafeNext(formData.get("next") as string | null);
+  const redirectTo = safeNext
+    ? `${origin}/auth/callback?next=${encodeURIComponent(safeNext)}`
+    : `${origin}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo,
     },
   });
 
