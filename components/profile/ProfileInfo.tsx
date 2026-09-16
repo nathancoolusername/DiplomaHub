@@ -1,10 +1,9 @@
 "use client";
-import type { Article, Resource, Discussion } from "@/app/lib/types";
+import type { Article, Resource } from "@/app/lib/types";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ResourcePanel from "../home/article-section/article-panel";
-import DiscussionPanel from "../community/discussion-panel";
 import ArticlePanel from "../articles/article-panel";
 import Comment from "../detailed-articles/comment";
 import { LoadMoreList } from "./LoadMoreList";
@@ -23,7 +22,6 @@ type CommentWritten = {
 export default function ProfileInfo({
   articles,
   resources,
-  discussions,
   totalLikes,
   total_downloads,
   commentsWritten,
@@ -37,7 +35,6 @@ export default function ProfileInfo({
 }: {
   articles: Article[];
   resources: Resource[];
-  discussions: Discussion[];
   commentsWritten: CommentWritten[];
   totalLikes: number;
   total_downloads: number;
@@ -47,7 +44,6 @@ export default function ProfileInfo({
   savedItems: {
     resources: Resource[];
     articles: Article[];
-    discussions: Discussion[];
   } | null;
   drafts: Article[] | null;
   author: {
@@ -116,14 +112,6 @@ export default function ProfileInfo({
           </div>
           <div className="flex flex-row justify-between border-b-1 border-outline-variant pb-3 cursor-pointer">
             <p className="text-on-surface-variant text-body-lg">
-              <b>Discussions</b> Started
-            </p>
-            <p className="text-primary text-body-lg font-bold">
-              {discussions.length}
-            </p>
-          </div>
-          <div className="flex flex-row justify-between border-b-1 border-outline-variant pb-3 cursor-pointer">
-            <p className="text-on-surface-variant text-body-lg">
               <b>Likes</b> Received
             </p>
             <p className="text-primary text-body-lg font-bold">
@@ -165,16 +153,6 @@ export default function ProfileInfo({
             }`}
           >
             Resources
-          </button>
-          <button
-            onClick={() => handleClick("Discussions")}
-            className={`text-headline-md transition-colors pb-3 cursor-pointer ${
-              section == "Discussions"
-                ? "text-primary font-bold border-b-2 border-primary"
-                : "text-on-surface-variant hover:text-primary"
-            }`}
-          >
-            Discussions
           </button>
           <button
             onClick={() => handleClick("Articles")}
@@ -229,19 +207,6 @@ export default function ProfileInfo({
             renderItem={(resource) => (
               <div key={resource.id}>
                 <ResourcePanel resource={resource} />
-              </div>
-            )}
-          />
-        )}
-
-        {section == "Discussions" && (
-          <LoadMoreList
-            items={discussions}
-            listClassName="flex flex-col gap-gutter"
-            emptyMessage="No published discussions yet."
-            renderItem={(discussion) => (
-              <div key={discussion.id}>
-                <DiscussionPanel discussion={discussion} />
               </div>
             )}
           />
@@ -310,17 +275,6 @@ export default function ProfileInfo({
               renderItem={(resource) => (
                 <div key={resource.id}>
                   <ResourcePanel resource={resource} />
-                </div>
-              )}
-            />
-            <h2 className="text-headline-md font-serif">Saved Discussions</h2>
-            <LoadMoreList
-              items={savedItems?.discussions ?? []}
-              listClassName="flex flex-col gap-gutter"
-              emptyMessage="No saved discussions"
-              renderItem={(discussion) => (
-                <div key={discussion.id}>
-                  <DiscussionPanel discussion={discussion} />
                 </div>
               )}
             />

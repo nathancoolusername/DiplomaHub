@@ -476,21 +476,3 @@ export async function getDiscussionForEdit(
     },
   };
 }
-
-export async function getDiscussions(): Promise<ActionResult<Discussion[]>> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("discussions")
-    .select("*, author:users(display_name, is_pro, avatar_url)")
-    .order("created_at", { ascending: false });
-
-  if (error) return { success: false, error: error.message };
-
-  return {
-    success: true,
-    data: data.map((d) => ({
-      ...d,
-      author: Array.isArray(d.author) ? d.author[0] : d.author,
-    })),
-  };
-}

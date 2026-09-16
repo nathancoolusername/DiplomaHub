@@ -16,6 +16,12 @@ export type FileType = "PDF" | "DOCX" | "PPTX" | "XLSX" | "Link" | "Other";
 type Props = {
   initialItems: Resource[];
   initialTotalCount: number;
+  // Lets a link like /resources?subject=Physics land already filtered —
+  // the page itself resolves the query param server-side (see
+  // app/resources/page.tsx) and hands it down as a plain prop rather than
+  // this component reading the URL itself, so the first paint is already
+  // correctly filtered instead of flashing "All" then re-fetching.
+  initialSubject?: string;
 };
 
 const PAGE_SIZE = 6;
@@ -42,11 +48,11 @@ const opttionsType = [
 ];
 const optionsYear = ["Any Year", ...YEAR_OPTIONS];
 
-export default function ResourceGrid({ initialItems, initialTotalCount }: Props) {
+export default function ResourceGrid({ initialItems, initialTotalCount, initialSubject }: Props) {
   const [type, setType] = useState("All Types");
   const [year, setYear] = useState("Any Year");
   const [selected, setSelected] = useState("Most Downloaded");
-  const [active, setActive] = useState("All");
+  const [active, setActive] = useState(initialSubject ?? "All");
   const [search, setSearch] = useState("");
   const [num, setNum] = useState(1);
   const [showEENotice, setShowEENotice] = useState(false);

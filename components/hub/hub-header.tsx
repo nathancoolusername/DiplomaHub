@@ -3,13 +3,7 @@
 import Link from "next/link";
 import { CalendarSync, ChevronLeft, ChevronRight, Plus, Upload, UserRound } from "lucide-react";
 import SessionPicker from "./session-picker";
-
-function getGreeting(now: Date): string {
-  const hour = now.getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-}
+import { getGreeting } from "./format";
 
 export default function HubHeader({
   firstName,

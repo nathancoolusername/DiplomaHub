@@ -7,20 +7,40 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Props = {
   data: Resource[];
+  title?: string;
+  subtitle?: string;
+  // Used when this grid sits beside another section (e.g. the signed-in
+  // dashboard's Hub summary) instead of taking the full page width — drops
+  // the fixed full-page height and the 3-column breakpoint, which would
+  // otherwise cram cards into a half-width column.
+  compact?: boolean;
+  // Renders on the pale-blue "washed out" background instead of plain
+  // white — used on the signed-out homepage to keep its alternating
+  // primary/washed section bands going.
+  washed?: boolean;
 };
 
-export default function ResourceHome({ data }: Props) {
+export default function ResourceHome({
+  data,
+  title = "Featured Resources",
+  subtitle = "Handpicked expertise from the IB community's top contributors.",
+  compact = false,
+  washed = false,
+}: Props) {
+  const perPage = compact ? 4 : 3;
   const [num, setNum] = useState(1);
-  const currentItems = data.slice((+num - 1) * 3, +num * 3);
+  const currentItems = data.slice((+num - 1) * perPage, +num * perPage);
   return (
-    <div className="bg-surface-container-lowest min-h-fit md:h-[730px] flex flex-col px-lg py-lg md:py-0 place-content-center gap-15">
+    <div
+      className={`${washed ? "bg-surface-container-low" : "bg-surface-container-lowest"} min-h-fit flex flex-col px-lg py-lg place-content-center gap-15 ${compact ? "" : "md:h-[730px] md:py-0"}`}
+    >
       <div className="mb-lg flex flex-col sm:flex-row justify-between gap-md">
         <div>
           <h2 className="text-headline-lg font-serif font-bold">
-            Featured Resources
+            {title}
           </h2>
           <p className="text-on-surface-variant text-body-lg">
-            Handpicked expertise from the IB community&apos;s top contributors.
+            {subtitle}
           </p>
         </div>
         <div className="flex flex-row gap-sm">
@@ -39,7 +59,7 @@ export default function ResourceHome({ data }: Props) {
           </button>
           <button
             onClick={() => {
-              if (num * 3 < data.length) {
+              if (num * perPage < data.length) {
                 setNum(num + 1);
               }
             }}
@@ -50,7 +70,9 @@ export default function ResourceHome({ data }: Props) {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter w-full">
+      <div
+        className={`grid grid-cols-1 gap-gutter w-full ${compact ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3"}`}
+      >
         {currentItems.map((row) => (
           <div key={row.id}>
             <Panel resource={row} />

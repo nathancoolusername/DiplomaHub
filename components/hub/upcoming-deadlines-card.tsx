@@ -8,9 +8,12 @@ import { getDueStatus, relativeDayLabel } from "./format";
 export default function UpcomingDeadlinesCard({
   items,
   onSelect,
+  limit = 6,
 }: {
   items: HubItem[];
   onSelect: (id: string) => void;
+  // Homepage dashboard wants "next three"; /hub itself keeps the default.
+  limit?: number;
 }) {
   const now = new Date();
   const fourteenDaysOut = now.getTime() + 14 * 86400000;
@@ -18,7 +21,7 @@ export default function UpcomingDeadlinesCard({
   const upcoming = items
     .filter((item) => item.status !== "done" && item.end.getTime() <= fourteenDaysOut)
     .sort((a, b) => a.end.getTime() - b.end.getTime())
-    .slice(0, 6);
+    .slice(0, limit);
 
   return (
     <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col gap-md">

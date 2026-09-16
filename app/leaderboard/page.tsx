@@ -6,7 +6,7 @@ import LeaderboardList from "@/components/leaderboard/LeaderboardList";
 export const metadata: Metadata = {
   title: "Leaderboard",
   description:
-    "See the top contributors in the DiplomaHub community, ranked by points earned from resources, articles, and discussions.",
+    "See the top contributors in the DiplomaHub community, ranked by points earned from resources and articles.",
   alternates: { canonical: "/leaderboard" },
 };
 
@@ -32,7 +32,7 @@ export default async function LeaderboardPage() {
         <h1 className="text-display-lg font-serif font-bold">Leaderboard</h1>
         <p className="text-on-surface-variant text-body-lg w-full md:w-170">
           The top contributors in the DiplomaHub community, ranked by points
-          earned from resources, articles, and discussions.
+          earned from resources and articles.
         </p>
       </div>
 

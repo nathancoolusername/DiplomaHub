@@ -28,6 +28,15 @@ export function formatDueLabel(item: HubItem, now: Date): string {
   return `Due ${formatDayTime(ref)}`;
 }
 
+// Shared with the homepage's signed-in dashboard greeting — one copy of
+// "what do we call this time of day" for both places that greet the user.
+export function getGreeting(now: Date): string {
+  const hour = now.getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 // The graduating exam session shown in the Hub header. Guests get the same
 // generic default as anyone whose profile doesn't say otherwise (Pre-IB,
 // Alumni, Educator, or no ib_year set at all) — only a signed-in DP1/DP2
