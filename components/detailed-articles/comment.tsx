@@ -1,6 +1,5 @@
 import { Trash2 } from "lucide-react";
 import { ibYearTitleTag } from "../pills";
-import { LikeButton } from "../likeButton";
 import { Avatar } from "../avatar";
 import { Spinner } from "../spinner";
 import { DiplomaProBadge } from "../DiplomaProBadge";
@@ -13,18 +12,10 @@ type Author = {
   avatar_url?: string | null;
 } | null;
 
-type LikeProps = {
-  target: { discussion_reply_id: string };
-  initiallyLiked: boolean;
-  initialCount: number;
-  path: string;
-};
-
 type Props = {
   content: string;
   createdAt: string;
   author?: Author;
-  like?: LikeProps;
   canDelete?: boolean;
   deleting?: boolean;
   onDelete?: () => void;
@@ -34,7 +25,6 @@ export default function Comment({
   content,
   createdAt,
   author,
-  like,
   canDelete,
   deleting,
   onDelete,
@@ -76,18 +66,6 @@ export default function Comment({
           </div>
           <p className="text-body-lg">{content}</p>
         </div>
-        {like && (
-          <div className="flex flex-row w-full gap-md">
-            <LikeButton
-              target={like.target}
-              initiallyLiked={like.initiallyLiked}
-              initialCount={like.initialCount}
-              path={like.path}
-              size={20}
-              className="text-on-surface-container flex flex-row items-center gap-sm text-label-md hover:text-primary transition cursor-pointer"
-            />
-          </div>
-        )}
       </div>
     </div>
   );

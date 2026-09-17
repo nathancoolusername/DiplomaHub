@@ -85,6 +85,8 @@ export default function CalendarSyncDialog({
   }, [isGuest]);
 
   function handleToggle(key: "tasks" | "studyBlocks", value: boolean) {
+    const prevTasks = includeTasks;
+    const prevStudyBlocks = includeStudyBlocks;
     const nextTasks = key === "tasks" ? value : includeTasks;
     const nextStudyBlocks = key === "studyBlocks" ? value : includeStudyBlocks;
     setIncludeTasks(nextTasks);
@@ -93,7 +95,13 @@ export default function CalendarSyncDialog({
     // before the first generate, these are just the values that generate
     // will be called with.
     if (feedExists) {
-      updateCalendarFeedSettings(nextTasks, nextStudyBlocks).catch(console.error);
+      updateCalendarFeedSettings(nextTasks, nextStudyBlocks).then((result) => {
+        if (!result.success) {
+          setIncludeTasks(prevTasks);
+          setIncludeStudyBlocks(prevStudyBlocks);
+          setError("Couldn't save that setting — try again.");
+        }
+      });
     }
   }
 

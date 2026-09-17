@@ -19,6 +19,8 @@ export type PanelActions = {
   onUpdateNotes: (itemId: string, notes: string) => void;
   onUpdateTime: (itemId: string, start: Date, end: Date) => void;
   onStartFocus: (itemId: string) => void;
+  onEdit: (itemId: string) => void;
+  onDelete: (itemId: string) => void;
 };
 
 export default function WeekCalendar({

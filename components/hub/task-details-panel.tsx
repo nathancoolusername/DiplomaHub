@@ -9,7 +9,9 @@ import {
   BookmarkCheck,
   Check,
   Clock,
+  Pencil,
   PlayCircle,
+  Trash2,
   X,
 } from "lucide-react";
 import type { Resource } from "@/app/lib/types";
@@ -44,6 +46,8 @@ export type TaskDetailsPanelProps = {
   onUpdateNotes: (itemId: string, notes: string) => void;
   onUpdateTime: (itemId: string, start: Date, end: Date) => void;
   onStartFocus: (itemId: string) => void;
+  onEdit: (itemId: string) => void;
+  onDelete: (itemId: string) => void;
 };
 
 export default function TaskDetailsPanel(props: TaskDetailsPanelProps) {
@@ -141,6 +145,8 @@ function PanelContent({
   onUpdateNotes,
   onUpdateTime,
   onStartFocus,
+  onEdit,
+  onDelete,
 }: TaskDetailsPanelProps) {
   const subject = getSubject(item.subjectId);
   const color = getSubjectColor(item.subjectId);
@@ -175,14 +181,38 @@ function PanelContent({
             {subject ? subject.name : "General"} · {typeMeta.label}
           </span>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close details panel"
-          className="p-sm rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer shrink-0"
-        >
-          <X size={18} />
-        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => onEdit(item.id)}
+            aria-label="Edit item"
+            title="Edit item"
+            className="p-sm rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+          >
+            <Pencil size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm(`Delete "${item.title}"? This can't be undone.`)) {
+                onDelete(item.id);
+              }
+            }}
+            aria-label="Delete item"
+            title="Delete item"
+            className="p-sm rounded-md text-on-surface-variant hover:bg-error-container hover:text-on-error-container transition-colors cursor-pointer"
+          >
+            <Trash2 size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close details panel"
+            className="p-sm rounded-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-sm">

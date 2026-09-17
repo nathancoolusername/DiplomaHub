@@ -10,6 +10,7 @@ import {
   SUBJECTS,
   type HubItem,
   type HubItemStatus,
+  type HubItemType,
   type SubjectId,
   type Stage,
 } from "@/components/hub/mock-data";
@@ -167,6 +168,68 @@ export async function updateHubItemNotes(
     .eq("owner_id", user.id);
 
   if (error) return { success: false, error: error.message };
+  return { success: true, data: null };
+}
+
+export async function updateHubItemDetails(
+  id: string,
+  details: {
+    title: string;
+    type: HubItemType;
+    subjectId: SubjectId | null;
+    start: Date;
+    end: Date;
+  },
+): Promise<ActionResult<null>> {
+  const { supabase, user } = await requireUser();
+  if (!user) return { success: false, error: "Log in to save changes" };
+
+  const rateLimit = await checkRateLimit("write", user.id);
+  if (!rateLimit.allowed) return { success: false, error: rateLimit.error };
+
+  const title = requireField(details.title, "Title", 200);
+  if ("error" in title) return { success: false, error: title.error };
+  const type = requireOneOf(details.type, "Type", TYPE_OPTIONS);
+  if ("error" in type) return { success: false, error: type.error };
+  if (details.subjectId && !SUBJECT_IDS.includes(details.subjectId)) {
+    return { success: false, error: "Invalid subject" };
+  }
+
+  const { error } = await supabase
+    .from("hub_items")
+    .update({
+      title: title.value,
+      type: type.value,
+      subject_id: details.subjectId,
+      start_at: details.start.toISOString(),
+      end_at: details.end.toISOString(),
+      import_batch_id: null,
+    })
+    .eq("id", id)
+    .eq("owner_id", user.id);
+
+  if (error) return { success: false, error: error.message };
+  return { success: true, data: null };
+}
+
+export async function deleteHubItem(id: string): Promise<ActionResult<null>> {
+  const { supabase, user } = await requireUser();
+  if (!user) return { success: false, error: "Log in to delete this item" };
+
+  const rateLimit = await checkRateLimit("write", user.id);
+  if (!rateLimit.allowed) return { success: false, error: rateLimit.error };
+
+  const { data, error } = await supabase
+    .from("hub_items")
+    .delete()
+    .eq("id", id)
+    .eq("owner_id", user.id)
+    .select("id");
+
+  if (error) return { success: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { success: false, error: "Item not found" };
+  }
   return { success: true, data: null };
 }
 

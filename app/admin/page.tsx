@@ -1,4 +1,8 @@
-import { getAdminStats, getAdminAnalytics } from "@/app/lib/actions/admin";
+import {
+  getAdminStats,
+  getAdminAnalytics,
+  getAdminHubAnalytics,
+} from "@/app/lib/actions/admin";
 import { LineChart } from "@/components/admin/charts/LineChart";
 import { BarChart } from "@/components/admin/charts/BarChart";
 
@@ -10,12 +14,12 @@ const CHART_BLUE = "#2f53ce"; // resources / primary single-series color
 const CHART_TEAL = "#00a294"; // articles
 const CHART_AMBER = "#c9820a"; // discussions
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="flex flex-col gap-sm bg-surface-container-lowest border-1 border-outline-variant rounded-xl p-lg basis-1/3">
       <p className="text-on-surface-variant text-body-lg">{label}</p>
       <p className="text-display-lg font-serif font-bold text-primary">
-        {value.toLocaleString()}
+        {typeof value === "number" ? value.toLocaleString() : value}
       </p>
     </div>
   );
@@ -46,9 +50,10 @@ function ChartCard({
 }
 
 export default async function AdminDashboardPage() {
-  const [statsResult, analyticsResult] = await Promise.all([
+  const [statsResult, analyticsResult, hubAnalyticsResult] = await Promise.all([
     getAdminStats(),
     getAdminAnalytics(),
+    getAdminHubAnalytics(),
   ]);
 
   if (!statsResult.success) {
@@ -170,6 +175,62 @@ export default async function AdminDashboardPage() {
               <BarChart
                 color={CHART_AMBER}
                 data={analyticsResult.data.resourcesByType.map((r) => ({
+                  label: r.label,
+                  value: r.count,
+                }))}
+              />
+            </ChartCard>
+          </div>
+        </>
+      )}
+
+      {hubAnalyticsResult.success && (
+        <>
+          <h2 className="font-serif text-headline-lg font-bold pt-md">Hub</h2>
+
+          <div className="flex flex-row gap-margin flex-wrap">
+            <StatCard
+              label="Hub Onboarded Users"
+              value={hubAnalyticsResult.data.hubOnboardedUsers}
+            />
+            <StatCard
+              label="Hub Adoption"
+              value={`${hubAnalyticsResult.data.hubOnboardedPercent}%`}
+            />
+            <StatCard
+              label="Users With a Hub Item"
+              value={hubAnalyticsResult.data.usersWithHubItems}
+            />
+            <StatCard
+              label="Returning Hub Users"
+              value={hubAnalyticsResult.data.hubReturningUsers}
+            />
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-margin">
+            <ChartCard
+              title="New Hub Setups"
+              description="Onboarding completions — last 30 days"
+            >
+              <LineChart
+                series={[
+                  {
+                    key: "hubSetups",
+                    label: "Hub setups",
+                    color: CHART_BLUE,
+                    data: hubAnalyticsResult.data.newHubOnboards,
+                  },
+                ]}
+              />
+            </ChartCard>
+
+            <ChartCard
+              title="Hub Items by Type"
+              description={`${hubAnalyticsResult.data.totalHubItems.toLocaleString()} tracked in total`}
+            >
+              <BarChart
+                color={CHART_TEAL}
+                data={hubAnalyticsResult.data.hubItemsByType.map((r) => ({
                   label: r.label,
                   value: r.count,
                 }))}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarSync, ChevronLeft, ChevronRight, Plus, Upload, UserRound } from "lucide-react";
+import { CalendarSync, ChevronLeft, ChevronRight, Flag, Plus, Upload, UserRound } from "lucide-react";
 import SessionPicker from "./session-picker";
 import { getGreeting } from "./format";
 
@@ -154,6 +154,17 @@ export default function HubHeader({
           <Plus size={18} />
           Add item
         </button>
+
+        {/* The Hub is the newest, least-tested part of the app — a visible
+            way to report a problem, same link as Roadmap's "Submit
+            Feedback" button. */}
+        <Link
+          href="/feedback"
+          className="flex items-center gap-1.5 text-on-surface-variant hover:text-primary px-sm py-2 text-label-md font-medium transition-colors"
+        >
+          <Flag size={16} />
+          Feedback
+        </Link>
       </div>
     </header>
   );

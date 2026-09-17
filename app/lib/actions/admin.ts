@@ -220,6 +220,118 @@ export async function getAdminAnalytics(): Promise<ActionResult<AdminAnalytics>>
   };
 }
 
+export type AdminHubAnalytics = {
+  hubOnboardedUsers: number;
+  hubOnboardedPercent: number;
+  usersWithHubItems: number;
+  hubReturningUsers: number;
+  totalHubItems: number;
+  hubItemsByType: CountBreakdown[];
+  newHubOnboards: DailyCount[];
+};
+
+const HUB_ITEM_TYPE_LABELS: Record<string, string> = {
+  ib_component: "IB Assessment",
+  task: "Personal Task",
+  study_block: "Study Block",
+  university: "University Deadline",
+};
+
+export async function getAdminHubAnalytics(): Promise<
+  ActionResult<AdminHubAnalytics>
+> {
+  const ctx = await requireAdmin();
+  if (!ctx) return { success: false, error: "Not authorized" };
+  const { supabase } = ctx;
+
+  const since = new Date();
+  since.setUTCDate(since.getUTCDate() - (ANALYTICS_WINDOW_DAYS - 1));
+  since.setUTCHours(0, 0, 0, 0);
+
+  // hub_items/hub_study_log RLS is strictly owner_id = auth.uid() with no
+  // admin-bypass policy (unlike resources/articles/discussions, which got
+  // one — see PROJECT_CONTEXT.md) — the regular client would only ever see
+  // the admin's own rows, so any cross-user Hub aggregate needs the
+  // service-role client. users.hub_onboarded_at/hub_subjects stay on the
+  // regular client since that table's SELECT policy is already broad
+  // (getAdminStats/getAdminAnalytics already read every user's row with it).
+  const admin = createAdminClient();
+
+  const [
+    { count: totalUsers },
+    { count: hubOnboardedUsers },
+    { data: onboardRows },
+    { count: totalHubItems },
+    { data: itemRows },
+    { data: itemTypeRows },
+    { data: studyLogRows },
+  ] = await Promise.all([
+    supabase.from("users").select("*", { count: "exact", head: true }),
+    supabase
+      .from("users")
+      .select("*", { count: "exact", head: true })
+      .not("hub_onboarded_at", "is", null),
+    supabase
+      .from("users")
+      .select("hub_onboarded_at")
+      .gte("hub_onboarded_at", since.toISOString()),
+    admin.from("hub_items").select("*", { count: "exact", head: true }),
+    admin.from("hub_items").select("owner_id, created_at"),
+    admin.from("hub_items").select("label:type"),
+    admin.from("hub_study_log").select("owner_id, log_date"),
+  ]);
+
+  const usersWithHubItems = new Set(
+    (itemRows ?? []).map((r) => r.owner_id),
+  ).size;
+
+  // "Returning" = has Hub activity (an item created, or a study session
+  // logged) on 2+ distinct calendar days — the closest signal available
+  // without a dedicated per-feature event log (site-wide return visits are
+  // tracked via users.last_active_at instead — see PROJECT_CONTEXT.md's
+  // retention-tracking section for why that couldn't just be reused here:
+  // it says a user came back to *the site*, not specifically to the Hub).
+  const activityDaysByOwner = new Map<string, Set<string>>();
+  for (const row of itemRows ?? []) {
+    const day = (row.created_at as string).slice(0, 10);
+    const days = activityDaysByOwner.get(row.owner_id) ?? new Set<string>();
+    days.add(day);
+    activityDaysByOwner.set(row.owner_id, days);
+  }
+  for (const row of studyLogRows ?? []) {
+    const days = activityDaysByOwner.get(row.owner_id) ?? new Set<string>();
+    days.add(row.log_date as string);
+    activityDaysByOwner.set(row.owner_id, days);
+  }
+  const hubReturningUsers = Array.from(activityDaysByOwner.values()).filter(
+    (days) => days.size >= 2,
+  ).length;
+
+  const hubItemsByType = countByLabel(itemTypeRows ?? []).map((r) => ({
+    ...r,
+    label: HUB_ITEM_TYPE_LABELS[r.label] ?? r.label,
+  }));
+
+  return {
+    success: true,
+    data: {
+      hubOnboardedUsers: hubOnboardedUsers ?? 0,
+      hubOnboardedPercent:
+        totalUsers && totalUsers > 0
+          ? Math.round(((hubOnboardedUsers ?? 0) / totalUsers) * 100)
+          : 0,
+      usersWithHubItems,
+      hubReturningUsers,
+      totalHubItems: totalHubItems ?? 0,
+      hubItemsByType,
+      newHubOnboards: bucketByDay(
+        (onboardRows ?? []).map((r) => r.hub_onboarded_at as string),
+        ANALYTICS_WINDOW_DAYS,
+      ),
+    },
+  };
+}
+
 export type AdminUserRow = {
   id: string;
   display_name: string;

@@ -21,22 +21,45 @@ const TYPE_OPTIONS: HubItemType[] = ["ib_component", "task", "study_block", "uni
 export default function AddItemDialog({
   defaultDate,
   subjects,
+  item,
   onClose,
   onAdd,
+  onSave,
 }: {
   defaultDate: Date;
   subjects: Subject[];
+  // When set, the dialog edits this item instead of creating a new one.
+  item?: HubItem | null;
   onClose: () => void;
-  onAdd: (item: HubItem) => void;
+  onAdd?: (item: HubItem) => void;
+  onSave?: (
+    id: string,
+    details: { title: string; type: HubItemType; subjectId: SubjectId | null; start: Date; end: Date },
+  ) => void;
 }) {
+  const isEditing = !!item;
   const dialogRef = useRef<HTMLDivElement>(null);
-  const [type, setType] = useState<HubItemType>("task");
-  const [title, setTitle] = useState("");
-  const [subjectId, setSubjectId] = useState<SubjectId | "">("");
-  const [date, setDate] = useState(toDateInputValue(defaultDate));
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("10:00");
+  const [type, setType] = useState<HubItemType>(item?.type ?? "task");
+  const [title, setTitle] = useState(item?.title ?? "");
+  const [subjectId, setSubjectId] = useState<SubjectId | "">(item?.subjectId ?? "");
+  const [date, setDate] = useState(toDateInputValue(item?.start ?? defaultDate));
+  const [startTime, setStartTime] = useState(
+    item && !item.allDay
+      ? `${String(item.start.getHours()).padStart(2, "0")}:${String(item.start.getMinutes()).padStart(2, "0")}`
+      : "09:00",
+  );
+  const [endTime, setEndTime] = useState(
+    item && !item.allDay
+      ? `${String(item.end.getHours()).padStart(2, "0")}:${String(item.end.getMinutes()).padStart(2, "0")}`
+      : "10:00",
+  );
   const [error, setError] = useState<string | null>(null);
+  // All-day items (currently only ever created via .ics import — there's no
+  // in-app way to create one) can have a multi-day span; editing that span
+  // through a single date+time-of-day form would be lossy, so this dialog
+  // only lets an all-day item's title/type/subject change, keeping its
+  // original start/end exactly as imported.
+  const isAllDay = item?.allDay ?? false;
 
   useEffect(() => {
     const prevActive = document.activeElement as HTMLElement | null;
@@ -73,30 +96,42 @@ export default function AddItemDialog({
       setError("Give this item a title.");
       return;
     }
-    const [sh, sm] = startTime.split(":").map(Number);
-    const [eh, em] = endTime.split(":").map(Number);
-    const start = new Date(`${date}T00:00:00`);
-    start.setHours(sh, sm, 0, 0);
-    const end = new Date(`${date}T00:00:00`);
-    end.setHours(eh, em, 0, 0);
-    if (end.getTime() <= start.getTime()) {
-      setError("End time must be after the start time.");
-      return;
+
+    let start: Date;
+    let end: Date;
+    if (isAllDay && item) {
+      start = item.start;
+      end = item.end;
+    } else {
+      const [sh, sm] = startTime.split(":").map(Number);
+      const [eh, em] = endTime.split(":").map(Number);
+      start = new Date(`${date}T00:00:00`);
+      start.setHours(sh, sm, 0, 0);
+      end = new Date(`${date}T00:00:00`);
+      end.setHours(eh, em, 0, 0);
+      if (end.getTime() <= start.getTime()) {
+        setError("End time must be after the start time.");
+        return;
+      }
     }
 
-    onAdd({
-      id: `itm-${crypto.randomUUID().slice(0, 8)}`,
-      title: title.trim(),
-      type,
-      subjectId: subjectId || null,
-      start,
-      end,
-      allDay: false,
-      status: "todo",
-      stages: [],
-      notes: "",
-      resourceIds: [],
-    });
+    if (isEditing && item) {
+      onSave?.(item.id, { title: title.trim(), type, subjectId: subjectId || null, start, end });
+    } else {
+      onAdd?.({
+        id: `itm-${crypto.randomUUID().slice(0, 8)}`,
+        title: title.trim(),
+        type,
+        subjectId: subjectId || null,
+        start,
+        end,
+        allDay: false,
+        status: "todo",
+        stages: [],
+        notes: "",
+        resourceIds: [],
+      });
+    }
     onClose();
   }
 
@@ -112,7 +147,7 @@ export default function AddItemDialog({
       >
         <div className="flex items-center justify-between">
           <h2 id="add-item-title" className="text-headline-sm font-serif font-bold text-on-surface">
-            Add item
+            {isEditing ? "Edit item" : "Add item"}
           </h2>
           <button
             type="button"
@@ -178,36 +213,44 @@ export default function AddItemDialog({
             </select>
           </label>
 
-          <label className="flex flex-col gap-1 text-label-sm font-semibold text-on-surface-variant">
-            Date
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="bg-surface-container-low border border-outline-variant rounded-md px-sm py-2 text-body-md text-on-surface"
-            />
-          </label>
+          {isAllDay ? (
+            <p className="text-label-sm text-on-surface-variant bg-surface-container-low rounded-md px-sm py-2">
+              This is an all-day item — its date is kept as imported.
+            </p>
+          ) : (
+            <>
+              <label className="flex flex-col gap-1 text-label-sm font-semibold text-on-surface-variant">
+                Date
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="bg-surface-container-low border border-outline-variant rounded-md px-sm py-2 text-body-md text-on-surface"
+                />
+              </label>
 
-          <div className="grid grid-cols-2 gap-sm">
-            <label className="flex flex-col gap-1 text-label-sm font-semibold text-on-surface-variant">
-              Start time
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="bg-surface-container-low border border-outline-variant rounded-md px-sm py-2 text-body-md text-on-surface"
-              />
-            </label>
-            <label className="flex flex-col gap-1 text-label-sm font-semibold text-on-surface-variant">
-              End time
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="bg-surface-container-low border border-outline-variant rounded-md px-sm py-2 text-body-md text-on-surface"
-              />
-            </label>
-          </div>
+              <div className="grid grid-cols-2 gap-sm">
+                <label className="flex flex-col gap-1 text-label-sm font-semibold text-on-surface-variant">
+                  Start time
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="bg-surface-container-low border border-outline-variant rounded-md px-sm py-2 text-body-md text-on-surface"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-label-sm font-semibold text-on-surface-variant">
+                  End time
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="bg-surface-container-low border border-outline-variant rounded-md px-sm py-2 text-body-md text-on-surface"
+                  />
+                </label>
+              </div>
+            </>
+          )}
 
           {error && <p className="text-label-sm text-error">{error}</p>}
 

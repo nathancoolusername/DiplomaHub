@@ -45,45 +45,6 @@ export type Article = {
   };
 };
 
-export type Discussion = {
-  id: string;
-  title: string;
-  content: string;
-  author_id: string;
-  subject_tag: string | null;
-  type_tag: string | null;
-  year_tag: string | null;
-  reply_count: number;
-  like_count: number;
-  created_at: string;
-  top_reply: string | null;
-  isLiked?: boolean;
-  isSaved?: boolean;
-  author?: {
-    display_name: string;
-    is_pro: boolean;
-    ib_year?: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
-    avatar_url?: string | null;
-  };
-};
-
-export type DiscussionReply = {
-  id: string;
-  discussion_id: string;
-  author_id: string;
-  content: string;
-  like_count: number;
-  created_at: string;
-  parent_reply_id: string | null;
-  isLiked?: boolean;
-  author?: {
-    display_name: string;
-    is_pro: boolean;
-    ib_year?: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
-    avatar_url?: string | null;
-  };
-};
-
 export type Comment = {
   id: string;
   user_id: string;

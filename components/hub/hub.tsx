@@ -3,13 +3,15 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
-import type { Resource } from "@/app/lib/types";
+import type { ActionResult, Resource } from "@/app/lib/types";
 import {
   createHubItem as createHubItemAction,
   updateHubItemTime as updateHubItemTimeAction,
   updateHubItemStages as updateHubItemStagesAction,
   updateHubItemStatus as updateHubItemStatusAction,
   updateHubItemNotes as updateHubItemNotesAction,
+  updateHubItemDetails as updateHubItemDetailsAction,
+  deleteHubItem as deleteHubItemAction,
   logStudySession as logStudySessionAction,
   bulkImportHubItems,
   bulkImportStudyLog,
@@ -36,7 +38,7 @@ import OnboardingWizard from "./onboarding/onboarding-wizard";
 import EditSubjectsDialog from "./onboarding/edit-subjects-dialog";
 import { computeMySubjectIds } from "./onboarding/subject-cap";
 import { defaultHubSession } from "./format";
-import { SUBJECTS, type HubItem, type HubItemStatus, type SubjectId } from "./mock-data";
+import { SUBJECTS, type HubItem, type HubItemStatus, type HubItemType, type SubjectId } from "./mock-data";
 import { hubItemToRow, rowToHubItem, type HubItemRow } from "./hub-row";
 import { getWeekDates, isSameDay, toDateInputValue } from "./calendar/calendar-utils";
 import { INITIAL_TIMER_STATE, SESSIONS_PER_CYCLE, TIMER_DURATION_MS, type TimerState } from "./timer";
@@ -51,6 +53,12 @@ type ItemsAction =
   | { type: "TOGGLE_STATUS"; id: string }
   | { type: "ADD"; item: HubItem }
   | { type: "UPDATE_NOTES"; id: string; notes: string }
+  | {
+      type: "UPDATE_DETAILS";
+      id: string;
+      details: { title: string; type: HubItemType; subjectId: SubjectId | null; start: Date; end: Date };
+    }
+  | { type: "DELETE"; id: string }
   | { type: "SET_ALL"; items: HubItem[] };
 
 function itemsReducer(state: HubItem[], action: ItemsAction): HubItem[] {
@@ -77,6 +85,10 @@ function itemsReducer(state: HubItem[], action: ItemsAction): HubItem[] {
       return [...state, action.item];
     case "UPDATE_NOTES":
       return state.map((i) => (i.id === action.id ? { ...i, notes: action.notes } : i));
+    case "UPDATE_DETAILS":
+      return state.map((i) => (i.id === action.id ? { ...i, ...action.details } : i));
+    case "DELETE":
+      return state.filter((i) => i.id !== action.id);
     case "SET_ALL":
       return action.items;
     default:
@@ -124,10 +136,17 @@ export default function Hub({
   const [chosenSubjectIds, setChosenSubjectIds] = useState<SubjectId[] | null>(hubSubjects);
   const [savedResourceIds, setSavedResourceIds] = useState<Set<string>>(() => new Set());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<HubItem | null>(null);
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [importToast, setImportToast] = useState<{ batchId: string; count: number } | null>(null);
   const [undoingImport, setUndoingImport] = useState(false);
+  // Every item mutation below applies an optimistic update first, then
+  // persists in the background — this surfaces a visible error (rather than
+  // the previous `.catch(console.error)`, which left a failed save looking
+  // identical to a successful one) and re-syncs from the server so the UI
+  // never keeps showing a change that didn't actually stick.
+  const [actionError, setActionError] = useState<string | null>(null);
   const [isEditSubjectsOpen, setIsEditSubjectsOpen] = useState(false);
   const [timer, setTimer] = useState<TimerState>(INITIAL_TIMER_STATE);
   const [isFocusModeOpen, setIsFocusModeOpen] = useState(false);
@@ -451,21 +470,36 @@ export default function Hub({
     setTimer((t) => ({ ...INITIAL_TIMER_STATE, taskId: t.taskId }));
   }
 
+  // Shows a visible error and re-syncs from the server whenever a
+  // background save fails, instead of leaving the optimistic UI update
+  // looking like it succeeded (see the `actionError` state comment above).
+  async function persistOrRevert(
+    promise: Promise<ActionResult<unknown>>,
+    message = "Couldn't save your change — try again.",
+  ) {
+    const result = await promise;
+    if (!result.success) {
+      setActionError(message);
+      const fresh = await getHubItems();
+      if (fresh.success) dispatch({ type: "SET_ALL", items: fresh.data });
+    }
+  }
+
   function handleMoveItem(id: string, start: Date, end: Date) {
     dispatch({ type: "MOVE", id, start, end });
-    if (userId) updateHubItemTimeAction(id, start, end).catch(console.error);
+    if (userId) persistOrRevert(updateHubItemTimeAction(id, start, end));
   }
 
   function handleResizeItem(id: string, end: Date) {
     dispatch({ type: "RESIZE", id, end });
     if (!userId) return;
     const item = items.find((i) => i.id === id);
-    if (item) updateHubItemTimeAction(id, item.start, end).catch(console.error);
+    if (item) persistOrRevert(updateHubItemTimeAction(id, item.start, end));
   }
 
   function handleUpdateTime(itemId: string, start: Date, end: Date) {
     dispatch({ type: "UPDATE_TIME", id: itemId, start, end });
-    if (userId) updateHubItemTimeAction(itemId, start, end).catch(console.error);
+    if (userId) persistOrRevert(updateHubItemTimeAction(itemId, start, end));
   }
 
   function handleToggleStage(itemId: string, stageIndex: number) {
@@ -474,7 +508,7 @@ export default function Hub({
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
     const newStages = item.stages.map((s, idx) => (idx === stageIndex ? { ...s, done: !s.done } : s));
-    updateHubItemStagesAction(itemId, newStages).catch(console.error);
+    persistOrRevert(updateHubItemStagesAction(itemId, newStages));
   }
 
   function handleToggleStatus(itemId: string) {
@@ -483,7 +517,7 @@ export default function Hub({
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
     const newStatus: HubItemStatus = item.status === "done" ? "todo" : "done";
-    updateHubItemStatusAction(itemId, newStatus).catch(console.error);
+    persistOrRevert(updateHubItemStatusAction(itemId, newStatus));
   }
 
   function handleUpdateNotes(itemId: string, notes: string) {
@@ -491,20 +525,43 @@ export default function Hub({
     if (!userId) return;
     if (notesTimers.current[itemId]) clearTimeout(notesTimers.current[itemId]);
     notesTimers.current[itemId] = setTimeout(() => {
-      updateHubItemNotesAction(itemId, notes).catch(console.error);
+      persistOrRevert(updateHubItemNotesAction(itemId, notes));
     }, 600);
   }
 
   function handleAddItem(item: HubItem) {
     dispatch({ type: "ADD", item });
-    if (userId) createHubItemAction(item).catch(console.error);
+    if (userId) persistOrRevert(createHubItemAction(item), "Couldn't save this item — try again.");
+  }
+
+  function openEditDialog(itemId: string) {
+    const item = items.find((i) => i.id === itemId);
+    if (item) setEditingItem(item);
+  }
+
+  function handleEditItem(
+    id: string,
+    details: { title: string; type: HubItemType; subjectId: SubjectId | null; start: Date; end: Date },
+  ) {
+    dispatch({ type: "UPDATE_DETAILS", id, details });
+    if (userId) {
+      persistOrRevert(updateHubItemDetailsAction(id, details), "Couldn't save your edits — try again.");
+    }
+  }
+
+  function handleDeleteItem(itemId: string) {
+    dispatch({ type: "DELETE", id: itemId });
+    if (selectedItemId === itemId) setSelectedItemId(null);
+    if (userId) {
+      persistOrRevert(deleteHubItemAction(itemId), "Couldn't delete this item — try again.");
+    }
   }
 
   function completeOnboarding(subjectIds: SubjectId[] | null) {
     setShowOnboarding(false);
     applyNewSubjects(subjectIds);
     if (userId) {
-      completeHubOnboardingAction(subjectIds).catch(console.error);
+      persistOrRevert(completeHubOnboardingAction(subjectIds));
     } else {
       try {
         localStorage.setItem(GUEST_ONBOARDED_KEY, "1");
@@ -529,7 +586,7 @@ export default function Hub({
   function handleSaveSubjects(subjectIds: SubjectId[] | null) {
     applyNewSubjects(subjectIds);
     if (userId) {
-      completeHubOnboardingAction(subjectIds).catch(console.error);
+      persistOrRevert(completeHubOnboardingAction(subjectIds));
     } else {
       try {
         if (subjectIds) localStorage.setItem(GUEST_SUBJECTS_KEY, JSON.stringify(subjectIds));
@@ -561,6 +618,8 @@ export default function Hub({
     if (result.success) {
       const fresh = await getHubItems();
       if (fresh.success) dispatch({ type: "SET_ALL", items: fresh.data });
+    } else {
+      setActionError("Couldn't undo that import — try again.");
     }
     setImportToast(null);
   }
@@ -572,6 +631,12 @@ export default function Hub({
     const timer = setTimeout(() => setImportToast(null), 8000);
     return () => clearTimeout(timer);
   }, [importToast]);
+
+  useEffect(() => {
+    if (!actionError) return;
+    const timer = setTimeout(() => setActionError(null), 6000);
+    return () => clearTimeout(timer);
+  }, [actionError]);
 
   const allDayItemsThisWeek = items.filter(
     (i) => i.allDay && weekDates.some((d) => isSameDay(d, i.start)),
@@ -599,6 +664,8 @@ export default function Hub({
     onUpdateNotes: handleUpdateNotes,
     onUpdateTime: handleUpdateTime,
     onStartFocus: startFocus,
+    onEdit: openEditDialog,
+    onDelete: handleDeleteItem,
   };
 
   if (!mounted) {
@@ -720,12 +787,17 @@ export default function Hub({
         />
       )}
 
-      {isAddDialogOpen && (
+      {(isAddDialogOpen || editingItem) && (
         <AddItemDialog
           defaultDate={currentDate}
           subjects={mySubjects}
-          onClose={() => setIsAddDialogOpen(false)}
+          item={editingItem}
+          onClose={() => {
+            setIsAddDialogOpen(false);
+            setEditingItem(null);
+          }}
           onAdd={handleAddItem}
+          onSave={handleEditItem}
         />
       )}
 
@@ -765,6 +837,20 @@ export default function Hub({
             onClick={() => setImportToast(null)}
             aria-label="Dismiss"
             className="p-1 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer shrink-0"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-100 w-[calc(100%-2rem)] max-w-[28rem] sm:w-auto flex flex-wrap items-center justify-center gap-sm bg-error-container border border-error/30 rounded-2xl sm:rounded-full shadow-lg px-lg py-sm">
+          <span className="text-label-md text-on-error-container text-center">{actionError}</span>
+          <button
+            type="button"
+            onClick={() => setActionError(null)}
+            aria-label="Dismiss"
+            className="p-1 text-on-error-container hover:opacity-70 transition-opacity cursor-pointer shrink-0"
           >
             <X size={16} />
           </button>

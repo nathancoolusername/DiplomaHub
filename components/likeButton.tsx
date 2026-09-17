@@ -4,11 +4,7 @@ import { useState } from "react";
 import { Heart } from "lucide-react";
 import { toggleLike } from "@/app/lib/actions/likes";
 
-type LikeTarget =
-  | { resource_id: string }
-  | { article_id: string }
-  | { discussion_id: string }
-  | { discussion_reply_id: string };
+type LikeTarget = { resource_id: string } | { article_id: string };
 
 export function LikeButton({
   target,
