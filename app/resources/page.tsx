@@ -12,8 +12,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/resources" },
 };
 
-export default async function ResourcesPage() {
-  const result = await getResourcesPage({ sort: "most_downloaded" });
+export default async function ResourcesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ subject?: string }>;
+}) {
+  const { subject } = await searchParams;
+  const result = await getResourcesPage({ subject, sort: "most_downloaded" });
 
   if (!result.success) {
     return (
@@ -45,6 +50,7 @@ export default async function ResourcesPage() {
       <ResourceGrid
         initialItems={result.data.items}
         initialTotalCount={result.data.totalCount}
+        initialSubject={subject}
       />
     </div>
   );

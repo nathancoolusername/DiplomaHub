@@ -8,7 +8,7 @@ import { Eye } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Spinner } from "@/components/spinner";
 
-export default function LoginForm() {
+export default function LoginForm({ next }: { next?: string | null }) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState("password");
@@ -26,6 +26,7 @@ export default function LoginForm() {
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError(null);
+    if (next) formData.set("next", next);
     const result = await signIn(formData);
     if (result && !result.success) {
       setError(result.error);
@@ -104,6 +105,7 @@ export default function LoginForm() {
         </form>
 
         <form action={signInWithGoogle}>
+          {next && <input type="hidden" name="next" value={next} />}
           <button
             type="submit"
             className="w-full py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 cursor-pointer"

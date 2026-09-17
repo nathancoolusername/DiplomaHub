@@ -62,6 +62,16 @@ const nextConfig = {
       allowedOrigins: ["**.devtunnels.ms", "localhost:3000"],
     },
   },
+  // /community (discussions) was retired in favor of the Hub — every old
+  // discussion URL (/community, /community/[id], /community/[id]/edit,
+  // /community/write) collapses to one wildcard rule rather than needing
+  // four separate ones.
+  async redirects() {
+    return [
+      { source: "/community", destination: "/hub", permanent: true },
+      { source: "/community/:path*", destination: "/hub", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

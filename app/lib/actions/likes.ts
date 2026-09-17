@@ -6,11 +6,11 @@ import { createNotification } from "./notifications";
 import { checkRateLimit } from "../ratelimit";
 import type { ActionResult } from "../types";
 
-type LikeTarget =
-  | { resource_id: string }
-  | { article_id: string }
-  | { discussion_id: string }
-  | { discussion_reply_id: string };
+// discussion_id/discussion_reply_id targets were retired along with
+// /community — nothing constructs one anymore (see components/likeButton.tsx),
+// so the branches that used to handle them (and wrote now-dead
+// `/community/...` notification links) were removed too.
+type LikeTarget = { resource_id: string } | { article_id: string };
 
 async function notifyForLike(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -45,34 +45,6 @@ async function notifyForLike(
       type: "like_article",
       message: `${actorName} liked your article "${data.title}"`,
       link: `/articles/${data.slug}`,
-    });
-  } else if ("discussion_id" in target) {
-    const { data } = await supabase
-      .from("discussions")
-      .select("title, author_id")
-      .eq("id", target.discussion_id)
-      .single();
-    if (!data) return;
-    await createNotification({
-      userId: data.author_id,
-      actorId,
-      type: "like_discussion",
-      message: `${actorName} liked your discussion "${data.title}"`,
-      link: `/community/${target.discussion_id}`,
-    });
-  } else if ("discussion_reply_id" in target) {
-    const { data } = await supabase
-      .from("discussion_replies")
-      .select("author_id, discussion_id")
-      .eq("id", target.discussion_reply_id)
-      .single();
-    if (!data) return;
-    await createNotification({
-      userId: data.author_id,
-      actorId,
-      type: "like_reply",
-      message: `${actorName} liked your reply`,
-      link: `/community/${data.discussion_id}`,
     });
   }
 }

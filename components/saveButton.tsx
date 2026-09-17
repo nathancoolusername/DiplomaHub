@@ -5,10 +5,7 @@ import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import { toggleSave } from "@/app/lib/actions/saved-items";
 
-type SaveTarget =
-  | { resource_id: string }
-  | { article_id: string }
-  | { discussion_id: string };
+type SaveTarget = { resource_id: string } | { article_id: string };
 
 export function SaveButton({
   target,

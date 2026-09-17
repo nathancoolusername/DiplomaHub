@@ -2,13 +2,7 @@
 "use server";
 
 import { createClient } from "../supabase/server";
-import type {
-  ActionResult,
-  UserProfile,
-  Article,
-  Resource,
-  Discussion,
-} from "@/app/lib/types";
+import type { ActionResult, UserProfile, Article, Resource } from "@/app/lib/types";
 
 type ProfileComment = {
   id: string;
@@ -26,7 +20,6 @@ export async function getPublicProfile(userId: string): Promise<
     user: UserProfile;
     articles: Article[];
     resources: Resource[];
-    discussions: Discussion[];
     commentsWritten: ProfileComment[];
     totalLikes: number;
     total_downloads: number;
@@ -47,7 +40,13 @@ export async function getPublicProfile(userId: string): Promise<
   const [
     { data: articles, error: articlesError },
     { data: resources, error: resourcesError },
-    { data: discussions, error: discussionsError },
+    // /community was retired, but a profile's historical discussion likes
+    // still count toward its displayed total — just as a plain like_count
+    // sum, not the full row (no author join, no top_reply resolution, no
+    // per-viewer isLiked/isSaved — ProfileInfo.tsx never rendered a
+    // "Discussions" list, so fetching more than this sum was pure waste on
+    // every profile-page load).
+    { data: discussionLikeCounts, error: discussionsError },
     { count: higherRankedCount },
   ] = await Promise.all([
     supabase
@@ -62,11 +61,7 @@ export async function getPublicProfile(userId: string): Promise<
       .eq("author_id", userId)
       .eq("published", true)
       .order("created_at", { ascending: false }),
-    supabase
-      .from("discussions")
-      .select("*, author:users(display_name, is_pro, avatar_url)")
-      .eq("author_id", userId)
-      .order("created_at", { ascending: false }),
+    supabase.from("discussions").select("like_count").eq("author_id", userId),
     // Leaderboard rank — count of users strictly ahead on points, +1.
     supabase
       .from("users")
@@ -90,22 +85,6 @@ export async function getPublicProfile(userId: string): Promise<
 
   const articleIds = articles.map((a) => a.id);
   const resourceIds = resources.map((r) => r.id);
-  const discussionIds = discussions.map((d) => d.id);
-
-  // `top_reply` is a FK (uuid) pointing at discussion_replies.id, not the
-  // reply text itself — resolve it to actual content for display.
-  const topReplyIds = discussions
-    .map((d) => d.top_reply)
-    .filter((id): id is string => !!id);
-
-  const { data: topReplies } = topReplyIds.length
-    ? await supabase
-        .from("discussion_replies")
-        .select("id, content")
-        .in("id", topReplyIds)
-    : { data: [] as { id: string; content: string }[] };
-
-  const topReplyContent = new Map(topReplies?.map((r) => [r.id, r.content]));
 
   // isLiked/isSaved reflect the CURRENT VIEWER, not the profile owner —
   // someone else's profile still needs to show whether *I* liked/saved
@@ -116,28 +95,24 @@ export async function getPublicProfile(userId: string): Promise<
 
   const likedArticleIds = new Set<string>();
   const likedResourceIds = new Set<string>();
-  const likedDiscussionIds = new Set<string>();
   const savedArticleIds = new Set<string>();
   const savedResourceIds = new Set<string>();
-  const savedDiscussionIds = new Set<string>();
 
   if (viewer) {
     const orParts: string[] = [];
     if (articleIds.length) orParts.push(`article_id.in.(${articleIds.join(",")})`);
     if (resourceIds.length) orParts.push(`resource_id.in.(${resourceIds.join(",")})`);
-    if (discussionIds.length)
-      orParts.push(`discussion_id.in.(${discussionIds.join(",")})`);
 
     if (orParts.length) {
       const [{ data: likes }, { data: saves }] = await Promise.all([
         supabase
           .from("likes")
-          .select("article_id, resource_id, discussion_id")
+          .select("article_id, resource_id")
           .eq("user_id", viewer.id)
           .or(orParts.join(",")),
         supabase
           .from("saved_items")
-          .select("article_id, resource_id, discussion_id")
+          .select("article_id, resource_id")
           .eq("user_id", viewer.id)
           .or(orParts.join(",")),
       ]);
@@ -145,12 +120,10 @@ export async function getPublicProfile(userId: string): Promise<
       likes?.forEach((l) => {
         if (l.article_id) likedArticleIds.add(l.article_id);
         if (l.resource_id) likedResourceIds.add(l.resource_id);
-        if (l.discussion_id) likedDiscussionIds.add(l.discussion_id);
       });
       saves?.forEach((s) => {
         if (s.article_id) savedArticleIds.add(s.article_id);
         if (s.resource_id) savedResourceIds.add(s.resource_id);
-        if (s.discussion_id) savedDiscussionIds.add(s.discussion_id);
       });
     }
   }
@@ -167,13 +140,6 @@ export async function getPublicProfile(userId: string): Promise<
     isLiked: likedArticleIds.has(a.id),
     isSaved: savedArticleIds.has(a.id),
   }));
-  const normalizedDiscussions = discussions.map((d) => ({
-    ...d,
-    author: Array.isArray(d.author) ? d.author[0] : d.author,
-    top_reply: d.top_reply ? (topReplyContent.get(d.top_reply) ?? null) : null,
-    isLiked: likedDiscussionIds.has(d.id),
-    isSaved: savedDiscussionIds.has(d.id),
-  }));
 
   const { data: commentsWritten } = await supabase
     .from("comments")
@@ -184,7 +150,7 @@ export async function getPublicProfile(userId: string): Promise<
   const totalLikes =
     articles.reduce((sum, a) => sum + a.like_count, 0) +
     resources.reduce((sum, r) => sum + r.like_count, 0) +
-    discussions.reduce((sum, d) => sum + d.like_count, 0);
+    (discussionLikeCounts ?? []).reduce((sum, d) => sum + d.like_count, 0);
 
   const total_downloads = resources.reduce(
     (sum, r) => sum + r.download_count,
@@ -202,7 +168,6 @@ export async function getPublicProfile(userId: string): Promise<
       user,
       articles: normalizedArticles,
       resources: normalizedResources,
-      discussions: normalizedDiscussions,
       totalLikes,
       total_downloads,
       commentsWritten: commentsWritten ?? [],

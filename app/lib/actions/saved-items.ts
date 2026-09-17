@@ -4,12 +4,9 @@
 import { createClient } from "../supabase/server";
 import { revalidatePath } from "next/cache";
 import { checkRateLimit } from "../ratelimit";
-import type { ActionResult, Resource, Article, Discussion } from "../types";
+import type { ActionResult, Resource, Article } from "../types";
 
-type SaveTarget =
-  | { resource_id: string }
-  | { article_id: string }
-  | { discussion_id: string };
+type SaveTarget = { resource_id: string } | { article_id: string };
 
 export async function toggleSave(
   target: SaveTarget,
@@ -48,11 +45,16 @@ export async function toggleSave(
   }
 }
 
+// Discussions were deliberately dropped from this query (2026-09 cleanup) —
+// ProfileInfo.tsx, the only caller of getSavedItems(), never rendered a
+// "Saved Discussions" list (removed along with /community), so fetching
+// and resolving them here was pure wasted work on every profile-page load:
+// a join, a follow-up top_reply lookup, and an extra likes query, none of
+// it ever reaching the screen.
 export async function getSavedItems(): Promise<
   ActionResult<{
     resources: Resource[];
     articles: Article[];
-    discussions: Discussion[];
   }>
 > {
   const supabase = await createClient();
@@ -67,8 +69,7 @@ export async function getSavedItems(): Promise<
       `
       created_at,
       resource:resources(*, author:users(display_name, is_pro, ib_year, avatar_url)),
-      article:articles(*, author:users(display_name, is_pro, ib_year, avatar_url)),
-      discussion:discussions(*, author:users(display_name, is_pro, ib_year, avatar_url))
+      article:articles(*, author:users(display_name, is_pro, ib_year, avatar_url))
     `,
     )
     .eq("user_id", user.id)
@@ -82,9 +83,6 @@ export async function getSavedItems(): Promise<
   const articles = data
     .filter((d) => d.article)
     .map((d) => (Array.isArray(d.article) ? d.article[0] : d.article));
-  const discussions = data
-    .filter((d) => d.discussion)
-    .map((d) => (Array.isArray(d.discussion) ? d.discussion[0] : d.discussion));
 
   function normalize<T extends { author: unknown }>(row: T) {
     return {
@@ -93,51 +91,27 @@ export async function getSavedItems(): Promise<
     };
   }
 
-  // `top_reply` is a FK (uuid) pointing at discussion_replies.id, not the
-  // reply text itself — resolve it to actual content for display.
-  const topReplyIds = discussions
-    .map((d) => d.top_reply)
-    .filter((id): id is string => !!id);
-
-  const { data: topReplies } = topReplyIds.length
-    ? await supabase
-        .from("discussion_replies")
-        .select("id, content")
-        .in("id", topReplyIds)
-    : { data: [] as { id: string; content: string }[] };
-
-  const topReplyContent = new Map(topReplies?.map((r) => [r.id, r.content]));
-
   // Every item here is, by definition, already saved by this user — only
   // isLiked needs a real per-item lookup.
-  const [{ data: likedResources }, { data: likedArticles }, { data: likedDiscussions }] =
-    await Promise.all([
-      resources.length
-        ? supabase
-            .from("likes")
-            .select("resource_id")
-            .eq("user_id", user.id)
-            .in("resource_id", resources.map((r) => r.id))
-        : Promise.resolve({ data: [] as { resource_id: string }[] }),
-      articles.length
-        ? supabase
-            .from("likes")
-            .select("article_id")
-            .eq("user_id", user.id)
-            .in("article_id", articles.map((a) => a.id))
-        : Promise.resolve({ data: [] as { article_id: string }[] }),
-      discussions.length
-        ? supabase
-            .from("likes")
-            .select("discussion_id")
-            .eq("user_id", user.id)
-            .in("discussion_id", discussions.map((d) => d.id))
-        : Promise.resolve({ data: [] as { discussion_id: string }[] }),
-    ]);
+  const [{ data: likedResources }, { data: likedArticles }] = await Promise.all([
+    resources.length
+      ? supabase
+          .from("likes")
+          .select("resource_id")
+          .eq("user_id", user.id)
+          .in("resource_id", resources.map((r) => r.id))
+      : Promise.resolve({ data: [] as { resource_id: string }[] }),
+    articles.length
+      ? supabase
+          .from("likes")
+          .select("article_id")
+          .eq("user_id", user.id)
+          .in("article_id", articles.map((a) => a.id))
+      : Promise.resolve({ data: [] as { article_id: string }[] }),
+  ]);
 
   const likedResourceIds = new Set(likedResources?.map((l) => l.resource_id));
   const likedArticleIds = new Set(likedArticles?.map((l) => l.article_id));
-  const likedDiscussionIds = new Set(likedDiscussions?.map((l) => l.discussion_id));
 
   return {
     success: true,
@@ -151,12 +125,6 @@ export async function getSavedItems(): Promise<
         ...normalize(a),
         isSaved: true,
         isLiked: likedArticleIds.has(a.id),
-      })),
-      discussions: discussions.map((d) => ({
-        ...normalize(d),
-        top_reply: d.top_reply ? (topReplyContent.get(d.top_reply) ?? null) : null,
-        isSaved: true,
-        isLiked: likedDiscussionIds.has(d.id),
       })),
     },
   };

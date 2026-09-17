@@ -10,7 +10,7 @@ import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 
 const description =
-  "The community platform for IB Diploma Programme students, alumni, and educators. Share resources, discuss coursework, and navigate the IB journey together.";
+  "Plan your whole IB Diploma with the Hub — a personal calendar for deadlines and study blocks — plus a library of student-made resources for every subject.";
 
 export const metadata: Metadata = {
   // www is the canonical domain — apex 308-redirects to it (see
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   // Lets Next resolve relative OG image URLs and canonical links.
   metadataBase: new URL("https://www.diplomahub.org"),
   title: {
-    default: "DiplomaHub — Where IB students never graduate alone",
+    default: "DiplomaHub — Plan your IB Diploma",
     // Pages that set their own `title` (e.g. "Resources") get it appended
     // automatically: "Resources | DiplomaHub".
     template: "%s | DiplomaHub",

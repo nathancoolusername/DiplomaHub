@@ -39,7 +39,6 @@ export default async function ProfilePage({
     user,
     articles,
     resources,
-    discussions,
     totalLikes,
     total_downloads,
     commentsWritten,
@@ -114,7 +113,6 @@ export default async function ProfilePage({
       </div>
       <ProfileInfo
         resources={resources}
-        discussions={discussions}
         articles={articles}
         totalLikes={totalLikes}
         total_downloads={total_downloads}

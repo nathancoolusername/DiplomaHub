@@ -242,7 +242,6 @@ export default async function resourcePage({
             </div>
 
             <Comments
-              kind="comment"
               target={{ resource_id: resource.id }}
               initialItems={comments}
               path={`/resources/${resource.id}`}

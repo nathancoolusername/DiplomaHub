@@ -10,6 +10,10 @@ import type { ActionResult } from "../types";
 export type NotificationType =
   | "like_resource"
   | "like_article"
+  // like_discussion/like_reply/reply_discussion are legacy-only — /community
+  // was retired and nothing creates these anymore (see likes.ts/the removed
+  // discussions.ts functions), but old notification rows still have them
+  // and NotificationBell.tsx still needs to render them without crashing.
   | "like_discussion"
   | "like_reply"
   | "comment_resource"

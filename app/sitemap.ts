@@ -8,24 +8,22 @@ const BASE_URL = "https://www.diplomahub.org";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
 
-  const [{ data: resources }, { data: articles }, { data: discussions }] =
-    await Promise.all([
-      supabase
-        .from("resources")
-        .select("id, created_at")
-        .eq("published", true),
-      supabase
-        .from("articles")
-        .select("slug, created_at")
-        .eq("published", true),
-      supabase.from("discussions").select("id, created_at"),
-    ]);
+  const [{ data: resources }, { data: articles }] = await Promise.all([
+    supabase
+      .from("resources")
+      .select("id, created_at")
+      .eq("published", true),
+    supabase
+      .from("articles")
+      .select("slug, created_at")
+      .eq("published", true),
+  ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${BASE_URL}/resources`, changeFrequency: "daily", priority: 0.9 },
     { url: `${BASE_URL}/articles`, changeFrequency: "daily", priority: 0.9 },
-    { url: `${BASE_URL}/community`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${BASE_URL}/hub`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${BASE_URL}/roadmap`, changeFrequency: "weekly", priority: 0.5 },
     { url: `${BASE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
     {
@@ -61,14 +59,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const discussionRoutes: MetadataRoute.Sitemap = (discussions ?? []).map(
-    (d) => ({
-      url: `${BASE_URL}/community/${d.id}`,
-      lastModified: d.created_at,
-      changeFrequency: "weekly",
-      priority: 0.4,
-    }),
-  );
-
-  return [...staticRoutes, ...resourceRoutes, ...articleRoutes, ...discussionRoutes];
+  return [...staticRoutes, ...resourceRoutes, ...articleRoutes];
 }

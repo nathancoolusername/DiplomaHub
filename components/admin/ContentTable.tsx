@@ -34,10 +34,14 @@ const FETCH_PAGE: Record<
   discussions: getAdminDiscussionsPage,
 };
 
+// There's no discussion-detail page anymore (the /community feature was
+// retired in favor of the Hub) — this used to link to `/community/${id}`,
+// which now just redirects to generic /hub and loses the specific row.
+// Point at the author's profile instead, the closest still-live page.
 function contentLink(tab: Tab, item: AdminContentRow): string {
   if (tab === "resources") return `/resources/${item.id}`;
   if (tab === "articles") return `/articles/${item.slug}`;
-  return `/community/${item.id}`;
+  return `/profile/${item.author_id}`;
 }
 
 export function ContentTable({

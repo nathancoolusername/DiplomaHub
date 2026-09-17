@@ -200,7 +200,6 @@ export default async function ArticlePage({
         </div>
 
         <Comments
-          kind="comment"
           target={{ article_id: article.id }}
           initialItems={comments}
           path={`/articles/${article.slug}`}
