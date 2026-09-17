@@ -528,3 +528,25 @@ export async function getFeaturedResources(
     })),
   };
 }
+
+// Homepage "Resources by subject": used to be one getResourcesPage() call
+// per subject (16 parallel count-exact queries) just to answer "how many
+// published resources does each subject have" — a single column fetch plus
+// counting in JS gets the same answer in one round trip instead of 16.
+export async function getResourceCountsBySubject(): Promise<
+  ActionResult<Record<string, number>>
+> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("resources")
+    .select("subject_tag")
+    .eq("published", true);
+
+  if (error) return { success: false, error: error.message };
+
+  const counts: Record<string, number> = {};
+  for (const row of data) {
+    counts[row.subject_tag] = (counts[row.subject_tag] ?? 0) + 1;
+  }
+  return { success: true, data: counts };
+}
