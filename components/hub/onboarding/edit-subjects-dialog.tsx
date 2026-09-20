@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import type { SubjectId } from "../mock-data";
+import { makeCustomSubjectId, type CustomSubject, type SubjectId } from "../mock-data";
 import StepPickSubjects from "./step-pick-subjects";
-import { toggleWithCap } from "./subject-cap";
+import { toggleWithCap, countNonCore, MAX_SUBJECTS } from "./subject-cap";
 
 function getFocusable(root: HTMLElement | null): HTMLElement[] {
   if (!root) return [];
@@ -18,15 +18,18 @@ function getFocusable(root: HTMLElement | null): HTMLElement[] {
 
 export default function EditSubjectsDialog({
   initialSelected,
+  initialCustomSubjects,
   onSave,
   onClose,
 }: {
   initialSelected: Set<SubjectId>;
-  onSave: (subjectIds: SubjectId[] | null) => void;
+  initialCustomSubjects: CustomSubject[];
+  onSave: (subjectIds: SubjectId[] | null, customSubjects: CustomSubject[]) => void;
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<Set<SubjectId>>(() => new Set(initialSelected));
+  const [customSubjects, setCustomSubjects] = useState<CustomSubject[]>(initialCustomSubjects);
 
   useEffect(() => {
     const prevActive = document.activeElement as HTMLElement | null;
@@ -61,8 +64,24 @@ export default function EditSubjectsDialog({
     setSelected((prev) => toggleWithCap(prev, id));
   }
 
+  function addCustomSubject(name: string) {
+    if (countNonCore(selected) >= MAX_SUBJECTS) return;
+    const id = makeCustomSubjectId();
+    setCustomSubjects((prev) => [...prev, { id, name }]);
+    setSelected((prev) => new Set([...prev, id]));
+  }
+
+  function removeCustomSubject(id: string) {
+    setCustomSubjects((prev) => prev.filter((s) => s.id !== id));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
+
   function handleSave() {
-    onSave(selected.size > 0 ? Array.from(selected) : null);
+    onSave(selected.size > 0 ? Array.from(selected) : null, customSubjects);
     onClose();
   }
 
@@ -91,7 +110,13 @@ export default function EditSubjectsDialog({
           </button>
         </div>
 
-        <StepPickSubjects selected={selected} onToggle={toggleSubject} />
+        <StepPickSubjects
+          selected={selected}
+          onToggle={toggleSubject}
+          customSubjects={customSubjects}
+          onAddCustom={addCustomSubject}
+          onRemoveCustom={removeCustomSubject}
+        />
 
         <div className="flex justify-end gap-sm pt-sm border-t border-outline-variant/50">
           <button

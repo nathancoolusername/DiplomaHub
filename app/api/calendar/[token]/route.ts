@@ -3,7 +3,13 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/app/lib/supabase/admin";
 import { checkRateLimit, getClientIp } from "@/app/lib/ratelimit";
 import { generateHubIcs, type IcsFeedItem } from "@/app/lib/ics";
-import { getSubject, type HubItemStatus, type HubItemType, type SubjectId } from "@/components/hub/mock-data";
+import {
+  getSubject,
+  type CustomSubject,
+  type HubItemStatus,
+  type HubItemType,
+  type SubjectId,
+} from "@/components/hub/mock-data";
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -51,21 +57,26 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   if (feed.include_tasks) allowedTypes.push("task");
   if (feed.include_study_blocks) allowedTypes.push("study_block");
 
-  const { data: rows, error } = await admin
-    .from("hub_items")
-    .select("id, title, type, subject_id, start_at, end_at, all_day, status")
-    .eq("owner_id", feed.user_id)
-    .in("type", allowedTypes)
-    .gte("start_at", windowStart.toISOString())
-    .lte("start_at", windowEnd.toISOString());
+  const [{ data: rows, error }, { data: ownerProfile }] = await Promise.all([
+    admin
+      .from("hub_items")
+      .select("id, title, type, subject_id, start_at, end_at, all_day, status")
+      .eq("owner_id", feed.user_id)
+      .in("type", allowedTypes)
+      .gte("start_at", windowStart.toISOString())
+      .lte("start_at", windowEnd.toISOString()),
+    admin.from("users").select("custom_hub_subjects").eq("id", feed.user_id).maybeSingle(),
+  ]);
 
   if (error) return new NextResponse("Internal error", { status: 500 });
+
+  const customSubjects = (ownerProfile?.custom_hub_subjects as CustomSubject[] | null) ?? [];
 
   const items: IcsFeedItem[] = (rows ?? []).map((row) => ({
     id: row.id as string,
     title: row.title as string,
     type: row.type as HubItemType,
-    subjectShortName: getSubject(row.subject_id as SubjectId | null)?.shortName ?? null,
+    subjectShortName: getSubject(row.subject_id as SubjectId | null, customSubjects)?.shortName ?? null,
     start: new Date(row.start_at as string),
     end: new Date(row.end_at as string),
     allDay: row.all_day as boolean,

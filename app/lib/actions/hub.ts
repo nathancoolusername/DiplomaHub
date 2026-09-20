@@ -8,6 +8,8 @@ import { getResourcesPage } from "./resources";
 import { hubItemToRow, rowToHubItem, type HubItemRow } from "@/components/hub/hub-row";
 import {
   SUBJECTS,
+  isCustomSubjectId,
+  type CustomSubject,
   type HubItem,
   type HubItemStatus,
   type HubItemType,
@@ -18,6 +20,15 @@ import {
 const SUBJECT_IDS = SUBJECTS.map((s) => s.id);
 const TYPE_OPTIONS = ["ib_component", "task", "study_block", "university"];
 const STATUS_OPTIONS = ["todo", "done"];
+
+// A subject id is valid either as one of the fixed built-ins, or as a
+// user-typed custom subject (ids always carry the "custom:" prefix — see
+// makeCustomSubjectId). There's no per-user custom-subject table to check
+// against here, so this only verifies shape, same trust level as any other
+// self-reported field the owner-scoped RLS already protects.
+function isValidSubjectId(id: SubjectId): boolean {
+  return SUBJECT_IDS.includes(id) || isCustomSubjectId(id);
+}
 
 async function requireUser() {
   const supabase = await createClient();
@@ -70,7 +81,7 @@ export async function createHubItem(item: HubItem): Promise<ActionResult<HubItem
   if ("error" in title) return { success: false, error: title.error };
   const type = requireOneOf(item.type, "Type", TYPE_OPTIONS);
   if ("error" in type) return { success: false, error: type.error };
-  if (item.subjectId && !SUBJECT_IDS.includes(item.subjectId)) {
+  if (item.subjectId && !isValidSubjectId(item.subjectId)) {
     return { success: false, error: "Invalid subject" };
   }
 
@@ -191,7 +202,7 @@ export async function updateHubItemDetails(
   if ("error" in title) return { success: false, error: title.error };
   const type = requireOneOf(details.type, "Type", TYPE_OPTIONS);
   if ("error" in type) return { success: false, error: type.error };
-  if (details.subjectId && !SUBJECT_IDS.includes(details.subjectId)) {
+  if (details.subjectId && !isValidSubjectId(details.subjectId)) {
     return { success: false, error: "Invalid subject" };
   }
 
@@ -316,13 +327,23 @@ export async function bulkImportStudyLog(
 
 export async function completeHubOnboarding(
   subjectIds: SubjectId[] | null,
+  customSubjects: CustomSubject[] = [],
 ): Promise<ActionResult<null>> {
   const { supabase, user } = await requireUser();
   if (!user) return { success: false, error: "Log in to save your picks" };
 
+  for (const s of customSubjects) {
+    const title = requireField(s.name, "Subject name", 40);
+    if ("error" in title) return { success: false, error: title.error };
+  }
+
   const { error } = await supabase
     .from("users")
-    .update({ hub_subjects: subjectIds, hub_onboarded_at: new Date().toISOString() })
+    .update({
+      hub_subjects: subjectIds,
+      hub_onboarded_at: new Date().toISOString(),
+      custom_hub_subjects: customSubjects,
+    })
     .eq("id", user.id);
 
   if (error) return { success: false, error: error.message };
@@ -336,14 +357,19 @@ export async function completeHubOnboarding(
 export async function getHubRecommendedResources(): Promise<
   Record<SubjectId, Resource[]>
 > {
+  // Subjects added after the original 16 (Philosophy, Psychology, etc.) and
+  // any user-typed custom subject have no matching resource_tag at all —
+  // skip them here rather than firing a query that can only ever come back
+  // empty for every one of them.
+  const subjectsWithResources = SUBJECTS.filter((s) => s.hasResources !== false);
   const results = await Promise.all(
-    SUBJECTS.map((subject) =>
+    subjectsWithResources.map((subject) =>
       getResourcesPage({ subject: subject.name, sort: "most_liked", pageSize: 3 }),
     ),
   );
 
   const bySubject = {} as Record<SubjectId, Resource[]>;
-  SUBJECTS.forEach((subject, i) => {
+  subjectsWithResources.forEach((subject, i) => {
     const result = results[i];
     bySubject[subject.id] = result.success ? result.data.items : [];
   });

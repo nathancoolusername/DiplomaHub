@@ -35,6 +35,7 @@ export default async function HubPage() {
       initialStudyLog={studyLogResult?.success ? studyLogResult.data : []}
       hasOnboarded={profile?.hub_onboarded_at != null}
       hubSubjects={(profile?.hub_subjects as SubjectId[] | null) ?? null}
+      initialCustomSubjects={profile?.custom_hub_subjects ?? []}
       resourcesBySubject={resourcesBySubject}
     />
   );
