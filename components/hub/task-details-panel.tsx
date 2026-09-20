@@ -15,7 +15,7 @@ import {
   X,
 } from "lucide-react";
 import type { Resource } from "@/app/lib/types";
-import type { HubItem } from "./mock-data";
+import type { CustomSubject, HubItem } from "./mock-data";
 import { getSubject } from "./mock-data";
 import { getSubjectColor } from "./subject-colors";
 import { ITEM_TYPE_META } from "./item-type-meta";
@@ -48,6 +48,7 @@ export type TaskDetailsPanelProps = {
   onStartFocus: (itemId: string) => void;
   onEdit: (itemId: string) => void;
   onDelete: (itemId: string) => void;
+  customSubjects: CustomSubject[];
 };
 
 export default function TaskDetailsPanel(props: TaskDetailsPanelProps) {
@@ -147,8 +148,9 @@ function PanelContent({
   onStartFocus,
   onEdit,
   onDelete,
+  customSubjects,
 }: TaskDetailsPanelProps) {
-  const subject = getSubject(item.subjectId);
+  const subject = getSubject(item.subjectId, customSubjects);
   const color = getSubjectColor(item.subjectId);
   const typeMeta = ITEM_TYPE_META[item.type];
   const now = new Date();

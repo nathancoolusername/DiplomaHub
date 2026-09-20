@@ -92,4 +92,5 @@ export type UserProfile = {
   created_at: string;
   hub_subjects: string[] | null;
   hub_onboarded_at: string | null;
+  custom_hub_subjects: { id: string; name: string }[] | null;
 };

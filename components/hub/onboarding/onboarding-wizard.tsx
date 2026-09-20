@@ -3,12 +3,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import type { SubjectId } from "../mock-data";
+import { makeCustomSubjectId, type CustomSubject, type SubjectId } from "../mock-data";
 import StepWelcome from "./step-welcome";
 import StepCalendar from "./step-calendar";
 import StepTimerMilestones from "./step-timer-milestones";
 import StepPickSubjects from "./step-pick-subjects";
-import { CORE_SUBJECT_IDS, toggleWithCap } from "./subject-cap";
+import { CORE_SUBJECT_IDS, MAX_SUBJECTS, countNonCore, toggleWithCap } from "./subject-cap";
 
 function getFocusable(root: HTMLElement | null): HTMLElement[] {
   if (!root) return [];
@@ -89,7 +89,7 @@ export default function OnboardingWizard({
   onFinish,
   onSkip,
 }: {
-  onFinish: (subjectIds: SubjectId[] | null) => void;
+  onFinish: (subjectIds: SubjectId[] | null, customSubjects: CustomSubject[]) => void;
   onSkip: () => void;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -98,6 +98,7 @@ export default function OnboardingWizard({
   // start pre-checked — the user can still uncheck them, but starting from
   // "nothing selected" would make almost everyone do the same first click.
   const [selected, setSelected] = useState<Set<SubjectId>>(() => new Set(CORE_SUBJECT_IDS));
+  const [customSubjects, setCustomSubjects] = useState<CustomSubject[]>([]);
   const [spotlight, setSpotlight] = useState<Rect | null>(null);
   const [panelPos, setPanelPos] = useState<PanelPos | null>(null);
 
@@ -208,9 +209,25 @@ export default function OnboardingWizard({
     setSelected((prev) => toggleWithCap(prev, id));
   }
 
+  function addCustomSubject(name: string) {
+    if (countNonCore(selected) >= MAX_SUBJECTS) return;
+    const id = makeCustomSubjectId();
+    setCustomSubjects((prev) => [...prev, { id, name }]);
+    setSelected((prev) => new Set([...prev, id]));
+  }
+
+  function removeCustomSubject(id: string) {
+    setCustomSubjects((prev) => prev.filter((s) => s.id !== id));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
+
   function handleNext() {
     if (step === STEP_COUNT - 1) {
-      onFinish(selected.size > 0 ? Array.from(selected) : null);
+      onFinish(selected.size > 0 ? Array.from(selected) : null, customSubjects);
       return;
     }
     setStep((s) => s + 1);
@@ -283,7 +300,15 @@ export default function OnboardingWizard({
           {step === 0 && <StepWelcome />}
           {step === 1 && <StepCalendar />}
           {step === 2 && <StepTimerMilestones />}
-          {step === 3 && <StepPickSubjects selected={selected} onToggle={toggleSubject} />}
+          {step === 3 && (
+            <StepPickSubjects
+              selected={selected}
+              onToggle={toggleSubject}
+              customSubjects={customSubjects}
+              onAddCustom={addCustomSubject}
+              onRemoveCustom={removeCustomSubject}
+            />
+          )}
         </div>
 
         <div className="flex items-center justify-between pt-sm border-t border-outline-variant/50">

@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Bookmark, BookmarkCheck, ChevronDown, Maximize, Minimize, Minimize2, Pause, Play, Square } from "lucide-react";
 import type { Resource } from "@/app/lib/types";
-import type { HubItem } from "./mock-data";
+import type { CustomSubject, HubItem } from "./mock-data";
 import { getSubject } from "./mock-data";
 import { getSubjectColor } from "./subject-colors";
 import { formatTimer, getRemainingMs, type TimerState } from "./timer";
@@ -31,6 +31,7 @@ export default function FocusMode({
   onResume,
   onEnd,
   onMinimize,
+  customSubjects = [],
 }: {
   timerState: TimerState;
   task: HubItem | null;
@@ -43,6 +44,7 @@ export default function FocusMode({
   onResume: () => void;
   onEnd: () => void;
   onMinimize: () => void;
+  customSubjects?: CustomSubject[];
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -124,7 +126,7 @@ export default function FocusMode({
   else if (timerState.status === "paused") statusLabel = "Paused";
   else if (isComplete) statusLabel = "Session complete — nice work";
 
-  const subject = task ? getSubject(task.subjectId) : null;
+  const subject = task ? getSubject(task.subjectId, customSubjects) : null;
   const color = task ? getSubjectColor(task.subjectId) : null;
   const shownResources = resources.slice(0, 4);
 

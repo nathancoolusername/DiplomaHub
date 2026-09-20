@@ -38,7 +38,14 @@ import OnboardingWizard from "./onboarding/onboarding-wizard";
 import EditSubjectsDialog from "./onboarding/edit-subjects-dialog";
 import { computeMySubjectIds } from "./onboarding/subject-cap";
 import { defaultHubSession } from "./format";
-import { SUBJECTS, type HubItem, type HubItemStatus, type HubItemType, type SubjectId } from "./mock-data";
+import {
+  SUBJECTS,
+  type CustomSubject,
+  type HubItem,
+  type HubItemStatus,
+  type HubItemType,
+  type SubjectId,
+} from "./mock-data";
 import { hubItemToRow, rowToHubItem, type HubItemRow } from "./hub-row";
 import { getWeekDates, isSameDay, toDateInputValue } from "./calendar/calendar-utils";
 import { INITIAL_TIMER_STATE, SESSIONS_PER_CYCLE, TIMER_DURATION_MS, type TimerState } from "./timer";
@@ -99,6 +106,7 @@ function itemsReducer(state: HubItem[], action: ItemsAction): HubItem[] {
 const GUEST_ITEMS_KEY = "hub_guest_items";
 const GUEST_STUDY_LOG_KEY = "hub_guest_study_log";
 const GUEST_SUBJECTS_KEY = "hub_guest_subjects";
+const GUEST_CUSTOM_SUBJECTS_KEY = "hub_guest_custom_subjects";
 const GUEST_ONBOARDED_KEY = "hub_onboarded_guest";
 const SESSION_OVERRIDE_KEY_PREFIX = "hub_session_override:";
 
@@ -110,6 +118,7 @@ export default function Hub({
   initialStudyLog,
   hasOnboarded,
   hubSubjects,
+  initialCustomSubjects,
   resourcesBySubject,
 }: {
   firstName: string | null;
@@ -119,6 +128,7 @@ export default function Hub({
   initialStudyLog: StudyLogEntry[];
   hasOnboarded: boolean;
   hubSubjects: SubjectId[] | null;
+  initialCustomSubjects: CustomSubject[];
   resourcesBySubject: Record<SubjectId, Resource[]>;
 }) {
   const [items, dispatch] = useReducer(itemsReducer, initialItems);
@@ -134,6 +144,7 @@ export default function Hub({
   // in the Add Item dropdown; `activeSubjectIds` above is the separate,
   // ephemeral "currently toggled on" filter layered on top of it.
   const [chosenSubjectIds, setChosenSubjectIds] = useState<SubjectId[] | null>(hubSubjects);
+  const [customSubjects, setCustomSubjects] = useState<CustomSubject[]>(initialCustomSubjects);
   const [savedResourceIds, setSavedResourceIds] = useState<Set<string>>(() => new Set());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<HubItem | null>(null);
@@ -161,7 +172,15 @@ export default function Hub({
   const notesTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const mySubjectIds = useMemo(() => computeMySubjectIds(chosenSubjectIds), [chosenSubjectIds]);
-  const mySubjects = useMemo(() => SUBJECTS.filter((s) => mySubjectIds.has(s.id)), [mySubjectIds]);
+  const mySubjects = useMemo(
+    () => [
+      ...SUBJECTS.filter((s) => mySubjectIds.has(s.id)),
+      ...customSubjects
+        .filter((s) => mySubjectIds.has(s.id))
+        .map((s) => ({ id: s.id, name: s.name, shortName: s.name, hasResources: false })),
+    ],
+    [mySubjectIds, customSubjects],
+  );
 
   function applyNewSubjects(subjectIds: SubjectId[] | null) {
     setChosenSubjectIds(subjectIds);
@@ -228,6 +247,8 @@ export default function Hub({
             const subjects = JSON.parse(rawSubjects) as SubjectId[];
             if (subjects.length > 0) applyNewSubjects(subjects);
           }
+          const rawCustomSubjects = localStorage.getItem(GUEST_CUSTOM_SUBJECTS_KEY);
+          if (rawCustomSubjects) setCustomSubjects(JSON.parse(rawCustomSubjects) as CustomSubject[]);
           if (!localStorage.getItem(GUEST_ONBOARDED_KEY)) setShowOnboarding(true);
         } catch {
           // localStorage unavailable or corrupt — fall back to defaults
@@ -299,9 +320,13 @@ export default function Hub({
 
       if (itemsResult.success && logResult.success) {
         try {
-          [GUEST_ITEMS_KEY, GUEST_STUDY_LOG_KEY, GUEST_SUBJECTS_KEY, GUEST_ONBOARDED_KEY].forEach((k) =>
-            localStorage.removeItem(k),
-          );
+          [
+            GUEST_ITEMS_KEY,
+            GUEST_STUDY_LOG_KEY,
+            GUEST_SUBJECTS_KEY,
+            GUEST_CUSTOM_SUBJECTS_KEY,
+            GUEST_ONBOARDED_KEY,
+          ].forEach((k) => localStorage.removeItem(k));
           localStorage.setItem(migratedKey, "1");
         } catch {
           // ignore
@@ -557,16 +582,22 @@ export default function Hub({
     }
   }
 
-  function completeOnboarding(subjectIds: SubjectId[] | null) {
+  function completeOnboarding(subjectIds: SubjectId[] | null, newCustomSubjects: CustomSubject[]) {
     setShowOnboarding(false);
     applyNewSubjects(subjectIds);
+    setCustomSubjects(newCustomSubjects);
     if (userId) {
-      persistOrRevert(completeHubOnboardingAction(subjectIds));
+      persistOrRevert(completeHubOnboardingAction(subjectIds, newCustomSubjects));
     } else {
       try {
         localStorage.setItem(GUEST_ONBOARDED_KEY, "1");
         if (subjectIds) localStorage.setItem(GUEST_SUBJECTS_KEY, JSON.stringify(subjectIds));
         else localStorage.removeItem(GUEST_SUBJECTS_KEY);
+        if (newCustomSubjects.length > 0) {
+          localStorage.setItem(GUEST_CUSTOM_SUBJECTS_KEY, JSON.stringify(newCustomSubjects));
+        } else {
+          localStorage.removeItem(GUEST_CUSTOM_SUBJECTS_KEY);
+        }
       } catch {
         // ignore
       }
@@ -583,14 +614,20 @@ export default function Hub({
     }
   }
 
-  function handleSaveSubjects(subjectIds: SubjectId[] | null) {
+  function handleSaveSubjects(subjectIds: SubjectId[] | null, newCustomSubjects: CustomSubject[]) {
     applyNewSubjects(subjectIds);
+    setCustomSubjects(newCustomSubjects);
     if (userId) {
-      persistOrRevert(completeHubOnboardingAction(subjectIds));
+      persistOrRevert(completeHubOnboardingAction(subjectIds, newCustomSubjects));
     } else {
       try {
         if (subjectIds) localStorage.setItem(GUEST_SUBJECTS_KEY, JSON.stringify(subjectIds));
         else localStorage.removeItem(GUEST_SUBJECTS_KEY);
+        if (newCustomSubjects.length > 0) {
+          localStorage.setItem(GUEST_CUSTOM_SUBJECTS_KEY, JSON.stringify(newCustomSubjects));
+        } else {
+          localStorage.removeItem(GUEST_CUSTOM_SUBJECTS_KEY);
+        }
       } catch {
         // ignore
       }
@@ -666,6 +703,7 @@ export default function Hub({
     onStartFocus: startFocus,
     onEdit: openEditDialog,
     onDelete: handleDeleteItem,
+    customSubjects,
   };
 
   if (!mounted) {
@@ -732,6 +770,7 @@ export default function Hub({
             setCurrentDate(date);
             setView("week");
           }}
+          customSubjects={customSubjects}
         />
       ) : (
         <>
@@ -784,6 +823,7 @@ export default function Hub({
           onResume={startOrResumeTimer}
           onEnd={endFocusSession}
           onMinimize={closeFocusMode}
+          customSubjects={customSubjects}
         />
       )}
 
@@ -859,14 +899,15 @@ export default function Hub({
 
       {showOnboarding && (
         <OnboardingWizard
-          onFinish={(subjectIds) => completeOnboarding(subjectIds)}
-          onSkip={() => completeOnboarding(null)}
+          onFinish={(subjectIds, newCustomSubjects) => completeOnboarding(subjectIds, newCustomSubjects)}
+          onSkip={() => completeOnboarding(null, [])}
         />
       )}
 
       {isEditSubjectsOpen && (
         <EditSubjectsDialog
           initialSelected={mySubjectIds}
+          initialCustomSubjects={customSubjects}
           onSave={handleSaveSubjects}
           onClose={() => setIsEditSubjectsOpen(false)}
         />

@@ -1,6 +1,6 @@
 "use client";
 
-import type { HubItem } from "./mock-data";
+import type { CustomSubject, HubItem } from "./mock-data";
 import { getSubject } from "./mock-data";
 import { getSubjectColor } from "./subject-colors";
 import { isSameDay } from "./calendar/calendar-utils";
@@ -9,10 +9,12 @@ export default function MonthView({
   anchorDate,
   items,
   onSelectDay,
+  customSubjects = [],
 }: {
   anchorDate: Date;
   items: HubItem[];
   onSelectDay: (date: Date) => void;
+  customSubjects?: CustomSubject[];
 }) {
   const year = anchorDate.getFullYear();
   const month = anchorDate.getMonth();
@@ -45,7 +47,7 @@ export default function MonthView({
           const isToday = isSameDay(day, today);
           const dayItems = items.filter((item) => isSameDay(item.start, day));
           const subjectNames = dayItems.map(
-            (item) => getSubject(item.subjectId)?.name ?? "General",
+            (item) => getSubject(item.subjectId, customSubjects)?.name ?? "General",
           );
           const label =
             dayItems.length === 0

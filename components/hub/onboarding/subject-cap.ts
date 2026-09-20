@@ -3,7 +3,10 @@ import type { SubjectId } from "../mock-data";
 // Every IB Diploma student takes exactly 6 subject courses on top of the
 // TOK/EE/CAS core (plus "General" as a catch-all, treated the same way
 // here) — these four are pre-checked and free, they never count against
-// the cap, so the cap only applies to the other 12 subject choices.
+// the cap, so the cap only applies to the other 12 subject choices. A
+// user's own custom subject counts the same as a built-in one here — it
+// represents a real 7th course only in the sense that it occupies one of
+// the 6 slots, same as picking any other subject would.
 export const MAX_SUBJECTS = 6;
 export const CORE_SUBJECT_IDS: SubjectId[] = ["ee", "tok", "cas", "general"];
 

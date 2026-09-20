@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Resource } from "@/app/lib/types";
-import type { HubItem, SubjectId } from "../mock-data";
+import type { CustomSubject, HubItem, SubjectId } from "../mock-data";
 import TaskDetailsPanel from "../task-details-panel";
 import DayColumn from "./day-column";
 import type { DragPreview } from "./task-block";
@@ -21,6 +21,7 @@ export type PanelActions = {
   onStartFocus: (itemId: string) => void;
   onEdit: (itemId: string) => void;
   onDelete: (itemId: string) => void;
+  customSubjects: CustomSubject[];
 };
 
 export default function WeekCalendar({
