@@ -5,6 +5,10 @@ import { getRoadmapItems } from "@/app/lib/actions/roadmap";
 import { ROADMAP_TAG_ICONS } from "@/components/roadmap/icons";
 import type { RoadmapItem, RoadmapStatus } from "@/app/lib/types";
 
+// Served statically and regenerated at most hourly; admin roadmap edits
+// also refresh it immediately via revalidatePath("/roadmap").
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Roadmap",
   description:

@@ -92,10 +92,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
     await admin.from("calendar_feeds").update({ last_accessed_at: now.toISOString() }).eq("id", feed.id);
   }
 
+  // Calendar apps re-poll subscriptions on their own schedule (some every
+  // few minutes), and each poll used to rerun the rate-limit check, the DB
+  // queries and the full ICS build. s-maxage lets Vercel's CDN answer
+  // repeat polls of the same feed URL for 30 minutes without invoking this
+  // function. Safe to share-cache: the token in the path is what scopes
+  // the response, and no cookies are involved. Trade-off: Hub edits and a
+  // "Generate new link" revocation can take up to 30 minutes to reach
+  // subscribed calendars (which mostly refresh hourly or less anyway).
+  // Error responses above set no cache header, so they're never cached.
   return new NextResponse(ics, {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Cache-Control": "private, no-cache, max-age=0",
+      "Cache-Control": "public, max-age=0, s-maxage=1800",
     },
   });
 }

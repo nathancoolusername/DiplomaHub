@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getResourceDetail } from "@/app/lib/actions/resources";
+import { cache } from "react";
+import { getResourceDetail as fetchResourceDetail } from "@/app/lib/actions/resources";
 import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUserId } from "@/app/lib/get-current-user";
 import { isAdmin } from "@/app/lib/admin";
@@ -16,6 +17,11 @@ import { SaveButton } from "@/components/saveButton";
 import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
 import { JsonLd } from "@/components/JsonLd";
+
+// generateMetadata and the page both need this resource — React's cache()
+// dedupes them into one fetch per request instead of running every query
+// (and auth check) twice.
+const getResourceDetail = cache(fetchResourceDetail);
 
 const months = [
   "Jan",
@@ -208,7 +214,6 @@ export default async function resourcePage({
                       target={{ resource_id: resource.id }}
                       initiallyLiked={resource.isLiked ?? false}
                       initialCount={resource.like_count}
-                      path={`/resources/${resource.id}`}
                       size={30}
                       className="text-on-surface-variant transition hover:text-[#f50707] hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1 flex flex-row items-center"
                       activeColor="#f50707"
@@ -217,7 +222,6 @@ export default async function resourcePage({
                       <SaveButton
                         target={{ resource_id: resource.id }}
                         initiallySaved={resource.isSaved ?? false}
-                        path={`/resources/${resource.id}`}
                         size={36}
                         className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
                       />

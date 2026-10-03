@@ -1,10 +1,12 @@
 "use server";
 
+import { unstable_cache } from "next/cache";
 import { createClient } from "../supabase/server";
+import { createPublicClient } from "../supabase/public";
+import { getCurrentUserId } from "../get-current-user";
 import { checkRateLimit } from "../ratelimit";
 import { requireField, requireOneOf } from "../validation";
 import type { ActionResult, Resource } from "../types";
-import { getResourcesPage } from "./resources";
 import { hubItemToRow, rowToHubItem, type HubItemRow } from "@/components/hub/hub-row";
 import {
   SUBJECTS,
@@ -30,22 +32,35 @@ function isValidSubjectId(id: SubjectId): boolean {
   return SUBJECT_IDS.includes(id) || isCustomSubjectId(id);
 }
 
+// proxy.ts already verified the session for every request that reaches
+// these actions (and the /hub page), and forwards the user id — reuse it
+// rather than paying a second Auth-server round trip via getUser() on
+// every call. The Supabase client still sends the caller's JWT, so RLS
+// (owner_id = auth.uid()) enforces ownership independently of this id.
 async function requireUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return { supabase, user };
+  const [supabase, userId] = await Promise.all([createClient(), getCurrentUserId()]);
+  return { supabase, user: userId ? { id: userId } : null };
 }
+
+const HUB_ITEM_COLUMNS =
+  "id, title, type, subject_id, start_at, end_at, all_day, status, stages, notes, resource_ids, weight_label";
+const HUB_ITEM_HISTORY_DAYS = 120;
 
 export async function getHubItems(): Promise<ActionResult<HubItem[]>> {
   const { supabase, user } = await requireUser();
   if (!user) return { success: false, error: "Log in to load your plan" };
 
+  // Every still-open item (so overdue ones keep showing up) plus anything
+  // that ended within the last ~4 months — not every row the account has
+  // ever had, which for an imported school calendar can run to hundreds,
+  // all re-parsed and serialized into the page on every /hub and dashboard
+  // load. Completed items older than that just drop off the calendar.
+  const since = new Date(Date.now() - HUB_ITEM_HISTORY_DAYS * 86_400_000).toISOString();
   const { data, error } = await supabase
     .from("hub_items")
-    .select("*")
+    .select(HUB_ITEM_COLUMNS)
     .eq("owner_id", user.id)
+    .or(`status.eq.todo,end_at.gte.${since}`)
     .order("start_at", { ascending: true });
 
   if (error) return { success: false, error: error.message };
@@ -350,28 +365,51 @@ export async function completeHubOnboarding(
   return { success: true, data: null };
 }
 
-// One getResourcesPage call per Hub subject, fetched in parallel — used by
-// app/hub/page.tsx to feed the task details panel's "Recommended Resources"
-// with real, subject-matched site content instead of fake mock rows. Works
-// for guests too since getResourcesPage has a working logged-out branch.
+const RECOMMENDED_PER_SUBJECT = 3;
+
+// Recommended resources depend only on published resource data, never on
+// who's viewing (the Hub tracks bookmarks in its own state, not via
+// isSaved), so one cached result serves every /hub render — one query an
+// hour instead of 16 queries plus 16 Auth round trips per page view. Uses
+// a cookie-less client because unstable_cache scopes can't read cookies.
+// The "resources" tag lets resource create/edit/delete/publish refresh it
+// early (see resources.ts/admin.ts). Throws on error so a failed fetch is
+// never cached; the exported wrapper below turns that into an empty result.
+const getCachedRecommendedResources = unstable_cache(
+  async (): Promise<Record<SubjectId, Resource[]>> => {
+    // Subjects added after the original 16 (Philosophy, Psychology, etc.)
+    // and any user-typed custom subject have no matching resource_tag, so
+    // they're left out of the query entirely.
+    const subjectsWithResources = SUBJECTS.filter((s) => s.hasResources !== false);
+    const idByName = new Map(subjectsWithResources.map((s) => [s.name, s.id]));
+
+    const { data, error } = await createPublicClient()
+      .from("resources")
+      .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
+      .eq("published", true)
+      .in("subject_tag", [...idByName.keys()])
+      .order("like_count", { ascending: false });
+    if (error) throw new Error(error.message);
+
+    const bySubject = {} as Record<SubjectId, Resource[]>;
+    for (const s of subjectsWithResources) bySubject[s.id] = [];
+    for (const row of data ?? []) {
+      const id = idByName.get(row.subject_tag);
+      if (!id || bySubject[id].length >= RECOMMENDED_PER_SUBJECT) continue;
+      bySubject[id].push({ ...row, author: Array.isArray(row.author) ? row.author[0] : row.author });
+    }
+    return bySubject;
+  },
+  ["hub-recommended-resources"],
+  { revalidate: 3600, tags: ["resources"] },
+);
+
 export async function getHubRecommendedResources(): Promise<
   Record<SubjectId, Resource[]>
 > {
-  // Subjects added after the original 16 (Philosophy, Psychology, etc.) and
-  // any user-typed custom subject have no matching resource_tag at all —
-  // skip them here rather than firing a query that can only ever come back
-  // empty for every one of them.
-  const subjectsWithResources = SUBJECTS.filter((s) => s.hasResources !== false);
-  const results = await Promise.all(
-    subjectsWithResources.map((subject) =>
-      getResourcesPage({ subject: subject.name, sort: "most_liked", pageSize: 3 }),
-    ),
-  );
-
-  const bySubject = {} as Record<SubjectId, Resource[]>;
-  subjectsWithResources.forEach((subject, i) => {
-    const result = results[i];
-    bySubject[subject.id] = result.success ? result.data.items : [];
-  });
-  return bySubject;
+  try {
+    return await getCachedRecommendedResources();
+  } catch {
+    return {};
+  }
 }

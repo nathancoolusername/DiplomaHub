@@ -2,15 +2,16 @@
 "use server";
 
 import { createClient } from "../supabase/server";
-import { revalidatePath } from "next/cache";
 import { checkRateLimit } from "../ratelimit";
 import type { ActionResult, Resource, Article } from "../types";
 
 type SaveTarget = { resource_id: string } | { article_id: string };
 
+// No revalidatePath here on purpose: SaveButton already updates optimistically
+// and reconciles with the returned value, so re-rendering the whole current
+// page on the server for every click was pure extra CPU.
 export async function toggleSave(
   target: SaveTarget,
-  path: string,
 ): Promise<ActionResult<{ saved: boolean }>> {
   const supabase = await createClient();
   const {
@@ -33,14 +34,12 @@ export async function toggleSave(
       .delete()
       .eq("id", existing.id);
     if (error) return { success: false, error: error.message };
-    revalidatePath(path);
     return { success: true, data: { saved: false } };
   } else {
     const { error } = await supabase
       .from("saved_items")
       .insert({ user_id: user.id, ...target });
     if (error) return { success: false, error: error.message };
-    revalidatePath(path);
     return { success: true, data: { saved: true } };
   }
 }

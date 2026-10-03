@@ -2,7 +2,7 @@
 
 import { createClient } from "../supabase/server";
 import { createAdminClient } from "../supabase/admin";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { isAdmin } from "../admin";
 import { createNotification } from "./notifications";
 import { ROADMAP_TAG_ICON_NAMES } from "../roadmapTagIcons";
@@ -591,6 +591,7 @@ export async function setResourcePublished(
   if (error) return { success: false, error: error.message };
   revalidatePath("/admin/content");
   revalidatePath("/resources");
+  revalidateTag("resources", "max");
   return { success: true, data: null };
 }
 

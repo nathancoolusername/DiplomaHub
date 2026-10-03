@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getArticle } from "@/app/lib/actions/articles";
+import { cache } from "react";
+import { getArticle as fetchArticle } from "@/app/lib/actions/articles";
 import { stripHtml } from "@/app/lib/stripHtml";
 import { getComments } from "@/app/lib/actions/comments";
 import { getCurrentUserId } from "@/app/lib/get-current-user";
@@ -18,6 +19,12 @@ import { SaveButton } from "@/components/saveButton";
 import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
 import { JsonLd } from "@/components/JsonLd";
+
+// generateMetadata and the page both need this article — React's cache()
+// dedupes them into one fetch per request. Without it every query ran
+// twice, and getArticle's increment_view_count fired twice, doubling each
+// article's view count.
+const getArticle = cache(fetchArticle);
 
 const months = [
   "Jan",
@@ -165,7 +172,6 @@ export default async function ArticlePage({
               target={{ article_id: article.id }}
               initiallyLiked={article.isLiked ?? false}
               initialCount={article.like_count}
-              path={`/articles/${article.slug}`}
               size={30}
               className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1 flex flex-row items-center"
             />
@@ -180,7 +186,6 @@ export default async function ArticlePage({
             <SaveButton
               target={{ article_id: article.id }}
               initiallySaved={article.isSaved ?? false}
-              path={`/articles/${article.slug}`}
               size={36}
               className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
             />

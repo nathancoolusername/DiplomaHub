@@ -2,7 +2,9 @@
 
 import { createClient } from "../supabase/server";
 import { createAdminClient } from "../supabase/admin";
-import { revalidatePath } from "next/cache";
+import { createPublicClient } from "../supabase/public";
+import { getCurrentUserId } from "../get-current-user";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { isAdmin } from "../admin";
 import { createNotification } from "./notifications";
 import {
@@ -104,6 +106,7 @@ export async function createResource(
 
   if (error) return { success: false, error: error.message };
   revalidatePath("/resources");
+  revalidateTag("resources", "max");
   return { success: true, data };
 }
 
@@ -166,6 +169,7 @@ export async function updateResource(
 
   revalidatePath("/resources");
   revalidatePath(`/resources/${resourceId}`);
+  revalidateTag("resources", "max");
   return { success: true, data };
 }
 
@@ -266,6 +270,7 @@ export async function deleteResource(
   }
 
   revalidatePath("/resources");
+  revalidateTag("resources", "max");
   return { success: true, data: null };
 }
 
@@ -348,11 +353,15 @@ export async function getResourcesPage(filters: {
   sort?: ResourceSort;
   page?: number;
   pageSize?: number;
+  // Several subjects at once (e.g. the dashboard's "New in your subjects")
+  // as one query, instead of one call per subject.
+  subjects?: string[];
 }): Promise<ActionResult<{ items: Resource[]; totalCount: number }>> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // proxy.ts already verified the session for this request — reuse its
+  // result instead of an Auth-server round trip via getUser() on every
+  // listing fetch. It's only used to look up the viewer's own likes/saves.
+  const [supabase, userId] = await Promise.all([createClient(), getCurrentUserId()]);
+  const user = userId ? { id: userId } : null;
 
   const page = filters.page && filters.page > 0 ? filters.page : 1;
   const pageSize =
@@ -372,6 +381,7 @@ export async function getResourcesPage(filters: {
     .eq("published", true);
 
   if (filters.subject) query = query.eq("subject_tag", filters.subject);
+  if (filters.subjects?.length) query = query.in("subject_tag", filters.subjects);
   if (filters.type === "Exemplar") {
     query = query.in("type_tag", EXEMPLAR_TYPE_VALUES);
   } else if (filters.type) {
@@ -529,24 +539,39 @@ export async function getFeaturedResources(
   };
 }
 
-// Homepage "Resources by subject": used to be one getResourcesPage() call
-// per subject (16 parallel count-exact queries) just to answer "how many
-// published resources does each subject have" — a single column fetch plus
-// counting in JS gets the same answer in one round trip instead of 16.
+// Published-resource count per subject — feeds the homepage's "Resources by
+// subject" grid and the hero stat line. It changes rarely, so it's cached
+// for an hour across all visitors (cookie-less client, since unstable_cache
+// can't read cookies), and refreshed early via the "resources" tag whenever
+// a resource is created, edited, deleted or (un)published. Throws on error
+// so a failed fetch is never cached.
+const getCachedResourceCountsBySubject = unstable_cache(
+  async (): Promise<Record<string, number>> => {
+    const { data, error } = await createPublicClient()
+      .from("resources")
+      .select("subject_tag")
+      .eq("published", true);
+    if (error) throw new Error(error.message);
+
+    const counts: Record<string, number> = {};
+    for (const row of data) {
+      counts[row.subject_tag] = (counts[row.subject_tag] ?? 0) + 1;
+    }
+    return counts;
+  },
+  ["resource-counts-by-subject"],
+  { revalidate: 3600, tags: ["resources"] },
+);
+
 export async function getResourceCountsBySubject(): Promise<
   ActionResult<Record<string, number>>
 > {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("resources")
-    .select("subject_tag")
-    .eq("published", true);
-
-  if (error) return { success: false, error: error.message };
-
-  const counts: Record<string, number> = {};
-  for (const row of data) {
-    counts[row.subject_tag] = (counts[row.subject_tag] ?? 0) + 1;
+  try {
+    return { success: true, data: await getCachedResourceCountsBySubject() };
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Couldn't load subject counts",
+    };
   }
-  return { success: true, data: counts };
 }

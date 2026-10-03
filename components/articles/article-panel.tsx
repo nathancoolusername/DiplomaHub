@@ -96,7 +96,6 @@ export default function Panel({
               target={{ article_id: String(article.id) }}
               initiallyLiked={article.isLiked ?? false}
               initialCount={article.like_count}
-              path="/articles"
             />
             <Eye />
             <p className="text-on-surface-variant text-body-lg ml-sm">
@@ -105,7 +104,6 @@ export default function Panel({
             <SaveButton
               target={{ article_id: String(article.id) }}
               initiallySaved={article.isSaved ?? false}
-              path="/articles"
             />
           </div>
         </div>

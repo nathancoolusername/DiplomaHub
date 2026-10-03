@@ -6,6 +6,13 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 
+// /hub is the only route with a loading.tsx, which makes it the one dynamic
+// route Next prefetches automatically — and without a client cache for it,
+// so a navbar link visible on every page meant an extra server render of
+// the layout + loading shell on nearly every page view. Navigating there
+// still shows the loading skeleton; it just isn't fetched ahead of time.
+const NO_PREFETCH = new Set(["/hub"]);
+
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "Hub", href: "/hub" },
@@ -31,6 +38,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
                 <Link
                   key={link.href}
                   href={link.href}
+                  prefetch={NO_PREFETCH.has(link.href) ? false : undefined}
                   className={`text-body-md transition-colors ${
                     isActive
                       ? "text-primary font-bold border-b-2 border-primary pb-1"
@@ -64,6 +72,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch={NO_PREFETCH.has(link.href) ? false : undefined}
                 onClick={() => setMenuOpen(false)}
                 className={`px-lg py-md text-body-md transition-colors ${
                   isActive

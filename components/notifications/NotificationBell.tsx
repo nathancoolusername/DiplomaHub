@@ -13,7 +13,11 @@ import {
 import { Avatar } from "@/components/avatar";
 import { formatRelativeTime } from "@/app/lib/relativeTime";
 
-const POLL_INTERVAL_MS = 30_000;
+// Each poll is a server action POST (a proxy run plus a function
+// invocation), so this interval directly multiplies Vercel CPU per open
+// tab — 3 minutes keeps the badge reasonably fresh without the cost of
+// polling every 30s, and opening the dropdown always fetches live data.
+const POLL_INTERVAL_MS = 180_000;
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +33,9 @@ export function NotificationBell() {
     let interval: ReturnType<typeof setInterval> | null = null;
 
     async function poll() {
+      // Hub focus mode goes fullscreen with the bell hidden underneath —
+      // nobody can see the badge, so don't pay for an update to it.
+      if (document.fullscreenElement) return;
       const result = await getUnreadNotificationCount();
       if (!cancelled && result.success) setUnreadCount(result.data);
     }

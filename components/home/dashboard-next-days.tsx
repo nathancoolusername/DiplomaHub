@@ -21,7 +21,7 @@ export default function DashboardNextDays({ items }: { items: HubItem[] }) {
     <div className="flex flex-col gap-md">
       <div className="flex items-center justify-between">
         <h2 className="text-headline-sm font-serif font-bold text-on-surface">Next 3 days</h2>
-        <Link href="/hub" className="text-label-md font-semibold text-primary hover:underline">
+        <Link href="/hub" prefetch={false} className="text-label-md font-semibold text-primary hover:underline">
           Open the Hub
         </Link>
       </div>
@@ -47,7 +47,7 @@ export default function DashboardNextDays({ items }: { items: HubItem[] }) {
                     return (
                       <Link
                         key={item.id}
-                        href="/hub"
+                        href="/hub" prefetch={false}
                         className={`flex items-center gap-xs border-l-[3px] pl-sm py-[2px] hover:bg-surface-container-low transition-colors ${done ? "opacity-60" : ""}`}
                         style={{ borderLeftColor: color.base }}
                       >

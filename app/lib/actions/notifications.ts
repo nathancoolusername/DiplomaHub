@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { createClient } from "../supabase/server";
 import { createAdminClient } from "../supabase/admin";
 import { resolveOrigin } from "../resolveOrigin";
+import { getCurrentUserId } from "../get-current-user";
 import type { ActionResult } from "../types";
 
 export type NotificationType =
@@ -145,19 +146,21 @@ export async function getNotifications(): Promise<
   };
 }
 
+// Polled by NotificationBell — proxy.ts already verified the session for
+// this request, so read its result instead of paying a second Auth-server
+// round trip via getUser() on every poll. RLS still scopes the query to the
+// caller's own JWT either way.
 export async function getUnreadNotificationCount(): Promise<
   ActionResult<number>
 > {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { success: true, data: 0 };
+  const userId = await getCurrentUserId();
+  if (!userId) return { success: true, data: 0 };
 
+  const supabase = await createClient();
   const { count, error } = await supabase
     .from("notifications")
     .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .eq("read", false);
 
   if (error) return { success: false, error: error.message };

@@ -74,7 +74,6 @@ export default function Panel({ resource }: Props) {
               target={{ resource_id: resource.id }}
               initiallyLiked={resource.isLiked ?? false}
               initialCount={resource.like_count}
-              path="/resources"
               className="flex flex-row items-center hover:text-[#f50707] cursor-pointer"
               activeColor="#f50707"
             />
@@ -87,7 +86,6 @@ export default function Panel({ resource }: Props) {
             <SaveButton
               target={{ resource_id: resource.id }}
               initiallySaved={resource.isSaved ?? false}
-              path="/resources"
             />
             <DownloadButton
               resourceId={resource.id}

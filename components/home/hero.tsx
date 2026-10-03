@@ -99,7 +99,7 @@ export default async function Hero() {
                 Browse resources
               </button>
             </Link>
-            <Link href="/hub" className="w-full sm:w-auto">
+            <Link href="/hub" prefetch={false} className="w-full sm:w-auto">
               <button className="w-full sm:w-auto flex items-center justify-center gap-sm bg-primary text-on-primary rounded-lg px-lg py-sm text-body-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer">
                 Start planning
               </button>

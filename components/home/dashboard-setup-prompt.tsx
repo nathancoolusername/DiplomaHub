@@ -11,7 +11,7 @@ export default function DashboardSetupPrompt() {
         Pick the subjects you&apos;re taking and the Hub will build your calendar and recommend
         resources for exactly what you&apos;re studying.
       </p>
-      <Link href="/hub">
+      <Link href="/hub" prefetch={false}>
         <Button className="text-body-lg">Pick your subjects</Button>
       </Link>
     </div>
