@@ -6,6 +6,8 @@ import { AuthNav } from "@/components/NavAuth";
 import Footer from "@/components/Footer";
 import ScrollTopBtn from "@/components/scrollTop";
 import { JsonLd } from "@/components/JsonLd";
+import { Suspense } from "react";
+import { Analytics } from "@vercel/analytics/next";
 
 const description =
   "Plan your whole IB Diploma with the Hub — a personal calendar for deadlines and study blocks — plus a library of student-made resources for every subject.";
@@ -80,6 +82,7 @@ export default function RootLayout({
           <Footer />
           <ScrollTopBtn />
         </div>
+        <Analytics />
       </body>
     </html>
   );
