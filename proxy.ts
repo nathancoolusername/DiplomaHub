@@ -28,6 +28,19 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
+  // Logged-out visitors and bots carry no Supabase auth cookie, so there's
+  // no session to verify — skip building a client and calling getClaims()
+  // entirely. The header still has to be stripped here (not just left
+  // unset) so a client can't send its own x-verified-user-id and have
+  // getCurrentUserId() trust it downstream.
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
+  if (!hasAuthCookie) {
+    requestHeaders.delete("x-verified-user-id");
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
   let pendingCookies: { name: string; value: string; options: CookieOptions }[] =
     [];
 
@@ -100,8 +113,15 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   return response;
 }
 
+// Only excludes paths whose server code never reads x-verified-user-id —
+// skipping this proxy anywhere getCurrentUserId() is used would let a
+// client-supplied header through unstripped. That's also why prefetches
+// are handled by the early return above rather than excluded here: their
+// responses render pages that do call getCurrentUserId(). The calendar
+// feed authenticates by its own URL token, and sitemap/robots/static
+// files don't touch the session at all.
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|api/calendar|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest|woff|woff2|ttf|otf|pdf|map)$).*)",
   ],
 };

@@ -28,7 +28,7 @@ export default function HowItWorks() {
               Pick your subjects, plan your studying, and track every single deadline in one
               place — tests, uni applications, IAs, EEs, and more.
             </p>
-            <Link href="/hub" className="text-primary font-semibold text-body-md hover:underline">
+            <Link href="/hub" prefetch={false} className="text-primary font-semibold text-body-md hover:underline">
               Start planning
             </Link>
           </div>

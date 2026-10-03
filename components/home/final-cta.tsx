@@ -20,7 +20,7 @@ export default function FinalCta() {
             Browse resources
           </Link>
           <Link
-            href="/hub"
+            href="/hub" prefetch={false}
             className="w-full sm:w-auto text-center bg-primary text-on-primary px-lg py-sm rounded-lg text-body-lg font-semibold hover:opacity-90 transition-opacity"
           >
             Start planning

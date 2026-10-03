@@ -28,19 +28,21 @@ export default async function DashboardResources({
     // resources table's subject_tag is the real display name ("Math AA").
     // getSubject() (components/hub/mock-data.ts) is the existing bridge
     // between the two, same one getHubRecommendedResources already relies on.
+    // Custom and later-added subjects have no matching resource_tag, so
+    // they're skipped rather than sent as filter values that match nothing.
     const subjectNames = hubSubjects
-      .map((id) => getSubject(id as SubjectId)?.name)
-      .filter((name): name is string => !!name);
-    const perSubject = await Promise.all(
-      subjectNames.map(async (subject) => {
-        const result = await getResourcesPage({ subject, sort: "newest", pageSize: 3 });
-        return result.success ? result.data.items : [];
-      }),
-    );
-    resources = perSubject
-      .flat()
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, DISPLAY_COUNT);
+      .map((id) => getSubject(id as SubjectId))
+      .filter((s) => !!s && s.hasResources !== false)
+      .map((s) => s!.name);
+    // One query across every picked subject rather than one per subject.
+    if (subjectNames.length > 0) {
+      const result = await getResourcesPage({
+        subjects: subjectNames,
+        sort: "newest",
+        pageSize: DISPLAY_COUNT,
+      });
+      resources = result.success ? result.data.items : [];
+    }
   } else {
     const result = await getResourcesPage({ sort: "newest", pageSize: DISPLAY_COUNT });
     resources = result.success ? result.data.items : [];

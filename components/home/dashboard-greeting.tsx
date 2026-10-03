@@ -18,7 +18,7 @@ export default function DashboardGreeting({ firstName }: { firstName: string | n
             Open resources
           </button>
         </Link>
-        <Link href="/hub">
+        <Link href="/hub" prefetch={false}>
           {/* border-2 border-transparent (not just omitting the border) so
               this button's box is exactly as tall as the bordered one next
               to it — a border still occupies layout space even when

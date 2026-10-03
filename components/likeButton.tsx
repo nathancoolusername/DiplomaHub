@@ -10,7 +10,6 @@ export function LikeButton({
   target,
   initiallyLiked,
   initialCount,
-  path,
   className,
   activeColor,
   size = 36,
@@ -18,7 +17,6 @@ export function LikeButton({
   target: LikeTarget;
   initiallyLiked: boolean;
   initialCount: number;
-  path: string;
   className?: string;
   activeColor?: string;
   size?: number;
@@ -36,7 +34,7 @@ export function LikeButton({
     setLiked(nextLiked);
     setCount(nextLiked ? prevCount + 1 : prevCount - 1);
 
-    const result = await toggleLike(target, path);
+    const result = await toggleLike(target);
     if (!result.success) {
       setLiked(prevLiked);
       setCount(prevCount);

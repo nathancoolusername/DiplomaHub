@@ -77,17 +77,7 @@ export default function RootLayout({
       <body>
         <JsonLd data={websiteJsonLd} />
         <div className="min-h-[100vh] relative flex flex-col bg-surface-container-lowest h-full notranslate">
-          <Navbar
-            authSlot={
-              <Suspense
-                fallback={
-                  <div className="w-20 h-5 bg-gray-100 rounded animate-pulse" />
-                }
-              >
-                <AuthNav />
-              </Suspense>
-            }
-          />
+          <Navbar authSlot={<AuthNav />} />
           <main>{children}</main>
           <Footer />
           <ScrollTopBtn />

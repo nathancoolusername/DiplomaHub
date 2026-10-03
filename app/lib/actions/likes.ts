@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "../supabase/server";
-import { revalidatePath } from "next/cache";
 import { createNotification } from "./notifications";
 import { checkRateLimit } from "../ratelimit";
 import type { ActionResult } from "../types";
@@ -49,9 +48,11 @@ async function notifyForLike(
   }
 }
 
+// No revalidatePath here on purpose: LikeButton already updates optimistically
+// and reconciles with the returned value, so re-rendering the whole current
+// page on the server for every click was pure extra CPU.
 export async function toggleLike(
   target: LikeTarget,
-  path: string,
 ): Promise<ActionResult<{ liked: boolean }>> {
   const supabase = await createClient();
   const {
@@ -74,7 +75,6 @@ export async function toggleLike(
       .delete()
       .eq("id", existing.id);
     if (error) return { success: false, error: error.message };
-    revalidatePath(path);
     return { success: true, data: { liked: false } };
   } else {
     const { error } = await supabase
@@ -91,7 +91,6 @@ export async function toggleLike(
       await notifyForLike(supabase, target, user.id, actor.display_name);
     }
 
-    revalidatePath(path);
     return { success: true, data: { liked: true } };
   }
 }

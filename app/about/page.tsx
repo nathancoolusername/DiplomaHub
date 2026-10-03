@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getCurrentUserId } from "@/app/lib/get-current-user";
 
 export const metadata: Metadata = {
   title: "About",
@@ -9,9 +8,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/about" },
 };
 
-export default async function About() {
-  const userId = await getCurrentUserId();
-  const ctaHref = userId ? "/" : "/login";
+// A constant link (rather than checking the session) keeps this page fully
+// static — /login already sends anyone who's signed in straight to "/".
+const ctaHref = "/login";
+
+export default function About() {
 
   return (
     <div className="flex flex-col gap-[70px] bg-surface-container-low ">

@@ -10,14 +10,12 @@ type SaveTarget = { resource_id: string } | { article_id: string };
 export function SaveButton({
   target,
   initiallySaved,
-  path,
   className,
   activeColor,
   size = 30,
 }: {
   target: SaveTarget;
   initiallySaved: boolean;
-  path: string;
   className?: string;
   activeColor?: string;
   size?: number;
@@ -32,7 +30,7 @@ export function SaveButton({
     // server call fails.
     setSaved(nextSaved);
 
-    const result = await toggleSave(target, path);
+    const result = await toggleSave(target);
     if (!result.success) {
       setSaved(prevSaved);
     } else if (result.data.saved !== nextSaved) {
