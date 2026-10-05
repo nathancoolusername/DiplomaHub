@@ -456,87 +456,70 @@ export async function getResourcesPage(filters: {
 // DISTINCT ON — entirely in the database, never fetches more than `limit`
 // rows regardless of table size. See get_featured_resources.sql handed to
 // the user for the SQL (no migration files in this repo).
+//
+// Cached for an hour and shared by every visitor (cookie-less client, since
+// unstable_cache scopes can't read cookies) — it only renders on the
+// signed-out homepage, which is static, so there's no viewer to attach
+// isLiked/isSaved for. Throws on error so a failure is never cached.
+const getCachedFeaturedResources = unstable_cache(
+  async (limit: number): Promise<Resource[]> => {
+    const supabase = createPublicClient();
+
+    // Raw RPC rows aren't typed (no generated Supabase types in this project).
+    const { data: rows, error } = await supabase.rpc("get_featured_resources", {
+      p_limit: limit,
+    });
+
+    let resources = rows as
+      | Omit<Resource, "author" | "isLiked" | "isSaved">[]
+      | null;
+
+    // Falls back to a plain newest-first query if the RPC doesn't exist yet
+    // (schema changes here go through the Supabase SQL editor by hand, not
+    // migrations) — keeps the homepage from breaking mid-rollout.
+    if (error) {
+      const fallback = await supabase
+        .from("resources")
+        .select("*")
+        .eq("published", true)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (fallback.error) throw new Error(fallback.error.message);
+      resources = fallback.data;
+    }
+
+    if (!resources || resources.length === 0) return [];
+
+    const authorIds = [...new Set(resources.map((r) => r.author_id))];
+    const { data: authors, error: authorsError } = await supabase
+      .from("users")
+      .select("id, display_name, is_pro, ib_year, avatar_url")
+      .in("id", authorIds);
+    if (authorsError) throw new Error(authorsError.message);
+    const authorById = new Map(authors.map((a) => [a.id, a]));
+
+    return resources.map((r) => ({
+      ...r,
+      author: authorById.get(r.author_id)!,
+      isLiked: false,
+      isSaved: false,
+    }));
+  },
+  ["featured-resources"],
+  { revalidate: 3600, tags: ["resources"] },
+);
+
 export async function getFeaturedResources(
   limit = 6,
 ): Promise<ActionResult<Resource[]>> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Raw RPC rows aren't typed (no generated Supabase types in this project).
-  const { data: rows, error } = await supabase.rpc("get_featured_resources", {
-    p_limit: limit,
-  });
-
-  let resources = rows as
-    | Omit<Resource, "author" | "isLiked" | "isSaved">[]
-    | null;
-
-  // Falls back to a plain newest-first query if the RPC doesn't exist yet
-  // (schema changes here go through the Supabase SQL editor by hand, not
-  // migrations) — keeps the homepage from breaking mid-rollout.
-  if (error) {
-    const fallback = await supabase
-      .from("resources")
-      .select("*")
-      .eq("published", true)
-      .order("created_at", { ascending: false })
-      .limit(limit);
-    if (fallback.error)
-      return { success: false, error: fallback.error.message };
-    resources = fallback.data;
-  }
-
-  if (!resources || resources.length === 0) {
-    return { success: true, data: [] };
-  }
-
-  const authorIds = [...new Set(resources.map((r) => r.author_id))];
-  const { data: authors } = await supabase
-    .from("users")
-    .select("id, display_name, is_pro, ib_year, avatar_url")
-    .in("id", authorIds);
-  const authorById = new Map(authors?.map((a) => [a.id, a]));
-
-  const normalized = resources.map((r) => ({
-    ...r,
-    author: authorById.get(r.author_id)!,
-  }));
-
-  if (!user) {
+  try {
+    return { success: true, data: await getCachedFeaturedResources(limit) };
+  } catch (e) {
     return {
-      success: true,
-      data: normalized.map((r) => ({ ...r, isLiked: false, isSaved: false })),
+      success: false,
+      error: e instanceof Error ? e.message : "Couldn't load featured resources",
     };
   }
-
-  const resourceIds = resources.map((r) => r.id);
-
-  const [{ data: likes }, { data: saves }] = await Promise.all([
-    supabase
-      .from("likes")
-      .select("resource_id")
-      .eq("user_id", user.id)
-      .in("resource_id", resourceIds),
-    supabase
-      .from("saved_items")
-      .select("resource_id")
-      .eq("user_id", user.id)
-      .in("resource_id", resourceIds),
-  ]);
-
-  const likedIds = new Set(likes?.map((l) => l.resource_id));
-  const savedIds = new Set(saves?.map((s) => s.resource_id));
-
-  return {
-    success: true,
-    data: normalized.map((r) => ({
-      ...r,
-      isLiked: likedIds.has(r.id),
-      isSaved: savedIds.has(r.id),
-    })),
-  };
 }
 
 // Published-resource count per subject — feeds the homepage's "Resources by
