@@ -1,12 +1,17 @@
 import type { MetadataRoute } from "next";
-import { createClient } from "@/app/lib/supabase/server";
+import { createPublicClient } from "@/app/lib/supabase/public";
 
 // www is the canonical domain — apex 308-redirects to it (see
 // PROJECT_CONTEXT.md's "Deployment & Google OAuth verification" section).
 const BASE_URL = "https://www.diplomahub.org";
 
+// Regenerated at most once a day instead of on every crawler hit. Uses the
+// cookie-less client, since the cookie-based one would force a dynamic
+// render; only published (anon-readable) rows are listed anyway.
+export const revalidate = 86400;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   const [{ data: resources }, { data: articles }] = await Promise.all([
     supabase

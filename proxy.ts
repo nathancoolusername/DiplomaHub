@@ -14,6 +14,14 @@ const LAST_ACTIVE_COOKIE_MAX_AGE = 60 * 60 * 24; // 24h
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const requestHeaders = new Headers(request.headers);
 
+  // /dashboard is only ever reached through the `/` rewrite below, which
+  // doesn't re-run this proxy. Anyone requesting it directly goes home.
+  if (request.nextUrl.pathname === "/dashboard") {
+    const home = request.nextUrl.clone();
+    home.pathname = "/";
+    return NextResponse.redirect(home);
+  }
+
   // Link prefetches (hover/viewport) only ever fetch the static loading
   // shell for dynamic routes like ours — the real, personalized content
   // streams in via a separate non-prefetch request when the user actually
@@ -82,7 +90,22 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     requestHeaders.delete("x-verified-user-id");
   }
 
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  // The signed-out homepage at `/` is static and served from the CDN, so a
+  // verified session gets the signed-in dashboard instead via a rewrite —
+  // the browser still shows `/`. Only a verified sub counts: an expired or
+  // forged cookie falls through to the static page like any visitor.
+  const showDashboard =
+    !!data?.claims.sub && request.nextUrl.pathname === "/";
+  let response: NextResponse;
+  if (showDashboard) {
+    const dashboard = request.nextUrl.clone(); // keeps the query string
+    dashboard.pathname = "/dashboard";
+    response = NextResponse.rewrite(dashboard, {
+      request: { headers: requestHeaders },
+    });
+  } else {
+    response = NextResponse.next({ request: { headers: requestHeaders } });
+  }
   pendingCookies.forEach(({ name, value, options }) =>
     response.cookies.set(name, value, options),
   );
