@@ -157,8 +157,16 @@ proxy.ts              middleware: session verification, homepage rewrite, activi
 
 ---
 
-## Team
+## How it's built
+
+DiplomaHub is developed with AI pair-programming (Claude Code). I own the product and engineering decisions: what to build, the architecture, diagnosing problems from production data, and reviewing and testing every change before it ships.
+
+---
 
 Built and maintained by **Nathan** (founder & CTO)
 
 Feedback and bug reports are welcome via [diplomahub.org/feedback](https://www.diplomahub.org/feedback) or info@diplomahub.org.
+
+## License
+
+© 2026 Nathan Pieume. All rights reserved. The code is public for viewing only. See [LICENSE](LICENSE).
