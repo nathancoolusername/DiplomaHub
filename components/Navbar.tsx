@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { MidnightTip } from "./MidnightTip";
 
 // /hub is the only route with a loading.tsx, which makes it the one dynamic
 // route Next prefetches automatically — and without a client cache for it,
@@ -54,7 +55,8 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
           </nav>
         </div>
 
-        <div className="flex items-center gap-sm sm:gap-md">
+        <div className="relative flex items-center gap-sm sm:gap-md">
+          <MidnightTip />
           {/* On phones the theme picker lives in the menu, away from the logo. */}
           <div className="hidden md:block">
             <ThemeSwitcher />

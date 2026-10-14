@@ -206,8 +206,13 @@ export async function completeOnboarding(a: OnboardingAnswers): Promise<void> {
   await rpc("complete_onboarding", { p: a });
 }
 
-export const HINT_IDS = ["strength-map", "bro-button"] as const;
+export const HINT_IDS = ["strength-map", "bro-button", "midnight"] as const;
 export type HintId = (typeof HINT_IDS)[number];
+
+/** Whether this student has dismissed a hint (regardless of setup). */
+export async function hasDismissedHint(id: HintId): Promise<boolean> {
+  return ((await userRow()).dismissed_hints ?? []).includes(id);
+}
 
 /** Hints still to show; none while onboarding is open, so they don't stack on the wizard. */
 export async function getPendingHints(): Promise<HintId[]> {

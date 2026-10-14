@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { Lightbulb } from "lucide-react";
 import { dismissHintAction } from "@/app/onboarding/actions";
 
 // One-time tooltips. Several can be on a page; only the first pending one
-// (in `order`) shows, the next appears once it's dismissed.
+// (in `order`) shows, the next appears once it's dismissed. The Midnight tip
+// (components/MidnightTip.tsx) takes its turn last.
 
-const ORDER = ["strength-map", "bro-button"];
+const ORDER = ["strength-map", "bro-button", "midnight"];
 let mounted: string[] = [];
 let dismissedNow: string[] = [];
 const listeners = new Set<() => void>();
@@ -34,19 +35,11 @@ function useCurrentHint(): string {
  * Wrap the element a hint points at. `pending` comes from the server
  * (not yet dismissed); the bubble sits above or below the child.
  */
-export function FirstTimeHint({
-  id,
-  pending,
-  text,
-  placement = "top-end",
-  children,
-}: {
-  id: string;
-  pending: boolean;
-  text: string;
-  placement?: "top-end" | "bottom-start";
-  children: React.ReactNode;
-}) {
+/**
+ * Takes part in the one-at-a-time queue: `show` is true when it's this tip's
+ * turn; `dismiss` hides it for good (saved to the account).
+ */
+export function useHintTurn(id: string, pending: boolean): { show: boolean; dismiss: () => void } {
   const current = useCurrentHint();
   const [gone, setGone] = useState(false);
 
@@ -60,13 +53,29 @@ export function FirstTimeHint({
     };
   }, [id, pending]);
 
-  const show = pending && !gone && current === id;
-  const dismiss = () => {
+  const dismiss = useCallback(() => {
     setGone(true);
     dismissedNow = [...dismissedNow, id];
     emit();
-    void dismissHintAction(id);
-  };
+    void dismissHintAction(id).catch(() => {});
+  }, [id]);
+  return { show: pending && !gone && current === id, dismiss };
+}
+
+export function FirstTimeHint({
+  id,
+  pending,
+  text,
+  placement = "top-end",
+  children,
+}: {
+  id: string;
+  pending: boolean;
+  text: string;
+  placement?: "top-end" | "bottom-start";
+  children: React.ReactNode;
+}) {
+  const { show, dismiss } = useHintTurn(id, pending);
 
   return (
     <div className="relative">

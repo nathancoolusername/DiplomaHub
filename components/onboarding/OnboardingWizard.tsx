@@ -10,6 +10,7 @@ import { Switch } from "@/components/shared/Switch";
 import { SubjectPicker, type SubjectPick } from "@/components/practice/SubjectPicker";
 import { links } from "@/lib/practice/links";
 import { HUB_SESSION_OVERRIDE_KEY_PREFIX, sessionIdFromLabel } from "@/lib/exam-sessions";
+import { useMarkOnboardingOpen } from "@/components/shared/onboarding-open";
 
 type Row = SubjectPick;
 
@@ -50,6 +51,7 @@ export function OnboardingWizard({
   catalog: Subject[];
   practiceIds?: string[] | null;
 }) {
+  useMarkOnboardingOpen();
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [sessionId, setSessionId] = useState(currentSessionId ?? sessions[0]?.id ?? "");

@@ -22,6 +22,7 @@ export {
   getOnboardingSubjects,
   completeOnboarding,
   getPendingHints,
+  hasDismissedHint,
   dismissHint,
   getGettingStarted,
   getThemePreference,

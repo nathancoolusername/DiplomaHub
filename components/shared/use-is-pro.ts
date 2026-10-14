@@ -9,7 +9,7 @@ import { getViewerPrefsAction, type ViewerPrefs } from "@/app/actions/viewer";
 // once-per-load answer went stale until a refresh). Only asked when there's a
 // Supabase sign-in cookie, so signed-out visitors never trigger a server call.
 
-const SIGNED_OUT: ViewerPrefs = { signedIn: false, isPro: false, theme: null };
+const SIGNED_OUT: ViewerPrefs = { signedIn: false, isPro: false, theme: null, midnightTip: false };
 let cached: { key: string; prefs: Promise<ViewerPrefs> } | null = null;
 
 /** The Supabase auth cookies as one string: "" when signed out; changes on sign-in, sign-out or account switch. */
