@@ -140,7 +140,7 @@ export default function StepPickSubjects({
                     type="button"
                     onClick={() => onRemoveCustom(subject.id)}
                     aria-label={`Remove ${subject.name}`}
-                    className="p-0.5 rounded-full hover:bg-black/10 transition-colors cursor-pointer"
+                    className="p-0.5 rounded-full hover:bg-current/15 transition-colors cursor-pointer"
                   >
                     <X size={13} />
                   </button>

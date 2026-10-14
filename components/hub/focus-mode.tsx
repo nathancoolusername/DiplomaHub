@@ -136,7 +136,7 @@ export default function FocusMode({
       role="dialog"
       aria-modal="true"
       aria-label="Focus mode"
-      className="fixed inset-0 z-100 bg-surface overflow-y-auto flex flex-col items-center justify-center"
+      className="fixed inset-0 z-100 bg-background overflow-y-auto flex flex-col items-center justify-center"
     >
       <div className="absolute top-md right-md flex items-center gap-1 z-10">
         {typeof document !== "undefined" && document.fullscreenEnabled && (

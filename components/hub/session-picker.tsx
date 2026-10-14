@@ -32,7 +32,7 @@ export default function SessionPicker({ value, onChange }: { value: string; onCh
         <ChevronDown size={12} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
       {isOpen && (
-        <div className="absolute left-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-md z-100 min-w-32 overflow-hidden">
+        <div className="absolute left-0 top-full mt-1 bg-surface-raised glass border border-outline-variant rounded-lg shadow-md z-100 min-w-32 overflow-hidden">
           {SESSION_OPTIONS.map((option) => (
             <button
               key={option}

@@ -12,7 +12,6 @@ import {
   updateHubItemNotes as updateHubItemNotesAction,
   updateHubItemDetails as updateHubItemDetailsAction,
   deleteHubItem as deleteHubItemAction,
-  logStudySession as logStudySessionAction,
   bulkImportHubItems,
   bulkImportStudyLog,
   completeHubOnboarding as completeHubOnboardingAction,
@@ -24,7 +23,7 @@ import TodayFocus from "./today-focus";
 import MilestonesBar from "./milestones-bar";
 import FocusTimerCard from "./focus-timer-card";
 import FocusMode from "./focus-mode";
-import WeekCalendar, { type PanelActions } from "./calendar/week-calendar";
+import WeekCalendar, { type PanelActions, type TaskPracticeSuggestion } from "./calendar/week-calendar";
 import DayAgenda from "./day-agenda";
 import MonthView from "./month-view";
 import TaskDetailsPanel from "./task-details-panel";
@@ -33,17 +32,18 @@ import CalendarSyncDialog from "./calendar-sync-dialog";
 import ImportDialog from "./import-dialog";
 import { undoImportBatch } from "@/app/lib/actions/ics-import";
 import UpcomingDeadlinesCard from "./upcoming-deadlines-card";
-import StudyTimeCard from "./study-time-card";
 import OnboardingWizard from "./onboarding/onboarding-wizard";
 import EditSubjectsDialog from "./onboarding/edit-subjects-dialog";
 import { computeMySubjectIds } from "./onboarding/subject-cap";
 import { defaultHubSession } from "./format";
+import { HUB_SESSION_OVERRIDE_KEY_PREFIX, sessionIdFromLabel, sessionLabelFromId } from "@/lib/exam-sessions";
+import { setExamSessionAction } from "@/app/actions/viewer";
 import {
   SUBJECTS,
   type CustomSubject,
   type HubItem,
+  type HubItemDetails,
   type HubItemStatus,
-  type HubItemType,
   type SubjectId,
 } from "./mock-data";
 import { hubItemToRow, rowToHubItem, type HubItemRow } from "./hub-row";
@@ -63,7 +63,7 @@ type ItemsAction =
   | {
       type: "UPDATE_DETAILS";
       id: string;
-      details: { title: string; type: HubItemType; subjectId: SubjectId | null; start: Date; end: Date };
+      details: HubItemDetails;
     }
   | { type: "DELETE"; id: string }
   | { type: "SET_ALL"; items: HubItem[] };
@@ -108,28 +108,46 @@ const GUEST_STUDY_LOG_KEY = "hub_guest_study_log";
 const GUEST_SUBJECTS_KEY = "hub_guest_subjects";
 const GUEST_CUSTOM_SUBJECTS_KEY = "hub_guest_custom_subjects";
 const GUEST_ONBOARDED_KEY = "hub_onboarded_guest";
-const SESSION_OVERRIDE_KEY_PREFIX = "hub_session_override:";
+const SESSION_OVERRIDE_KEY_PREFIX = HUB_SESSION_OVERRIDE_KEY_PREFIX;
 
 export default function Hub({
   firstName,
   userId,
   ibYear,
+  savedSessionId = null,
   initialItems,
   initialStudyLog,
   hasOnboarded,
   hubSubjects,
   initialCustomSubjects,
   resourcesBySubject,
+  proRows,
+  practiceCard,
+  practiceBySubject = {},
+  openAddOnLoad = false,
+  planItemId = null,
 }: {
   firstName: string | null;
   userId: string | null;
   ibYear: string | null;
+  /** The exam session saved on the account (users.exam_session_id), shared with Practice. */
+  savedSessionId?: string | null;
   initialItems: HubItem[];
   initialStudyLog: StudyLogEntry[];
   hasOnboarded: boolean;
   hubSubjects: SubjectId[] | null;
   initialCustomSubjects: CustomSubject[];
   resourcesBySubject: Record<SubjectId, Resource[]>;
+  /** DiplomaPro rows under the top bar: next steps, "Pick up where you left off", Bro's brief. */
+  proRows?: React.ReactNode;
+  /** DiplomaPro "Your practice" card, beside the upcoming deadlines. */
+  practiceCard?: React.ReactNode;
+  /** "Suggested for this task" in the task panel, keyed by subject id. */
+  practiceBySubject?: Record<SubjectId, TaskPracticeSuggestion>;
+  /** "/hub?add=1" (Home's "Add", "Plan time" suggestions): open Add item straight away. */
+  openAddOnLoad?: boolean;
+  /** "/hub?plan=<id>" (a deadline's "Plan time"): open Add item as a study session for it. */
+  planItemId?: string | null;
 }) {
   const [items, dispatch] = useReducer(itemsReducer, initialItems);
   const [currentDate, setCurrentDate] = useState(() => new Date());
@@ -146,9 +164,27 @@ export default function Hub({
   const [chosenSubjectIds, setChosenSubjectIds] = useState<SubjectId[] | null>(hubSubjects);
   const [customSubjects, setCustomSubjects] = useState<CustomSubject[]>(initialCustomSubjects);
   const [savedResourceIds, setSavedResourceIds] = useState<Set<string>>(() => new Set());
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  // "Plan time": a study session for that deadline, tomorrow (or today if
+  // it's due today or tomorrow), so it lands before the due date.
+  const [planFor, setPlanFor] = useState(() => {
+    const due = planItemId ? initialItems.find((i) => i.id === planItemId) : undefined;
+    if (!due) return null;
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    if (date.getTime() >= due.start.getTime()) date.setDate(date.getDate() - 1);
+    return { date, prefill: { type: "study_block" as const, title: `Work on ${due.title}`.slice(0, 200), subjectId: due.subjectId } };
+  });
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(openAddOnLoad || !!planItemId);
   const [editingItem, setEditingItem] = useState<HubItem | null>(null);
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
+  // Drop "?add=1" / "?plan=" once they've opened the dialog, so a refresh doesn't reopen it.
+  useEffect(() => {
+    if (!openAddOnLoad && !planItemId) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("add");
+    url.searchParams.delete("plan");
+    window.history.replaceState(window.history.state, "", url);
+  }, [openAddOnLoad, planItemId]);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [importToast, setImportToast] = useState<{ batchId: string; count: number } | null>(null);
   const [undoingImport, setUndoingImport] = useState(false);
@@ -198,20 +234,11 @@ export default function Hub({
   const weekDates = useMemo(() => getWeekDates(currentDate), [currentDate]);
   const selectedItem = items.find((i) => i.id === selectedItemId) ?? null;
 
-  // The study-time tracker is a running log of the real current week, kept
-  // separate from `weekDates` (which follows calendar navigation) so
-  // logging a session always lands on today regardless of which week the
-  // planner happens to be showing.
+  // The study log (the real current week) is no longer shown — the "Study
+  // time this week" card was removed — but guest entries are still kept and
+  // migrated to the account on sign-up, so no logged time is lost.
   const [studyWeekDates] = useState<Date[]>(() => getWeekDates(new Date()));
   const [studyLogEntries, setStudyLogEntries] = useState<StudyLogEntry[]>(initialStudyLog);
-  const studyLog = useMemo(
-    () =>
-      studyWeekDates.map((d) => {
-        const dateStr = toDateInputValue(d);
-        return studyLogEntries.find((e) => e.log_date === dateStr)?.hours ?? 0;
-      }),
-    [studyLogEntries, studyWeekDates],
-  );
 
   // One-time client-only setup: guests hydrate from localStorage (server
   // has no access to it), signed-in users seed their filter from saved
@@ -223,8 +250,26 @@ export default function Hub({
   useEffect(() => {
     const id = setTimeout(() => {
       try {
-        const rawSession = localStorage.getItem(SESSION_OVERRIDE_KEY_PREFIX + (userId ?? "guest"));
-        if (rawSession) setSessionOverride(rawSession);
+        const key = SESSION_OVERRIDE_KEY_PREFIX + (userId ?? "guest");
+        const rawSession = localStorage.getItem(key);
+        if (userId) {
+          // The account's session is the one truth. A session picked on this
+          // device before it was saved moves to the account once (and only
+          // when the account has none), then the local copy goes.
+          // The local copy is only removed once the account has it, so nothing is lost
+          // if saving fails (e.g. before migration 21 has run).
+          if (savedSessionId) {
+            if (rawSession) localStorage.removeItem(key);
+          } else if (rawSession && sessionIdFromLabel(rawSession)) {
+            setSessionOverride(rawSession);
+            void setExamSessionAction(rawSession).then(
+              () => localStorage.removeItem(key),
+              () => {},
+            );
+          }
+        } else if (rawSession) {
+          setSessionOverride(rawSession);
+        }
       } catch {
         // ignore
       }
@@ -257,6 +302,8 @@ export default function Hub({
       setMounted(true);
     }, 0);
     return () => clearTimeout(id);
+    // savedSessionId is only read once, on load (like the rest of this one-time setup); it isn't a trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, hasOnboarded, hubSubjects]);
 
   // Guests: sync the whole local items/study-log state to localStorage
@@ -349,18 +396,6 @@ export default function Hub({
       cancelled = true;
     };
   }, [mounted, userId, studyWeekDates]);
-
-  function logStudySession(hours: number) {
-    const logDate = toDateInputValue(new Date());
-    setStudyLogEntries((prev) => {
-      const idx = prev.findIndex((e) => e.log_date === logDate);
-      if (idx === -1) return [...prev, { log_date: logDate, hours: Math.round(hours * 100) / 100 }];
-      const next = [...prev];
-      next[idx] = { log_date: logDate, hours: Math.round((next[idx].hours + hours) * 100) / 100 };
-      return next;
-    });
-    if (userId) logStudySessionAction(logDate, hours).catch(console.error);
-  }
 
   // Ticks the timer to "complete" once its remaining time reaches zero.
   // Recomputed from Date.now() - startedAt every second rather than
@@ -564,10 +599,7 @@ export default function Hub({
     if (item) setEditingItem(item);
   }
 
-  function handleEditItem(
-    id: string,
-    details: { title: string; type: HubItemType; subjectId: SubjectId | null; start: Date; end: Date },
-  ) {
+  function handleEditItem(id: string, details: HubItemDetails) {
     dispatch({ type: "UPDATE_DETAILS", id, details });
     if (userId) {
       persistOrRevert(updateHubItemDetailsAction(id, details), "Couldn't save your edits — try again.");
@@ -607,10 +639,24 @@ export default function Hub({
 
   function handleChangeSession(value: string) {
     setSessionOverride(value);
+    const key = SESSION_OVERRIDE_KEY_PREFIX + (userId ?? "guest");
     try {
-      localStorage.setItem(SESSION_OVERRIDE_KEY_PREFIX + (userId ?? "guest"), value);
+      localStorage.setItem(key, value);
     } catch {
       // ignore — the picker still works for the rest of this visit
+    }
+    // Signed in: saved to the account (shared with Practice); the local copy goes once that worked.
+    if (userId) {
+      void setExamSessionAction(value).then(
+        () => {
+          try {
+            localStorage.removeItem(key);
+          } catch {
+            // ignore
+          }
+        },
+        () => {},
+      );
     }
   }
 
@@ -684,7 +730,7 @@ export default function Hub({
       weekDates.some((d) => isSameDay(d, i.end) || isSameDay(d, i.start)),
   ).length;
 
-  const session = sessionOverride ?? defaultHubSession(!userId, ibYear);
+  const session = sessionOverride ?? sessionLabelFromId(savedSessionId) ?? defaultHubSession(!userId, ibYear);
 
   const focusTask = timer.taskId ? (items.find((i) => i.id === timer.taskId) ?? null) : null;
   const timerTaskTitle = focusTask?.title ?? null;
@@ -694,6 +740,7 @@ export default function Hub({
 
   const panelActions: PanelActions = {
     resources: selectedItem?.subjectId ? (resourcesBySubject[selectedItem.subjectId] ?? []) : [],
+    practice: selectedItem?.subjectId ? (practiceBySubject[selectedItem.subjectId] ?? null) : null,
     savedResourceIds,
     onToggleSaveResource: toggleSaveResource,
     onToggleStage: handleToggleStage,
@@ -729,6 +776,8 @@ export default function Hub({
         onChangeSession={handleChangeSession}
         onImport={() => setIsImportDialogOpen(true)}
       />
+
+      {proRows}
 
       <TodayFocus
         items={items}
@@ -803,7 +852,7 @@ export default function Hub({
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-lg">
         <UpcomingDeadlinesCard items={items} onSelect={selectItem} />
-        <StudyTimeCard studyLog={studyLog} weekDates={studyWeekDates} onLogSession={logStudySession} />
+        {practiceCard}
       </section>
 
       {selectedItem && panelVariant === "sheet" && (
@@ -829,12 +878,14 @@ export default function Hub({
 
       {(isAddDialogOpen || editingItem) && (
         <AddItemDialog
-          defaultDate={currentDate}
+          defaultDate={planFor && !editingItem ? planFor.date : currentDate}
           subjects={mySubjects}
           item={editingItem}
+          prefill={editingItem ? undefined : planFor?.prefill}
           onClose={() => {
             setIsAddDialogOpen(false);
             setEditingItem(null);
+            setPlanFor(null);
           }}
           onAdd={handleAddItem}
           onSave={handleEditItem}

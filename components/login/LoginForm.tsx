@@ -92,12 +92,12 @@ export default function LoginForm({ next }: { next?: string | null }) {
             </Link>
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-error">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-lg bg-primary text-white font-medium hover:bg-blue-700 disabled:opacity-50 cursor-pointer inline-flex items-center justify-center gap-sm"
+            className="w-full py-2 rounded-lg bg-primary text-on-primary font-medium hover:bg-primary/90 disabled:opacity-50 cursor-pointer inline-flex items-center justify-center gap-sm"
           >
             {loading && <Spinner size={16} />}
             {loading ? "Logging in..." : "Log in"}
@@ -108,21 +108,21 @@ export default function LoginForm({ next }: { next?: string | null }) {
           {next && <input type="hidden" name="next" value={next} />}
           <button
             type="submit"
-            className="w-full py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 cursor-pointer"
+            className="w-full py-2 rounded-lg border border-outline-variant font-medium hover:bg-surface-container-low cursor-pointer"
           >
             Continue with Google
           </button>
         </form>
 
         <div className="flex items-center gap-2">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs text-gray-400">OR</span>
-          <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex-1 h-px bg-outline-variant" />
+          <span className="text-xs text-outline">OR</span>
+          <div className="flex-1 h-px bg-outline-variant" />
         </div>
         <div className="flex flex-col gap-sm">
           <p className="text-on-surface-variant">New to the community?</p>
           <Link href={"/signup"}>
-            <button className="w-full py-2 rounded-lg border border-gray-300 font-medium hover:bg-gray-50 cursor-pointer">
+            <button className="w-full py-2 rounded-lg border border-outline-variant font-medium hover:bg-surface-container-low cursor-pointer">
               Sign up
             </button>
           </Link>

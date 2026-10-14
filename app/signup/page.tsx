@@ -119,21 +119,21 @@ export default function SignupPage() {
             </select>
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-error">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-lg bg-primary cursor-pointer text-white font-medium hover:bg-blue-700 disabled:opacity-50 inline-flex items-center justify-center gap-sm"
+            className="w-full py-2 rounded-lg bg-primary cursor-pointer text-on-primary font-medium hover:bg-primary/90 disabled:opacity-50 inline-flex items-center justify-center gap-sm"
           >
             {loading && <Spinner size={16} />}
             {loading ? "Creating account..." : "Sign up"}
           </button>
         </form>
 
-        <p className="text-sm text-center text-gray-500">
+        <p className="text-sm text-center text-on-surface-variant">
           Already have an account?{" "}
-          <a href="/login" className="text-blue-600 hover:underline">
+          <a href="/login" className="text-primary hover:underline">
             Log in
           </a>
         </p>

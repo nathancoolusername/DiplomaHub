@@ -2,7 +2,7 @@
 
 import { AlertCircle, Pencil } from "lucide-react";
 import type { HubItem, Subject, SubjectId } from "./mock-data";
-import { getSubjectColor } from "./subject-colors";
+import { getSubjectColor, tint } from "./subject-colors";
 import { ITEM_TYPE_META } from "./item-type-meta";
 import { formatDueLabel, getDueStatus } from "./format";
 
@@ -44,7 +44,7 @@ export default function MilestonesBar({
               className="inline-flex items-center gap-1.5 px-sm py-1 rounded-full border text-label-sm font-medium whitespace-nowrap transition-colors cursor-pointer shrink-0"
               style={
                 active
-                  ? { backgroundColor: `${color.base}1f`, borderColor: color.base, color: color.base }
+                  ? { backgroundColor: tint(color.base, 12), borderColor: color.base, color: color.base }
                   : { borderColor: "var(--color-outline-variant)", color: "var(--color-on-surface-variant)" }
               }
             >

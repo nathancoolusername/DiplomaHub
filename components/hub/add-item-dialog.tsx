@@ -3,7 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import type { HubItem, HubItemType, Subject, SubjectId } from "./mock-data";
+import type { HubItem, HubItemDetails, HubItemKind, HubItemType, Subject, SubjectId } from "./mock-data";
+import { Switch } from "@/components/shared/Switch";
+
+// No "Study session" here: the Study session type already says it, and saves kind "study".
+const KINDS: { value: HubItemKind; label: string }[] = [
+  { value: "deadline", label: "Deadline" },
+  { value: "test", label: "Test" },
+  { value: "mock", label: "Mock" },
+];
 import { ITEM_TYPE_META } from "./item-type-meta";
 import { toDateInputValue } from "./calendar/calendar-utils";
 
@@ -18,6 +26,10 @@ function getFocusable(root: HTMLElement | null): HTMLElement[] {
 
 const TYPE_OPTIONS: HubItemType[] = ["ib_component", "task", "study_block", "university"];
 
+function isEditingItem(item: HubItem | null | undefined): boolean {
+  return !!item;
+}
+
 export default function AddItemDialog({
   defaultDate,
   subjects,
@@ -25,23 +37,23 @@ export default function AddItemDialog({
   onClose,
   onAdd,
   onSave,
+  prefill,
 }: {
   defaultDate: Date;
+  /** Starting values for a new item, e.g. a study session for a deadline ("Plan time"). */
+  prefill?: { type: HubItemType; title: string; subjectId: SubjectId | null };
   subjects: Subject[];
   // When set, the dialog edits this item instead of creating a new one.
   item?: HubItem | null;
   onClose: () => void;
   onAdd?: (item: HubItem) => void;
-  onSave?: (
-    id: string,
-    details: { title: string; type: HubItemType; subjectId: SubjectId | null; start: Date; end: Date },
-  ) => void;
+  onSave?: (id: string, details: HubItemDetails) => void;
 }) {
   const isEditing = !!item;
   const dialogRef = useRef<HTMLDivElement>(null);
-  const [type, setType] = useState<HubItemType>(item?.type ?? "task");
-  const [title, setTitle] = useState(item?.title ?? "");
-  const [subjectId, setSubjectId] = useState<SubjectId | "">(item?.subjectId ?? "");
+  const [type, setType] = useState<HubItemType>(item?.type ?? prefill?.type ?? "task");
+  const [title, setTitle] = useState(item?.title ?? prefill?.title ?? "");
+  const [subjectId, setSubjectId] = useState<SubjectId | "">(item?.subjectId ?? prefill?.subjectId ?? "");
   const [date, setDate] = useState(toDateInputValue(item?.start ?? defaultDate));
   const [startTime, setStartTime] = useState(
     item && !item.allDay
@@ -54,6 +66,10 @@ export default function AddItemDialog({
       : "10:00",
   );
   const [error, setError] = useState<string | null>(null);
+  // What it is (so suggestions know a test from a deadline) and whether Home counts down to it.
+  const [kind, setKind] = useState<HubItemKind>(item?.kind && item.kind !== "study" ? item.kind : "deadline");
+  const [hasTimer, setHasTimer] = useState(item?.hasTimer ?? false);
+  const [timerTouched, setTimerTouched] = useState(isEditingItem(item));
   // All-day items (currently only ever created via .ics import — there's no
   // in-app way to create one) can have a multi-day span; editing that span
   // through a single date+time-of-day form would be lossy, so this dialog
@@ -92,6 +108,7 @@ export default function AddItemDialog({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const savedKind: HubItemKind = type === "study_block" ? "study" : kind;
     if (!title.trim()) {
       setError("Give this item a title.");
       return;
@@ -116,7 +133,7 @@ export default function AddItemDialog({
     }
 
     if (isEditing && item) {
-      onSave?.(item.id, { title: title.trim(), type, subjectId: subjectId || null, start, end });
+      onSave?.(item.id, { title: title.trim(), type, subjectId: subjectId || null, start, end, hasTimer, kind: savedKind });
     } else {
       onAdd?.({
         id: `itm-${crypto.randomUUID().slice(0, 8)}`,
@@ -130,6 +147,8 @@ export default function AddItemDialog({
         stages: [],
         notes: "",
         resourceIds: [],
+        hasTimer,
+        kind: savedKind,
       });
     }
     onClose();
@@ -137,13 +156,13 @@ export default function AddItemDialog({
 
   return createPortal(
     <div className="fixed inset-0 z-100 flex items-center justify-center p-md">
-      <div className="absolute inset-0 bg-on-surface/40" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-scrim/40" onClick={onClose} aria-hidden="true" />
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-item-title"
-        className="relative bg-surface-container-lowest rounded-xl border border-outline-variant shadow-xl w-full max-w-120 max-h-[90vh] overflow-y-auto p-lg flex flex-col gap-md"
+        className="relative bg-surface-raised glass rounded-xl border border-outline-variant shadow-xl w-full max-w-120 max-h-[90vh] overflow-y-auto p-lg flex flex-col gap-md"
       >
         <div className="flex items-center justify-between">
           <h2 id="add-item-title" className="text-headline-sm font-serif font-bold text-on-surface">
@@ -251,6 +270,42 @@ export default function AddItemDialog({
               </div>
             </>
           )}
+
+          <div className="flex flex-col gap-sm">
+            {type !== "study_block" && (
+              <>
+                <span className="text-label-sm font-semibold text-on-surface-variant">What is it?</span>
+                <div role="radiogroup" aria-label="What is it?" className="flex flex-wrap gap-xs">
+                  {KINDS.map((k) => (
+                    <button
+                      key={k.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={kind === k.value}
+                      onClick={() => {
+                        setKind(k.value);
+                        // Tests and mocks usually deserve a countdown, unless the student already chose.
+                        if (!timerTouched) setHasTimer(k.value === "test" || k.value === "mock");
+                      }}
+                      className={`rounded-full border px-md py-1 text-label-md font-semibold cursor-pointer transition-colors ${
+                        kind === k.value ? "bg-primary text-on-primary border-primary" : "border-outline-variant text-on-surface-variant hover:text-primary"
+                      }`}
+                    >
+                      {k.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            <Switch
+              checked={hasTimer}
+              onChange={(on) => {
+                setHasTimer(on);
+                setTimerTouched(true);
+              }}
+              label="Show a countdown on Home"
+            />
+          </div>
 
           {error && <p className="text-label-sm text-error">{error}</p>}
 

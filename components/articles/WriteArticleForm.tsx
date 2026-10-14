@@ -274,7 +274,7 @@ export default function WriteArticleForm({
                     <button
                       type="button"
                       onClick={clearCover}
-                      className="flex items-center gap-xs text-sm text-red-500 hover:underline cursor-pointer"
+                      className="flex items-center gap-xs text-sm text-error hover:underline cursor-pointer"
                     >
                       <X size={14} /> Remove
                     </button>
@@ -372,7 +372,7 @@ export default function WriteArticleForm({
               </div>
             </div>
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-error">{error}</p>}
 
             <div className="flex flex-row gap-sm justify-end">
               <button

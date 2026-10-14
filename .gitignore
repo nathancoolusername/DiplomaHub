@@ -42,3 +42,9 @@ next-env.d.ts
 
 # claude code local tooling config
 .claude/
+
+# Internal: not for the public repo (kept on the private DiplomaPro branch)
+PROJECT_CONTEXT.md
+/docs/
+/supabase/
+/scripts/diplomapro/

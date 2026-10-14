@@ -153,7 +153,7 @@ function RoadmapItemFields({
                   value.tags.filter((_, idx) => idx !== i),
                 )
               }
-              className="text-red-500 cursor-pointer"
+              className="text-error cursor-pointer"
               aria-label="Remove tag"
             >
               <X size={16} />
@@ -230,16 +230,16 @@ function RoadmapRow({
         >
           {saving ? "Saving..." : "Save"}
         </button>
-        {saved && <p className="text-label-sm text-green-600">Saved</p>}
+        {saved && <p className="text-label-sm text-secondary">Saved</p>}
         <button
           onClick={handleDelete}
           disabled={deleting}
-          className="flex flex-row items-center gap-1 text-red-500 font-semibold cursor-pointer disabled:opacity-40 ml-auto"
+          className="flex flex-row items-center gap-1 text-error font-semibold cursor-pointer disabled:opacity-40 ml-auto"
         >
           <Trash2 size={16} /> {deleting ? "Deleting..." : "Delete"}
         </button>
       </div>
-      {error && <p className="text-red-500 text-label-sm">{error}</p>}
+      {error && <p className="text-error text-label-sm">{error}</p>}
     </div>
   );
 }
@@ -292,7 +292,7 @@ function NewRoadmapRow({
           Cancel
         </button>
       </div>
-      {error && <p className="text-red-500 text-label-sm">{error}</p>}
+      {error && <p className="text-error text-label-sm">{error}</p>}
     </div>
   );
 }

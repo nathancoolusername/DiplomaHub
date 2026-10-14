@@ -41,12 +41,13 @@ export function AuthNav() {
         if (!cancelled) setUser(null);
         return;
       }
-      const { data: profile } = await supabase
-        .from("users")
-        .select("display_name, points, is_pro")
-        .eq("id", userId)
-        .single();
-      if (!cancelled) setUser(profile ? { id: userId, ...profile } : null);
+      // Next to the profile: all-time practice points (the leaderboard's points).
+      const [{ data: profile }, standing] = await Promise.all([
+        supabase.from("users").select("display_name, is_pro").eq("id", userId).single(),
+        supabase.rpc("my_leaderboard_standing", { p_period: "all" }),
+      ]);
+      const points = (standing.data as { points?: number } | null)?.points ?? 0;
+      if (!cancelled) setUser(profile ? { id: userId, ...profile, points } : null);
     })();
     return () => {
       cancelled = true;
@@ -54,7 +55,7 @@ export function AuthNav() {
   }, [supabase, pathname]);
 
   if (user === undefined) {
-    return <div className="w-20 h-5 bg-gray-100 rounded animate-pulse" />;
+    return <div className="w-20 h-5 bg-surface-container rounded animate-pulse" />;
   }
 
   if (!user) {

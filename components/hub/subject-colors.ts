@@ -1,16 +1,13 @@
 import type { SubjectId } from "./mock-data";
 
+// Values are CSS colour strings that follow the active theme: each is a
+// `light-dark()` pair, resolved by the `color-scheme` that the light, dark
+// and midnight themes set in globals.css. Use them anywhere CSS accepts a
+// colour (inline styles, SVG fill) — but not for string concatenation like
+// appending hex alpha; use `tint()` below for translucent fills instead.
 export type SubjectColor = {
   base: string;
   onBase: string;
-  // Reserved for whenever real dark-mode theming lands — this codebase has
-  // no dark-mode system today (no next-themes, no `dark:` variants, no
-  // data-theme attribute), so these aren't consumed by any component yet.
-  // Derived programmatically from `base` (see lighten/darken below) rather
-  // than hand-picked, since there's no live surface to validate them
-  // against — precision doesn't matter for an unused value.
-  dark: string;
-  onDark: string;
 };
 
 function lighten(hex: string, amount: number): string {
@@ -31,8 +28,18 @@ function darken(hex: string, amount: number): string {
   return `#${[channel(16), channel(8), channel(0)].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
 }
 
+// On dark backgrounds the hue is lightened so it stays readable, and text
+// on top of it flips to a near-black shade of the same hue.
 function colorFrom(base: string): SubjectColor {
-  return { base, onBase: "#ffffff", dark: lighten(base, 0.45), onDark: darken(base, 0.85) };
+  return {
+    base: `light-dark(${base}, ${lighten(base, 0.45)})`,
+    onBase: `light-dark(#ffffff, ${darken(base, 0.85)})`,
+  };
+}
+
+// A translucent fill of a subject colour, e.g. for an active chip background.
+export function tint(color: string, percent: number): string {
+  return `color-mix(in srgb, ${color} ${percent}%, transparent)`;
 }
 
 // Single source of truth for every subject color everywhere on the Hub page
@@ -72,10 +79,8 @@ export const SUBJECT_COLORS: Record<string, SubjectColor> = {
 // Used for items with no subject (e.g. university deadlines) — deliberately
 // neutral, drawn from the app's own outline token rather than a new hue.
 export const NEUTRAL_COLOR: SubjectColor = {
-  base: "#747685",
-  onBase: "#ffffff",
-  dark: "#c4c5d6",
-  onDark: "#0b1c30",
+  base: "var(--color-outline)",
+  onBase: "var(--color-on-primary)",
 };
 
 // A small fixed palette to cycle through for custom subjects (not in
@@ -99,9 +104,13 @@ function hashString(s: string): number {
   return Math.abs(hash);
 }
 
+// DiplomaPro's language courses ("english_a_lit", "french_b" …) use their
+// language's colour, so every English course reads as English.
+const LANGUAGE_COURSE = /^(english|french|german|spanish)_(a_lit|a_langlit|b)$/;
+
 export function getSubjectColor(subjectId: SubjectId | null): SubjectColor {
   if (!subjectId) return NEUTRAL_COLOR;
-  const known = SUBJECT_COLORS[subjectId];
+  const known = SUBJECT_COLORS[subjectId] ?? SUBJECT_COLORS[subjectId.match(LANGUAGE_COURSE)?.[1] ?? ""];
   if (known) return known;
   return CUSTOM_PALETTE[hashString(subjectId) % CUSTOM_PALETTE.length];
 }

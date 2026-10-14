@@ -215,8 +215,8 @@ export default async function resourcePage({
                       initiallyLiked={resource.isLiked ?? false}
                       initialCount={resource.like_count}
                       size={30}
-                      className="text-on-surface-variant transition hover:text-[#f50707] hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1 flex flex-row items-center"
-                      activeColor="#f50707"
+                      className="text-on-surface-variant transition hover:text-like hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-transparent border-b-1 flex flex-row items-center"
+                      activeColor="var(--color-like)"
                     />
                     <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row  items-center ">
                       <SaveButton

@@ -22,7 +22,7 @@ export default async function ResourcesPage({
 
   if (!result.success) {
     return (
-      <p className="text-red-500">Failed to load resources: {result.error}</p>
+      <p className="text-error">Failed to load resources: {result.error}</p>
     );
   }
   return (

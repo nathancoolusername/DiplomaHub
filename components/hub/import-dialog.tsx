@@ -249,13 +249,13 @@ export default function ImportDialog({
 
   return createPortal(
     <div className="fixed inset-0 z-100 flex items-center justify-center p-md">
-      <div className="absolute inset-0 bg-on-surface/40" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-scrim/40" onClick={onClose} aria-hidden="true" />
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="import-title"
-        className="relative bg-surface-container-lowest rounded-xl border border-outline-variant shadow-xl w-full max-w-160 max-h-[90vh] overflow-y-auto p-lg flex flex-col gap-md"
+        className="relative bg-surface-raised glass rounded-xl border border-outline-variant shadow-xl w-full max-w-160 max-h-[90vh] overflow-y-auto p-lg flex flex-col gap-md"
       >
         <div className="flex items-center justify-between">
           <h2 id="import-title" className="text-headline-sm font-serif font-bold text-on-surface">

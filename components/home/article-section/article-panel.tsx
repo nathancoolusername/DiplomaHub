@@ -74,8 +74,8 @@ export default function Panel({ resource }: Props) {
               target={{ resource_id: resource.id }}
               initiallyLiked={resource.isLiked ?? false}
               initialCount={resource.like_count}
-              className="flex flex-row items-center hover:text-[#f50707] cursor-pointer"
-              activeColor="#f50707"
+              className="flex flex-row items-center hover:text-like cursor-pointer"
+              activeColor="var(--color-like)"
             />
             <Download />
             <p className="text-on-surface-variant text-body-lg ml-sm">

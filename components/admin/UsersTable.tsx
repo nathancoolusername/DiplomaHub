@@ -9,6 +9,7 @@ import {
   getUsersPage,
   type AdminUserRow,
 } from "@/app/lib/actions/admin";
+import { adminClearProfile } from "@/app/lib/actions/admin-moderation";
 import { isAdmin } from "@/app/lib/admin";
 import { Avatar } from "@/components/avatar";
 import { Spinner } from "@/components/spinner";
@@ -128,6 +129,8 @@ function UserRow({
   const [savingScore, setSavingScore] = useState(false);
   const [savingPro, setSavingPro] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [cleared, setCleared] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSaveScore() {
@@ -146,6 +149,16 @@ function UserRow({
     if (result.success) setIsPro(nextIsPro);
     else setError(result.error);
     setSavingPro(false);
+  }
+
+  async function handleClearProfile() {
+    if (!confirm(`Clear ${user.display_name}'s bio and profile picture? Their account and content stay.`)) return;
+    setClearing(true);
+    setError(null);
+    const result = await adminClearProfile(user.id);
+    if (result.success) setCleared(true);
+    else setError(result.error);
+    setClearing(false);
   }
 
   async function handleDelete() {
@@ -207,7 +220,7 @@ function UserRow({
             {savingScore ? "Saving..." : "Save"}
           </button>
         </div>
-        {error && <p className="text-red-500 text-label-sm mt-xs">{error}</p>}
+        {error && <p className="text-error text-label-sm mt-xs">{error}</p>}
       </td>
       <td className="p-md">
         <button
@@ -229,14 +242,24 @@ function UserRow({
         {isAdmin(user.id) ? (
           <span className="text-on-surface-variant text-label-sm">—</span>
         ) : (
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="text-red-500 font-semibold cursor-pointer hover:underline disabled:opacity-50 disabled:no-underline inline-flex items-center gap-xs"
-          >
-            {deleting && <Spinner size={14} />}
-            Delete
-          </button>
+          <div className="flex flex-col items-start gap-xs">
+            <button
+              onClick={handleClearProfile}
+              disabled={clearing || cleared}
+              className="text-primary font-semibold cursor-pointer hover:underline disabled:opacity-50 disabled:no-underline inline-flex items-center gap-xs"
+            >
+              {clearing && <Spinner size={14} />}
+              {cleared ? "Profile cleared" : "Clear profile"}
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-error font-semibold cursor-pointer hover:underline disabled:opacity-50 disabled:no-underline inline-flex items-center gap-xs"
+            >
+              {deleting && <Spinner size={14} />}
+              Delete account
+            </button>
+          </div>
         )}
       </td>
     </tr>

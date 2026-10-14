@@ -62,7 +62,7 @@ export function LikeButton({
         className ??
         "flex flex-row items-center text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl"
       }
-      style={liked ? { color: activeColor ?? "#f50707" } : undefined}
+      style={liked ? { color: activeColor ?? "var(--color-like)" } : undefined}
     >
       <Heart size={size} fill={liked ? "currentColor" : "none"} />
       <span className="text-body-lg ml-sm mr-sm">{displayCount}</span>

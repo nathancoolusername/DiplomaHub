@@ -255,11 +255,11 @@ export default function OnboardingWizard({
             left: spotlight.left - 8,
             width: spotlight.width + 16,
             height: spotlight.height + 16,
-            boxShadow: "0 0 0 9999px rgba(11,28,48,0.7)",
+            boxShadow: "0 0 0 9999px color-mix(in srgb, var(--color-scrim) 70%, transparent)",
           }}
         />
       ) : (
-        <div className="absolute inset-0 bg-on-surface/40" aria-hidden="true" />
+        <div className="absolute inset-0 bg-scrim/40" aria-hidden="true" />
       )}
 
       <div
@@ -267,7 +267,7 @@ export default function OnboardingWizard({
         role="dialog"
         aria-modal="true"
         aria-labelledby="onboarding-title"
-        className="fixed bg-surface-container-lowest rounded-xl border border-outline-variant shadow-xl max-h-[85vh] overflow-y-auto p-lg flex flex-col gap-lg transition-all duration-500 ease-in-out"
+        className="fixed bg-surface-raised glass rounded-xl border border-outline-variant shadow-xl max-h-[85vh] overflow-y-auto p-lg flex flex-col gap-lg transition-all duration-500 ease-in-out"
         style={{
           top: panelPos?.top ?? "50%",
           left: panelPos?.left ?? "50%",

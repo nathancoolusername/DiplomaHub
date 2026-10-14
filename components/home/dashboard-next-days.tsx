@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import type { HubItem } from "@/components/hub/mock-data";
 import { getSubjectColor } from "@/components/hub/subject-colors";
 import { ITEM_TYPE_META } from "@/components/hub/item-type-meta";
@@ -16,6 +16,8 @@ const DAY_COUNT = 3;
 export default function DashboardNextDays({ items }: { items: HubItem[] }) {
   const today = startOfDay(new Date());
   const days = Array.from({ length: DAY_COUNT }, (_, i) => addDays(today, i));
+  const end = addDays(today, DAY_COUNT);
+  const isEmpty = !items.some((item) => item.start >= today && item.start < end);
 
   return (
     <div className="flex flex-col gap-md">
@@ -25,7 +27,17 @@ export default function DashboardNextDays({ items }: { items: HubItem[] }) {
           Open the Hub
         </Link>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-sm">
+      {isEmpty && (
+        <div className="flex flex-wrap items-center justify-between gap-sm rounded-lg bg-surface-container-lowest px-md py-sm">
+          <p className="text-body-md text-on-surface-variant">
+            Nothing in the next 3 days. Add your next test so Home can count down to it.
+          </p>
+          <Link href="/hub?add=1" prefetch={false} className="inline-flex items-center gap-xs text-label-md font-semibold text-primary hover:underline">
+            <Plus size={14} aria-hidden="true" /> Add item
+          </Link>
+        </div>
+      )}
+      <div className={`grid grid-cols-1 sm:grid-cols-3 gap-sm ${isEmpty ? "hidden" : ""}`}>
         {days.map((day, i) => {
           const dayItems = items
             .filter((item) => isSameDay(item.start, day))
@@ -47,7 +59,10 @@ export default function DashboardNextDays({ items }: { items: HubItem[] }) {
                     return (
                       <Link
                         key={item.id}
-                        href="/hub" prefetch={false}
+                        // A scheduled set opens straight into the player.
+                        href={item.setId && !done ? `/practice/sets/${item.setId}/play` : "/hub"}
+                        prefetch={false}
+                        title={item.setId && !done ? "Start this set" : undefined}
                         className={`flex items-center gap-xs border-l-[3px] pl-sm py-[2px] hover:bg-surface-container-low transition-colors ${done ? "opacity-60" : ""}`}
                         style={{ borderLeftColor: color.base }}
                       >

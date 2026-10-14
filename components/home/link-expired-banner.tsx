@@ -18,8 +18,8 @@ export default function LinkExpiredBanner() {
   if (searchParams.get("error_code") !== "otp_expired") return null;
 
   return (
-    <div className="bg-amber-50 border-b border-amber-200 px-md py-md text-center">
-      <p className="text-sm text-amber-800">
+    <div className="bg-tertiary-container border-b border-tertiary/30 px-md py-md text-center">
+      <p className="text-sm text-on-tertiary-container">
         That link expired or was already used.{" "}
         <Link href="/forgot-password" className="underline font-semibold">
           Request a new password reset
