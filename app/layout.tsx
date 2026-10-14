@@ -1,7 +1,9 @@
 import { Inter, Merriweather } from "next/font/google";
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import { NavigationProgress } from "@/components/NavigationProgress";
 import { AuthNav } from "@/components/NavAuth";
 import Footer from "@/components/Footer";
 import ScrollTopBtn from "@/components/scrollTop";
@@ -78,6 +80,10 @@ export default function RootLayout({
         <JsonLd data={websiteJsonLd} />
         <ThemeProvider>
           <div className="min-h-[100vh] relative flex flex-col bg-page h-full notranslate">
+            {/* useSearchParams needs a Suspense boundary so static pages (the homepage) stay static. */}
+            <Suspense fallback={null}>
+              <NavigationProgress />
+            </Suspense>
             <Navbar authSlot={<AuthNav />} />
             <main>{children}</main>
             <Footer />
