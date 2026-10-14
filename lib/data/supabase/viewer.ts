@@ -4,6 +4,7 @@ import { cache } from "react";
 import type { CalendarItemKind, ExamSession, GettingStarted, Level, Subject, SubjectId, UserSubject, Viewer } from "@/lib/data/types";
 import { allSubjects, subjectById } from "@/lib/catalog";
 import { PRO_COMING_SOON } from "@/lib/plans";
+import { toCatalogSubjectId, toHubSubjectId } from "@/lib/hub-subjects";
 import { check, db, requireUserId, rpc } from "./client";
 import { getNextTimedItem } from "./calendar";
 
@@ -162,34 +163,24 @@ export async function needsOnboarding(): Promise<boolean> {
 }
 
 /**
- * The six rows onboarding starts from: the student's core subjects if set,
- * otherwise what they picked in the Hub (users.hub_subjects), topped up so
- * there are always six to adjust.
+ * The rows onboarding starts from: the student's core subjects if set,
+ * otherwise what they picked in the Hub (users.hub_subjects). Never padded
+ * with guesses: with fewer than six, the wizard asks them to pick the rest.
  */
 export async function getOnboardingSubjects(): Promise<SubjectChoice[]> {
   const [current, u] = await Promise.all([getUserSubjects(), userRow()]);
   const rows: SubjectChoice[] = current
     .filter((s) => s.isCore)
     .map((s) => ({ subjectId: s.subject.id, level: s.level, ...(isCustomSubjectId(s.subject.id) ? { name: s.subject.name } : {}) }));
-  // The Hub only says "English"/"French"…: start from the likeliest course; the student adjusts it.
-  const HUB_LANGUAGE_GUESS: Record<string, string> = {
-    english: "english_a_langlit",
-    french: "french_b",
-    german: "german_b",
-    spanish: "spanish_b",
-  };
   for (const hubId of u.hub_subjects ?? []) {
     if (rows.length >= CORE_SUBJECT_COUNT) break;
-    const id = HUB_LANGUAGE_GUESS[hubId] ?? hubId;
-    if (rows.some((r) => r.subjectId === id)) continue;
+    // The Hub only says "English": skip it if they already have an English course, else start from the likeliest one.
+    if (rows.some((r) => toHubSubjectId(r.subjectId) === hubId)) continue;
+    const id = toCatalogSubjectId(hubId);
     // The Hub's own custom subjects come along with their names.
     const custom = isCustomSubjectId(id) ? u.custom_hub_subjects?.find((c) => c.id === id) : undefined;
     if (custom) rows.push({ subjectId: id, level: "SL", name: custom.name.slice(0, 40) });
     else if (subjectById(id)) rows.push({ subjectId: id, level: "SL" });
-  }
-  for (const s of allSubjects()) {
-    if (rows.length >= CORE_SUBJECT_COUNT) break;
-    if (!rows.some((r) => r.subjectId === s.id)) rows.push({ subjectId: s.id, level: "SL" });
   }
   return rows.slice(0, CORE_SUBJECT_COUNT);
 }
