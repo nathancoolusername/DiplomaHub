@@ -1,26 +1,26 @@
 "use client";
 
-import type { Markscheme, McqOption } from "@/lib/data/types";
+import type { McqOption } from "@/lib/data/types";
 import { MathMarkdown } from "@/components/shared/MathMarkdown";
 
 /**
- * Four option cards. With instant feedback (and a markscheme loaded), the
- * right answer turns teal and a wrong pick turns amber, and choices lock.
+ * Four option cards. With instant feedback (once the right option is known),
+ * the right answer turns teal and a wrong pick turns amber, and choices lock.
  */
 export function McqAnswer({
   options,
   selected,
-  markscheme,
+  correctOption,
   onSelect,
 }: {
   options: McqOption[];
   selected: string | null;
-  /** Present once feedback is showing. */
-  markscheme: Markscheme | null;
+  /** Set once feedback is showing. */
+  correctOption: string | null;
   onSelect: (key: string) => void;
 }) {
-  const locked = markscheme !== null;
-  const correct = markscheme?.correctOption ?? null;
+  const locked = correctOption !== null;
+  const correct = correctOption;
 
   return (
     <div role="radiogroup" aria-label="Options" className="grid gap-sm">

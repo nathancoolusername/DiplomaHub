@@ -190,6 +190,15 @@ export async function saveAnswer(attemptId: string, questionId: string, draft: A
   await rpc("save_answer", { p_attempt_id: attemptId, p_question_id: questionId, p_draft: draft });
 }
 
+/**
+ * The right option for each MCQ in an untimed attempt with feedback after
+ * every question (migration 23), so the player can show right/wrong at once.
+ * Empty for timed and "feedback at the end" attempts.
+ */
+export async function getInstantMcqKeys(attemptId: string): Promise<Record<string, string>> {
+  return (await rpc<Record<string, string>>("instant_mcq_keys", { p_attempt_id: attemptId })) ?? {};
+}
+
 export async function revealMarkscheme(attemptId: string, questionId: string): Promise<Markscheme> {
   return toMarkscheme(await rpc<any>("reveal_markscheme", { p_attempt_id: attemptId, p_question_id: questionId }));
 }

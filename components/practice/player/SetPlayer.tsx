@@ -29,6 +29,7 @@ export function SetPlayer({
   questions,
   initialAnswers,
   initialSchemes,
+  mcqKeys = {},
   examPaceS,
   isPro,
 }: {
@@ -38,6 +39,8 @@ export function SetPlayer({
   initialAnswers: AttemptAnswer[];
   /** Markschemes already revealed in this attempt (after a refresh or resume). */
   initialSchemes: Record<string, Markscheme>;
+  /** Right options for MCQs when feedback is instant (empty otherwise, or before migration 23). */
+  mcqKeys?: Record<string, string>;
   examPaceS: number;
   isPro: boolean;
 }) {
@@ -341,15 +344,19 @@ export function SetPlayer({
               <McqAnswer
                 options={question.options}
                 selected={answer.selectedOption}
-                markscheme={instantMcq ? scheme : null}
+                correctOption={
+                  instantMcq ? (scheme?.correctOption ?? (answer.revealed ? (mcqKeys[question.id] ?? null) : null)) : null
+                }
                 onSelect={(key) => {
-                  update(question.id, { selectedOption: key });
-                  // The answer locks once feedback is shown, so it must be saved first:
-                  // revealing before the (debounced) save landed left the MCQ unanswered.
+                  const qid = question.id;
+                  const known = instantMcq ? mcqKeys[qid] : undefined;
+                  // Known answer: right/wrong shows now (the pick locks), and the rest happens in the background.
+                  update(qid, known ? { selectedOption: key, revealed: true } : { selectedOption: key });
+                  // The server locks an MCQ once its markscheme is opened, so the answer is saved first:
+                  // opening it before the save landed would leave the MCQ unanswered.
                   if (instantMcq) {
-                    const qid = question.id;
                     void saveNow(qid).then((saved) => {
-                      if (saved) void reveal(qid);
+                      if (saved) void reveal(qid).catch(() => {});
                     });
                   }
                 }}
