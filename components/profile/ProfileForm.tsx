@@ -124,7 +124,7 @@ export function ProfileForm({
             <Spinner size={14} /> Uploading...
           </p>
         )}
-        {avatarError && <p className="text-sm text-red-500">{avatarError}</p>}
+        {avatarError && <p className="text-sm text-error">{avatarError}</p>}
       </div>
 
       <div>
@@ -132,7 +132,7 @@ export function ProfileForm({
         <input
           value={email}
           disabled
-          className="w-full border rounded-lg px-5 py-4 bg-gray-50 text-on-surface-variant text-body-lg"
+          className="w-full border rounded-lg px-5 py-4 bg-surface-container-low text-on-surface-variant text-body-lg"
         />
       </div>
 
@@ -165,33 +165,33 @@ export function ProfileForm({
         </select>
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-error">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full cursor-pointer py-2 rounded-lg bg-primary text-white font-medium hover:bg-blue-700 disabled:opacity-50 inline-flex items-center justify-center gap-sm"
+        className="w-full cursor-pointer py-2 rounded-lg bg-primary text-on-primary font-medium hover:bg-primary/90 disabled:opacity-50 inline-flex items-center justify-center gap-sm"
       >
         {loading && <Spinner size={16} />}
         {loading ? "Saving..." : "Save changes"}
       </button>
     </form>
 
-      <div className="flex flex-col gap-sm py-margin px-gutter bg-surface-container-lowest border-1 border-red-200 rounded-xl">
-        <p className="font-bold text-body-lg text-red-600">Danger Zone</p>
+      <div className="flex flex-col gap-sm py-margin px-gutter bg-surface-container-lowest border-1 border-error/30 rounded-xl">
+        <p className="font-bold text-body-lg text-error">Danger Zone</p>
         <p className="text-body-md text-on-surface-variant">
           Permanently delete your account and everything you&apos;ve created —
           resources, articles, discussions, comments. This can&apos;t be
           undone.
         </p>
         {deleteError && (
-          <p className="text-sm text-red-500">{deleteError}</p>
+          <p className="text-sm text-error">{deleteError}</p>
         )}
         <button
           type="button"
           onClick={handleDeleteAccount}
           disabled={deleting}
-          className="self-start py-2 px-lg rounded-lg border-1 border-red-500 text-red-600 font-medium hover:bg-red-50 disabled:opacity-50 cursor-pointer inline-flex items-center justify-center gap-sm"
+          className="self-start py-2 px-lg rounded-lg border-1 border-error text-error font-medium hover:bg-error-container disabled:opacity-50 cursor-pointer inline-flex items-center justify-center gap-sm"
         >
           {deleting && <Spinner size={16} />}
           {deleting ? "Deleting..." : "Delete Account"}

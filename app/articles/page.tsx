@@ -17,7 +17,7 @@ export default async function Articles() {
 
   if (!result.success) {
     return (
-      <p className="text-red-500">Failed to load articles: {result.error}</p>
+      <p className="text-error">Failed to load articles: {result.error}</p>
     );
   }
 

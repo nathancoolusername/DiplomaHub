@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import crypto from "node:crypto";
 import { createClient } from "../supabase/server";
 import { checkRateLimit } from "../ratelimit";
@@ -168,6 +169,8 @@ export async function confirmIcsImport(
   const { error } = await supabase.from("hub_items").upsert(rows, { onConflict: "owner_id,external_uid" });
   if (error) return { success: false, error: error.message };
 
+  revalidatePath("/hub");
+  revalidatePath("/");
   return { success: true, data: { imported: rows.length, batchId } };
 }
 
@@ -187,6 +190,8 @@ export async function undoImportBatch(batchId: string): Promise<ActionResult<{ d
     .select("id");
 
   if (error) return { success: false, error: error.message };
+  revalidatePath("/hub");
+  revalidatePath("/");
   return { success: true, data: { deleted: (data ?? []).length } };
 }
 

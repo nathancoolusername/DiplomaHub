@@ -110,4 +110,24 @@ export type HubItem = {
   notes: string;
   resourceIds: string[];
   weightLabel?: string;
+  /** DiplomaPro: show a countdown to this item on Home (hub_items.has_timer). */
+  hasTimer?: boolean;
+  /** DiplomaPro: what it is, so suggestions know a test from a deadline (hub_items.kind). */
+  kind?: HubItemKind | null;
+  /** DiplomaPro: the practice set a scheduled study session opens (hub_items.set_id). Read-only here. */
+  setId?: string | null;
+};
+
+export type HubItemKind = "deadline" | "test" | "mock" | "study";
+export const HUB_ITEM_KINDS: HubItemKind[] = ["deadline", "test", "mock", "study"];
+
+/** What the add/edit dialog saves. */
+export type HubItemDetails = {
+  title: string;
+  type: HubItemType;
+  subjectId: SubjectId | null;
+  start: Date;
+  end: Date;
+  hasTimer: boolean;
+  kind: HubItemKind | null;
 };

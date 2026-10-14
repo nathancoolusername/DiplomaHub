@@ -59,7 +59,7 @@ export default function ProfileDropdown({
       </div>
       {isOpen && (
         <div
-          className={`absolute right-0 top-full mt-xs bg-surface-container-lowest border border-outline-variant rounded-xl shadow-md z-10 min-w-full overflow-hidden`}
+          className={`absolute right-0 top-full mt-xs bg-surface-raised glass border border-outline-variant rounded-xl shadow-md z-10 min-w-full overflow-hidden`}
         >
           <Link href={`/profile/${id}`}>
             <button
@@ -70,6 +70,10 @@ export default function ProfileDropdown({
             >
               See profile
             </button>
+          </Link>
+          {/* Phones don't show the points beside the name, so the leaderboard is here too. */}
+          <Link href="/leaderboard" onClick={() => setIsOpen(false)} className="sm:hidden block px-md py-sm text-body-lg transition-colors hover:bg-surface-container text-primary font-serif">
+            Leaderboard · {points} pts
           </Link>
           {isAdmin && (
             <Link href="/admin">
@@ -88,7 +92,7 @@ export default function ProfileDropdown({
               setIsOpen(false);
               sign_out();
             }}
-            className={`cursor-pointer w-full text-left px-md py-sm text-body-lg transition-colors hover:bg-surface-container text-red-500 font-serif`}
+            className={`cursor-pointer w-full text-left px-md py-sm text-body-lg transition-colors hover:bg-surface-container text-error font-serif`}
           >
             Sign Out
           </button>

@@ -1,6 +1,6 @@
 "use server";
 
-import { unstable_cache } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { createClient } from "../supabase/server";
 import { createPublicClient } from "../supabase/public";
 import { getCurrentUserId } from "../get-current-user";
@@ -12,9 +12,10 @@ import {
   SUBJECTS,
   isCustomSubjectId,
   type CustomSubject,
+  HUB_ITEM_KINDS,
   type HubItem,
+  type HubItemDetails,
   type HubItemStatus,
-  type HubItemType,
   type SubjectId,
   type Stage,
 } from "@/components/hub/mock-data";
@@ -43,7 +44,15 @@ async function requireUser() {
 }
 
 const HUB_ITEM_COLUMNS =
-  "id, title, type, subject_id, start_at, end_at, all_day, status, stages, notes, resource_ids, weight_label";
+  "id, title, type, subject_id, start_at, end_at, all_day, status, stages, notes, resource_ids, weight_label, has_timer, kind, set_id";
+
+// Hub's Next steps, Bro's brief and Home's suggestions/countdown are built
+// from hub_items on the server; re-render them after a change that moves,
+// adds, removes or completes an item (the client keeps its own item state).
+function refreshPlans() {
+  revalidatePath("/hub");
+  revalidatePath("/");
+}
 const HUB_ITEM_HISTORY_DAYS = 120;
 
 export async function getHubItems(): Promise<ActionResult<HubItem[]>> {
@@ -103,6 +112,7 @@ export async function createHubItem(item: HubItem): Promise<ActionResult<HubItem
   const row = { ...hubItemToRow(item), owner_id: user.id };
   const { data, error } = await supabase.from("hub_items").insert(row).select().single();
   if (error) return { success: false, error: error.message };
+  refreshPlans();
   return { success: true, data: rowToHubItem(data as HubItemRow) };
 }
 
@@ -127,6 +137,7 @@ export async function updateHubItemTime(
     .eq("owner_id", user.id);
 
   if (error) return { success: false, error: error.message };
+  refreshPlans();
   return { success: true, data: null };
 }
 
@@ -170,6 +181,7 @@ export async function updateHubItemStatus(
     .eq("owner_id", user.id);
 
   if (error) return { success: false, error: error.message };
+  refreshPlans();
   return { success: true, data: null };
 }
 
@@ -197,16 +209,7 @@ export async function updateHubItemNotes(
   return { success: true, data: null };
 }
 
-export async function updateHubItemDetails(
-  id: string,
-  details: {
-    title: string;
-    type: HubItemType;
-    subjectId: SubjectId | null;
-    start: Date;
-    end: Date;
-  },
-): Promise<ActionResult<null>> {
+export async function updateHubItemDetails(id: string, details: HubItemDetails): Promise<ActionResult<null>> {
   const { supabase, user } = await requireUser();
   if (!user) return { success: false, error: "Log in to save changes" };
 
@@ -220,6 +223,9 @@ export async function updateHubItemDetails(
   if (details.subjectId && !isValidSubjectId(details.subjectId)) {
     return { success: false, error: "Invalid subject" };
   }
+  if (details.kind !== null && !HUB_ITEM_KINDS.includes(details.kind)) {
+    return { success: false, error: "Invalid kind" };
+  }
 
   const { error } = await supabase
     .from("hub_items")
@@ -227,6 +233,8 @@ export async function updateHubItemDetails(
       title: title.value,
       type: type.value,
       subject_id: details.subjectId,
+      has_timer: !!details.hasTimer,
+      kind: details.kind,
       start_at: details.start.toISOString(),
       end_at: details.end.toISOString(),
       import_batch_id: null,
@@ -235,6 +243,7 @@ export async function updateHubItemDetails(
     .eq("owner_id", user.id);
 
   if (error) return { success: false, error: error.message };
+  refreshPlans();
   return { success: true, data: null };
 }
 
@@ -256,6 +265,7 @@ export async function deleteHubItem(id: string): Promise<ActionResult<null>> {
   if (!data || data.length === 0) {
     return { success: false, error: "Item not found" };
   }
+  refreshPlans();
   return { success: true, data: null };
 }
 
@@ -304,6 +314,7 @@ export async function bulkImportHubItems(
     .upsert(rows, { onConflict: "id", ignoreDuplicates: true });
 
   if (error) return { success: false, error: error.message };
+  refreshPlans();
   return { success: true, data: { imported: rows.length } };
 }
 

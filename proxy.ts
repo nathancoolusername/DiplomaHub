@@ -131,6 +131,14 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
         () => {},
       ),
     );
+    // One row per student per day, for the admin graphs of active and
+    // returning students (migration 19). Same cookie gate, same silent failure.
+    event.waitUntil(
+      Promise.resolve(supabase.rpc("record_activity")).then(
+        () => {},
+        () => {},
+      ),
+    );
   }
 
   return response;

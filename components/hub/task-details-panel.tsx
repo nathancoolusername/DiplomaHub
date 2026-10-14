@@ -3,18 +3,22 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { links } from "@/lib/practice/links";
 import {
   AlertCircle,
   Bookmark,
   BookmarkCheck,
   Check,
   Clock,
+  Lightbulb,
   Pencil,
   PlayCircle,
   Trash2,
   X,
 } from "lucide-react";
 import type { Resource } from "@/app/lib/types";
+import type { TaskPracticeSuggestion } from "./calendar/week-calendar";
+import { BroAvatar } from "@/components/shared/BroAvatar";
 import type { CustomSubject, HubItem } from "./mock-data";
 import { getSubject } from "./mock-data";
 import { getSubjectColor } from "./subject-colors";
@@ -38,6 +42,7 @@ export type TaskDetailsPanelProps = {
   panelWidth?: number;
   side?: "left" | "right";
   resources: Resource[];
+  practice?: TaskPracticeSuggestion | null;
   savedResourceIds: Set<string>;
   onToggleSaveResource: (id: string) => void;
   onClose: () => void;
@@ -94,7 +99,7 @@ export default function TaskDetailsPanel(props: TaskDetailsPanelProps) {
     return createPortal(
       <div className="fixed inset-0 z-100 flex items-end justify-center">
         <div
-          className="absolute inset-0 bg-on-surface/40"
+          className="absolute inset-0 bg-scrim/40"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -103,7 +108,7 @@ export default function TaskDetailsPanel(props: TaskDetailsPanelProps) {
           role="dialog"
           aria-modal="true"
           aria-label={`${props.item.title} details`}
-          className="relative bg-surface-container-lowest rounded-t-2xl w-full max-h-[85vh] overflow-y-auto p-lg flex flex-col gap-md shadow-xl"
+          className="relative bg-surface-raised glass rounded-t-2xl w-full max-h-[85vh] overflow-y-auto p-lg flex flex-col gap-md shadow-xl"
         >
           {content}
         </div>
@@ -114,8 +119,8 @@ export default function TaskDetailsPanel(props: TaskDetailsPanelProps) {
 
   const shadow =
     side === "right"
-      ? "-12px 0 24px -12px rgba(11,28,48,0.25)"
-      : "12px 0 24px -12px rgba(11,28,48,0.25)";
+      ? "-12px 0 24px -12px color-mix(in srgb, var(--color-scrim) 25%, transparent)"
+      : "12px 0 24px -12px color-mix(in srgb, var(--color-scrim) 25%, transparent)";
 
   return (
     <div
@@ -123,7 +128,7 @@ export default function TaskDetailsPanel(props: TaskDetailsPanelProps) {
       role="dialog"
       aria-modal="false"
       aria-label={`${props.item.title} details`}
-      className="absolute top-0 bottom-0 bg-surface-container-lowest z-30 overflow-y-auto p-lg flex flex-col gap-md rounded-xl"
+      className="absolute top-0 bottom-0 bg-surface-raised glass z-30 overflow-y-auto p-lg flex flex-col gap-md rounded-xl"
       style={{
         left: panelLeft,
         width: panelWidth,
@@ -138,6 +143,7 @@ export default function TaskDetailsPanel(props: TaskDetailsPanelProps) {
 function PanelContent({
   item,
   resources,
+  practice = null,
   savedResourceIds,
   onToggleSaveResource,
   onClose,
@@ -320,14 +326,48 @@ function PanelContent({
         </div>
       )}
 
+      {/* Scheduled from Build your set: opens that set. */}
+      {item.setId && (
+        <Link
+          href={links.play(item.setId)}
+          className="w-full bg-primary text-on-primary py-sm rounded-lg text-label-md font-semibold flex items-center justify-center gap-sm hover:opacity-90 transition-opacity"
+        >
+          <PlayCircle size={20} />
+          Start set
+        </Link>
+      )}
+
       <button
         type="button"
         onClick={() => onStartFocus(item.id)}
-        className="w-full bg-primary text-on-primary py-sm rounded-lg text-label-md font-semibold flex items-center justify-center gap-sm hover:opacity-90 transition-opacity cursor-pointer"
+        className={`w-full py-sm rounded-lg text-label-md font-semibold flex items-center justify-center gap-sm transition-opacity cursor-pointer ${
+          item.setId ? "border border-outline-variant text-on-surface hover:border-primary" : "bg-primary text-on-primary hover:opacity-90"
+        }`}
       >
         <PlayCircle size={20} />
         Start focus session
       </button>
+
+      {practice && (
+        <div className="flex flex-col gap-sm pt-sm border-t border-outline-variant/50">
+          <span className="text-label-sm uppercase tracking-wide text-outline font-bold">Suggested for this task</span>
+          <div className="flex items-start gap-sm">
+            {practice.fromBro ? (
+              <BroAvatar size={24} />
+            ) : (
+              <span className="w-6 h-6 shrink-0 rounded-[50%] bg-secondary-container text-on-secondary-container flex items-center justify-center" aria-hidden="true">
+                <Lightbulb size={13} />
+              </span>
+            )}
+            <div className="flex flex-col gap-xs min-w-0">
+              <p className="text-label-md text-on-surface">{practice.text}</p>
+              <Link href={practice.href} className="self-start text-label-md font-semibold text-primary hover:underline">
+                {practice.label} →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {shownResources.length > 0 && (
         <div className="flex flex-col gap-sm pt-sm border-t border-outline-variant/50">

@@ -83,7 +83,7 @@ export default function Comments({ target, initialItems, path, isLoggedIn, curre
                 placeholder="Add to the Discussion ..."
               />
               {error && (
-                <p className="text-red-500 text-body-sm mb-sm">{error}</p>
+                <p className="text-error text-body-sm mb-sm">{error}</p>
               )}
               <div className="mr-0 ml-auto float-right">
                 <Button

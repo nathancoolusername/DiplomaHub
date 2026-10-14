@@ -1,0 +1,2472 @@
+{
+  "subjects": [
+    {
+      "id": "english_a_lit",
+      "name": "English A: Literature",
+      "shortName": "English A Lit",
+      "ibGroup": 1,
+      "resourceTag": "English",
+      "supportedTypes": [
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 135
+          },
+          "totalMarks": {
+            "SL": 20,
+            "HL": 40
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 105
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "PAPERS",
+          "name": "Papers",
+          "subtopics": [
+            {
+              "code": "L.P1",
+              "name": "Paper 1: Guided literary analysis",
+              "hlOnly": false
+            },
+            {
+              "code": "L.P2",
+              "name": "Paper 2: Comparative essay",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "english_a_langlit",
+      "name": "English A: Language & Literature",
+      "shortName": "English A Lang & Lit",
+      "ibGroup": 1,
+      "resourceTag": "English",
+      "supportedTypes": [
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 135
+          },
+          "totalMarks": {
+            "SL": 20,
+            "HL": 40
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 105
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "PAPERS",
+          "name": "Papers",
+          "subtopics": [
+            {
+              "code": "E.P1",
+              "name": "Paper 1: Guided textual analysis",
+              "hlOnly": false
+            },
+            {
+              "code": "E.P2",
+              "name": "Paper 2: Comparative essay",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "english_b",
+      "name": "English B",
+      "shortName": "English B",
+      "ibGroup": 2,
+      "resourceTag": "English",
+      "supportedTypes": [
+        "mcq_short",
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 90
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 120
+          },
+          "totalMarks": {
+            "SL": 65,
+            "HL": 65
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "TH",
+          "name": "Themes",
+          "subtopics": [
+            {
+              "code": "F.TH.1",
+              "name": "Identities",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.2",
+              "name": "Experiences",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.3",
+              "name": "Human ingenuity",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.4",
+              "name": "Social organization",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.5",
+              "name": "Sharing the planet",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "SK",
+          "name": "Skills",
+          "subtopics": [
+            {
+              "code": "F.SK.1",
+              "name": "Reading comprehension",
+              "hlOnly": false
+            },
+            {
+              "code": "F.SK.2",
+              "name": "Listening comprehension",
+              "hlOnly": false
+            },
+            {
+              "code": "F.SK.3",
+              "name": "Text types for writing",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "french_a_lit",
+      "name": "French A: Literature",
+      "shortName": "French A Lit",
+      "ibGroup": 1,
+      "resourceTag": "French",
+      "supportedTypes": [
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 135
+          },
+          "totalMarks": {
+            "SL": 20,
+            "HL": 40
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 105
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "PAPERS",
+          "name": "Papers",
+          "subtopics": [
+            {
+              "code": "L.P1",
+              "name": "Paper 1: Guided literary analysis",
+              "hlOnly": false
+            },
+            {
+              "code": "L.P2",
+              "name": "Paper 2: Comparative essay",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "french_a_langlit",
+      "name": "French A: Language & Literature",
+      "shortName": "French A Lang & Lit",
+      "ibGroup": 1,
+      "resourceTag": "French",
+      "supportedTypes": [
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 135
+          },
+          "totalMarks": {
+            "SL": 20,
+            "HL": 40
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 105
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "PAPERS",
+          "name": "Papers",
+          "subtopics": [
+            {
+              "code": "E.P1",
+              "name": "Paper 1: Guided textual analysis",
+              "hlOnly": false
+            },
+            {
+              "code": "E.P2",
+              "name": "Paper 2: Comparative essay",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "french_b",
+      "name": "French B",
+      "shortName": "French B",
+      "ibGroup": 2,
+      "resourceTag": "French",
+      "supportedTypes": [
+        "mcq_short",
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 90
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 120
+          },
+          "totalMarks": {
+            "SL": 65,
+            "HL": 65
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "TH",
+          "name": "Themes",
+          "subtopics": [
+            {
+              "code": "F.TH.1",
+              "name": "Identities",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.2",
+              "name": "Experiences",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.3",
+              "name": "Human ingenuity",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.4",
+              "name": "Social organization",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.5",
+              "name": "Sharing the planet",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "SK",
+          "name": "Skills",
+          "subtopics": [
+            {
+              "code": "F.SK.1",
+              "name": "Reading comprehension",
+              "hlOnly": false
+            },
+            {
+              "code": "F.SK.2",
+              "name": "Listening comprehension",
+              "hlOnly": false
+            },
+            {
+              "code": "F.SK.3",
+              "name": "Text types for writing",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german_a_lit",
+      "name": "German A: Literature",
+      "shortName": "German A Lit",
+      "ibGroup": 1,
+      "resourceTag": null,
+      "supportedTypes": [
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 135
+          },
+          "totalMarks": {
+            "SL": 20,
+            "HL": 40
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 105
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "PAPERS",
+          "name": "Papers",
+          "subtopics": [
+            {
+              "code": "L.P1",
+              "name": "Paper 1: Guided literary analysis",
+              "hlOnly": false
+            },
+            {
+              "code": "L.P2",
+              "name": "Paper 2: Comparative essay",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german_a_langlit",
+      "name": "German A: Language & Literature",
+      "shortName": "German A Lang & Lit",
+      "ibGroup": 1,
+      "resourceTag": null,
+      "supportedTypes": [
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 135
+          },
+          "totalMarks": {
+            "SL": 20,
+            "HL": 40
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 105
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "PAPERS",
+          "name": "Papers",
+          "subtopics": [
+            {
+              "code": "E.P1",
+              "name": "Paper 1: Guided textual analysis",
+              "hlOnly": false
+            },
+            {
+              "code": "E.P2",
+              "name": "Paper 2: Comparative essay",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german_b",
+      "name": "German B",
+      "shortName": "German B",
+      "ibGroup": 2,
+      "resourceTag": null,
+      "supportedTypes": [
+        "mcq_short",
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 90
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 120
+          },
+          "totalMarks": {
+            "SL": 65,
+            "HL": 65
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "TH",
+          "name": "Themes",
+          "subtopics": [
+            {
+              "code": "F.TH.1",
+              "name": "Identities",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.2",
+              "name": "Experiences",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.3",
+              "name": "Human ingenuity",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.4",
+              "name": "Social organization",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.5",
+              "name": "Sharing the planet",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "SK",
+          "name": "Skills",
+          "subtopics": [
+            {
+              "code": "F.SK.1",
+              "name": "Reading comprehension",
+              "hlOnly": false
+            },
+            {
+              "code": "F.SK.2",
+              "name": "Listening comprehension",
+              "hlOnly": false
+            },
+            {
+              "code": "F.SK.3",
+              "name": "Text types for writing",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spanish_a_lit",
+      "name": "Spanish A: Literature",
+      "shortName": "Spanish A Lit",
+      "ibGroup": 1,
+      "resourceTag": null,
+      "supportedTypes": [
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 135
+          },
+          "totalMarks": {
+            "SL": 20,
+            "HL": 40
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 105
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "PAPERS",
+          "name": "Papers",
+          "subtopics": [
+            {
+              "code": "L.P1",
+              "name": "Paper 1: Guided literary analysis",
+              "hlOnly": false
+            },
+            {
+              "code": "L.P2",
+              "name": "Paper 2: Comparative essay",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spanish_a_langlit",
+      "name": "Spanish A: Language & Literature",
+      "shortName": "Spanish A Lang & Lit",
+      "ibGroup": 1,
+      "resourceTag": null,
+      "supportedTypes": [
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 135
+          },
+          "totalMarks": {
+            "SL": 20,
+            "HL": 40
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 105
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "PAPERS",
+          "name": "Papers",
+          "subtopics": [
+            {
+              "code": "E.P1",
+              "name": "Paper 1: Guided textual analysis",
+              "hlOnly": false
+            },
+            {
+              "code": "E.P2",
+              "name": "Paper 2: Comparative essay",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spanish_b",
+      "name": "Spanish B",
+      "shortName": "Spanish B",
+      "ibGroup": 2,
+      "resourceTag": null,
+      "supportedTypes": [
+        "mcq_short",
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 90
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 120
+          },
+          "totalMarks": {
+            "SL": 65,
+            "HL": 65
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "TH",
+          "name": "Themes",
+          "subtopics": [
+            {
+              "code": "F.TH.1",
+              "name": "Identities",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.2",
+              "name": "Experiences",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.3",
+              "name": "Human ingenuity",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.4",
+              "name": "Social organization",
+              "hlOnly": false
+            },
+            {
+              "code": "F.TH.5",
+              "name": "Sharing the planet",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "SK",
+          "name": "Skills",
+          "subtopics": [
+            {
+              "code": "F.SK.1",
+              "name": "Reading comprehension",
+              "hlOnly": false
+            },
+            {
+              "code": "F.SK.2",
+              "name": "Listening comprehension",
+              "hlOnly": false
+            },
+            {
+              "code": "F.SK.3",
+              "name": "Text types for writing",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "math_aa",
+      "name": "Mathematics: Analysis & Approaches",
+      "shortName": "Maths AA",
+      "ibGroup": 5,
+      "resourceTag": "Math AA",
+      "supportedTypes": [
+        "mcq_short",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 90,
+            "HL": 120
+          },
+          "totalMarks": {
+            "SL": 80,
+            "HL": 110
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 90,
+            "HL": 120
+          },
+          "totalMarks": {
+            "SL": 80,
+            "HL": 110
+          },
+          "calculator": true
+        },
+        {
+          "code": "P3",
+          "duration": {
+            "HL": 60
+          },
+          "totalMarks": {
+            "HL": 55
+          },
+          "calculator": true
+        }
+      ],
+      "topics": [
+        {
+          "code": "1",
+          "name": "Number and algebra",
+          "subtopics": [
+            {
+              "code": "1.1",
+              "name": "Operations with numbers in scientific notation",
+              "hlOnly": false
+            },
+            {
+              "code": "1.2",
+              "name": "Arithmetic sequences and series",
+              "hlOnly": false
+            },
+            {
+              "code": "1.3",
+              "name": "Geometric sequences and series",
+              "hlOnly": false
+            },
+            {
+              "code": "1.4",
+              "name": "Financial applications of geometric sequences and series",
+              "hlOnly": false
+            },
+            {
+              "code": "1.5",
+              "name": "Laws of exponents with integer exponents; introduction to logarithms",
+              "hlOnly": false
+            },
+            {
+              "code": "1.6",
+              "name": "Simple deductive proof, numerical and algebraic",
+              "hlOnly": false
+            },
+            {
+              "code": "1.7",
+              "name": "Laws of exponents with rational exponents; laws of logarithms; change of base; solving exponential equations",
+              "hlOnly": false
+            },
+            {
+              "code": "1.8",
+              "name": "Sum of infinite convergent geometric sequences",
+              "hlOnly": false
+            },
+            {
+              "code": "1.9",
+              "name": "The binomial theorem (natural n)",
+              "hlOnly": false
+            },
+            {
+              "code": "1.10",
+              "name": "Counting principles, permutations and combinations; binomial theorem for fractional and negative indices",
+              "hlOnly": true
+            },
+            {
+              "code": "1.11",
+              "name": "Partial fractions",
+              "hlOnly": true
+            },
+            {
+              "code": "1.12",
+              "name": "Complex numbers: Cartesian form, Argand diagram",
+              "hlOnly": true
+            },
+            {
+              "code": "1.13",
+              "name": "Modulus-argument (polar) and Euler forms of complex numbers",
+              "hlOnly": true
+            },
+            {
+              "code": "1.14",
+              "name": "Complex conjugate roots of polynomials; De Moivre's theorem; powers and roots of complex numbers",
+              "hlOnly": true
+            },
+            {
+              "code": "1.15",
+              "name": "Proof by mathematical induction, contradiction and counterexample",
+              "hlOnly": true
+            },
+            {
+              "code": "1.16",
+              "name": "Solutions of systems of linear equations (up to 3 unknowns)",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "2",
+          "name": "Functions",
+          "subtopics": [
+            {
+              "code": "2.1",
+              "name": "Equations of straight lines; parallel and perpendicular gradients",
+              "hlOnly": false
+            },
+            {
+              "code": "2.2",
+              "name": "Concept of a function; domain, range, graph; inverse function as reflection in y = x",
+              "hlOnly": false
+            },
+            {
+              "code": "2.3",
+              "name": "The graph of a function; sketching from information or context",
+              "hlOnly": false
+            },
+            {
+              "code": "2.4",
+              "name": "Key features of graphs; intersection of graphs using technology",
+              "hlOnly": false
+            },
+            {
+              "code": "2.5",
+              "name": "Composite functions; identity function; finding the inverse function",
+              "hlOnly": false
+            },
+            {
+              "code": "2.6",
+              "name": "The quadratic function: vertex, intercepts, axis of symmetry",
+              "hlOnly": false
+            },
+            {
+              "code": "2.7",
+              "name": "Solving quadratic equations and inequalities; the discriminant",
+              "hlOnly": false
+            },
+            {
+              "code": "2.8",
+              "name": "The reciprocal function and rational functions (ax+b)/(cx+d); asymptotes",
+              "hlOnly": false
+            },
+            {
+              "code": "2.9",
+              "name": "Exponential and logarithmic functions and their graphs; exponential/logarithmic models",
+              "hlOnly": false
+            },
+            {
+              "code": "2.10",
+              "name": "Solving equations analytically and graphically; applications to real-life situations",
+              "hlOnly": false
+            },
+            {
+              "code": "2.11",
+              "name": "Transformations of graphs; composite transformations",
+              "hlOnly": false
+            },
+            {
+              "code": "2.12",
+              "name": "Polynomial functions; factor and remainder theorems; sum and product of roots",
+              "hlOnly": true
+            },
+            {
+              "code": "2.13",
+              "name": "Rational functions with quadratic numerator or denominator; oblique asymptotes",
+              "hlOnly": true
+            },
+            {
+              "code": "2.14",
+              "name": "Odd and even functions; self-inverse functions; inverses with restricted domains",
+              "hlOnly": true
+            },
+            {
+              "code": "2.15",
+              "name": "Solving inequalities g(x) >= f(x) graphically and analytically",
+              "hlOnly": true
+            },
+            {
+              "code": "2.16",
+              "name": "Graphs of y=|f(x)|, y=f(|x|), y=1/f(x), y=f(ax+b), y=[f(x)]^2; solving modulus equations and inequalities",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "3",
+          "name": "Geometry and trigonometry",
+          "subtopics": [
+            {
+              "code": "3.1",
+              "name": "3D distance and midpoint; volume and surface area of solids; angle between a line and a plane",
+              "hlOnly": false
+            },
+            {
+              "code": "3.2",
+              "name": "Right-angled trigonometry; sine rule; cosine rule; area of a triangle",
+              "hlOnly": false
+            },
+            {
+              "code": "3.3",
+              "name": "Applications of trigonometry: bearings, angles of elevation and depression, constructing diagrams",
+              "hlOnly": false
+            },
+            {
+              "code": "3.4",
+              "name": "The circle: radian measure, arc length, sector area",
+              "hlOnly": false
+            },
+            {
+              "code": "3.5",
+              "name": "Unit circle definitions of sin, cos, tan; exact values; ambiguous case of the sine rule",
+              "hlOnly": false
+            },
+            {
+              "code": "3.6",
+              "name": "Pythagorean identity; double angle identities for sine and cosine",
+              "hlOnly": false
+            },
+            {
+              "code": "3.7",
+              "name": "Circular functions sin, cos, tan: amplitude, period, transformations, real-life models",
+              "hlOnly": false
+            },
+            {
+              "code": "3.8",
+              "name": "Solving trigonometric equations in a finite interval; equations leading to quadratics",
+              "hlOnly": false
+            },
+            {
+              "code": "3.9",
+              "name": "Reciprocal trigonometric ratios; inverse trigonometric functions",
+              "hlOnly": true
+            },
+            {
+              "code": "3.10",
+              "name": "Compound angle identities; double angle identity for tangent",
+              "hlOnly": true
+            },
+            {
+              "code": "3.11",
+              "name": "Relationships between trigonometric functions and symmetry properties of their graphs",
+              "hlOnly": true
+            },
+            {
+              "code": "3.12",
+              "name": "Vectors: concepts, algebraic and geometric approaches, position vectors, unit vectors",
+              "hlOnly": true
+            },
+            {
+              "code": "3.13",
+              "name": "The scalar product; angle between two vectors; perpendicular and parallel vectors",
+              "hlOnly": true
+            },
+            {
+              "code": "3.14",
+              "name": "Vector equation of a line; angle between lines; simple kinematics",
+              "hlOnly": true
+            },
+            {
+              "code": "3.15",
+              "name": "Coincident, parallel, intersecting and skew lines; points of intersection",
+              "hlOnly": true
+            },
+            {
+              "code": "3.16",
+              "name": "The vector product; geometric interpretation of |v x w|; areas",
+              "hlOnly": true
+            },
+            {
+              "code": "3.17",
+              "name": "Vector, parametric and Cartesian equations of a plane",
+              "hlOnly": true
+            },
+            {
+              "code": "3.18",
+              "name": "Intersections of lines and planes; angles between them; distances",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "4",
+          "name": "Statistics and probability",
+          "subtopics": [
+            {
+              "code": "4.1",
+              "name": "Population, sample, sampling methods; reliability of data; outliers",
+              "hlOnly": false
+            },
+            {
+              "code": "4.2",
+              "name": "Presentation of data: frequency distributions, histograms, cumulative frequency, box plots",
+              "hlOnly": false
+            },
+            {
+              "code": "4.3",
+              "name": "Measures of central tendency and dispersion; effect of constant changes",
+              "hlOnly": false
+            },
+            {
+              "code": "4.4",
+              "name": "Linear correlation; Pearson's r; scatter diagrams; regression line of y on x",
+              "hlOnly": false
+            },
+            {
+              "code": "4.5",
+              "name": "Concepts of trial, outcome, sample space, event; probability; complementary events; expected number",
+              "hlOnly": false
+            },
+            {
+              "code": "4.6",
+              "name": "Venn and tree diagrams; combined, mutually exclusive, conditional and independent events",
+              "hlOnly": false
+            },
+            {
+              "code": "4.7",
+              "name": "Discrete random variables and their probability distributions; expected value",
+              "hlOnly": false
+            },
+            {
+              "code": "4.8",
+              "name": "Binomial distribution; mean and variance",
+              "hlOnly": false
+            },
+            {
+              "code": "4.9",
+              "name": "The normal distribution and curve; normal probability calculations; inverse normal",
+              "hlOnly": false
+            },
+            {
+              "code": "4.10",
+              "name": "Equation of the regression line of x on y",
+              "hlOnly": false
+            },
+            {
+              "code": "4.11",
+              "name": "Formal definitions of conditional probability and independence",
+              "hlOnly": false
+            },
+            {
+              "code": "4.12",
+              "name": "Standardization of normal variables (z-values); inverse normal with unknown mean or SD",
+              "hlOnly": false
+            },
+            {
+              "code": "4.13",
+              "name": "Bayes' theorem (up to three events)",
+              "hlOnly": true
+            },
+            {
+              "code": "4.14",
+              "name": "Variance of a discrete random variable; continuous random variables and pdfs; mode, median, mean, variance; E(aX+b), Var(aX+b)",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "5",
+          "name": "Calculus",
+          "subtopics": [
+            {
+              "code": "5.1",
+              "name": "Introduction to limits; the derivative as gradient and rate of change",
+              "hlOnly": false
+            },
+            {
+              "code": "5.2",
+              "name": "Increasing and decreasing functions; graphical interpretation of f'(x)",
+              "hlOnly": false
+            },
+            {
+              "code": "5.3",
+              "name": "Derivative of ax^n and polynomials",
+              "hlOnly": false
+            },
+            {
+              "code": "5.4",
+              "name": "Tangents and normals at a given point and their equations",
+              "hlOnly": false
+            },
+            {
+              "code": "5.5",
+              "name": "Introduction to integration; anti-differentiation with a boundary condition; definite integrals and areas using technology",
+              "hlOnly": false
+            },
+            {
+              "code": "5.6",
+              "name": "Derivatives of x^n, sin x, cos x, e^x, ln x; chain, product and quotient rules",
+              "hlOnly": false
+            },
+            {
+              "code": "5.7",
+              "name": "The second derivative; graphical behaviour of f, f' and f''",
+              "hlOnly": false
+            },
+            {
+              "code": "5.8",
+              "name": "Local maxima and minima; optimisation; points of inflection",
+              "hlOnly": false
+            },
+            {
+              "code": "5.9",
+              "name": "Kinematics: displacement, velocity, acceleration, distance travelled",
+              "hlOnly": false
+            },
+            {
+              "code": "5.10",
+              "name": "Indefinite integrals of x^n, sin x, cos x, 1/x, e^x; composites with linear functions; integration by inspection or substitution",
+              "hlOnly": false
+            },
+            {
+              "code": "5.11",
+              "name": "Definite integrals; areas under curves and between curves",
+              "hlOnly": false
+            },
+            {
+              "code": "5.12",
+              "name": "Continuity and differentiability; convergence and divergence; differentiation from first principles",
+              "hlOnly": true
+            },
+            {
+              "code": "5.13",
+              "name": "Limits of the form 0/0 and infinity/infinity; L'Hopital's rule; repeated use",
+              "hlOnly": true
+            },
+            {
+              "code": "5.14",
+              "name": "Implicit differentiation; related rates of change; optimisation problems",
+              "hlOnly": true
+            },
+            {
+              "code": "5.15",
+              "name": "Derivatives of tan, sec, csc, cot, a^x, log_a x, arcsin, arccos, arctan; related integrals; use of partial fractions",
+              "hlOnly": true
+            },
+            {
+              "code": "5.16",
+              "name": "Integration by substitution; integration by parts; repeated integration by parts",
+              "hlOnly": true
+            },
+            {
+              "code": "5.17",
+              "name": "Area between a curve and the y-axis; volumes of revolution about the x-axis or y-axis",
+              "hlOnly": true
+            },
+            {
+              "code": "5.18",
+              "name": "First order differential equations: Euler's method, separation of variables, homogeneous (y = vx), integrating factor",
+              "hlOnly": true
+            },
+            {
+              "code": "5.19",
+              "name": "Maclaurin series; series by substitution, products, integration, differentiation; Maclaurin series from differential equations",
+              "hlOnly": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "physics",
+      "name": "Physics",
+      "shortName": "Physics",
+      "ibGroup": 4,
+      "resourceTag": "Physics",
+      "supportedTypes": [
+        "mcq_short",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1A",
+          "duration": {
+            "SL": 50,
+            "HL": 80
+          },
+          "totalMarks": {
+            "SL": 25,
+            "HL": 40
+          },
+          "calculator": true
+        },
+        {
+          "code": "P1B",
+          "duration": {
+            "SL": 40,
+            "HL": 40
+          },
+          "totalMarks": {
+            "SL": 20,
+            "HL": 20
+          },
+          "calculator": true
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 90,
+            "HL": 150
+          },
+          "totalMarks": {
+            "SL": 50,
+            "HL": 90
+          },
+          "calculator": true
+        }
+      ],
+      "topics": [
+        {
+          "code": "A",
+          "name": "Space, time and motion",
+          "subtopics": [
+            {
+              "code": "A.1",
+              "name": "Kinematics",
+              "hlOnly": false
+            },
+            {
+              "code": "A.2",
+              "name": "Forces and momentum",
+              "hlOnly": false
+            },
+            {
+              "code": "A.3",
+              "name": "Work, energy and power",
+              "hlOnly": false
+            },
+            {
+              "code": "A.4",
+              "name": "Rigid body mechanics",
+              "hlOnly": true
+            },
+            {
+              "code": "A.5",
+              "name": "Galilean and special relativity",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "B",
+          "name": "The particulate nature of matter",
+          "subtopics": [
+            {
+              "code": "B.1",
+              "name": "Thermal energy transfers",
+              "hlOnly": false
+            },
+            {
+              "code": "B.2",
+              "name": "Greenhouse effect",
+              "hlOnly": false
+            },
+            {
+              "code": "B.3",
+              "name": "Gas laws",
+              "hlOnly": false
+            },
+            {
+              "code": "B.4",
+              "name": "Thermodynamics",
+              "hlOnly": true
+            },
+            {
+              "code": "B.5",
+              "name": "Current and circuits",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "C",
+          "name": "Wave behaviour",
+          "subtopics": [
+            {
+              "code": "C.1",
+              "name": "Simple harmonic motion",
+              "hlOnly": false
+            },
+            {
+              "code": "C.2",
+              "name": "Wave model",
+              "hlOnly": false
+            },
+            {
+              "code": "C.3",
+              "name": "Wave phenomena",
+              "hlOnly": false
+            },
+            {
+              "code": "C.4",
+              "name": "Standing waves and resonance",
+              "hlOnly": false
+            },
+            {
+              "code": "C.5",
+              "name": "Doppler effect",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "D",
+          "name": "Fields",
+          "subtopics": [
+            {
+              "code": "D.1",
+              "name": "Gravitational fields",
+              "hlOnly": false
+            },
+            {
+              "code": "D.2",
+              "name": "Electric and magnetic fields",
+              "hlOnly": false
+            },
+            {
+              "code": "D.3",
+              "name": "Motion in electromagnetic fields",
+              "hlOnly": false
+            },
+            {
+              "code": "D.4",
+              "name": "Induction",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "E",
+          "name": "Nuclear and quantum physics",
+          "subtopics": [
+            {
+              "code": "E.1",
+              "name": "Structure of the atom",
+              "hlOnly": false
+            },
+            {
+              "code": "E.2",
+              "name": "Quantum physics",
+              "hlOnly": true
+            },
+            {
+              "code": "E.3",
+              "name": "Radioactive decay",
+              "hlOnly": false
+            },
+            {
+              "code": "E.4",
+              "name": "Fission",
+              "hlOnly": false
+            },
+            {
+              "code": "E.5",
+              "name": "Fusion and stars",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "T",
+          "name": "Tools and inquiry",
+          "subtopics": [
+            {
+              "code": "TI",
+              "name": "Measurement, uncertainties and data",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chemistry",
+      "name": "Chemistry",
+      "shortName": "Chemistry",
+      "ibGroup": 4,
+      "resourceTag": "Chemistry",
+      "supportedTypes": [
+        "mcq_short",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1A",
+          "duration": {
+            "SL": 49,
+            "HL": 64
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 40
+          },
+          "calculator": true
+        },
+        {
+          "code": "P1B",
+          "duration": {
+            "SL": 41,
+            "HL": 56
+          },
+          "totalMarks": {
+            "SL": 25,
+            "HL": 35
+          },
+          "calculator": true
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 90,
+            "HL": 150
+          },
+          "totalMarks": {
+            "SL": 50,
+            "HL": 90
+          },
+          "calculator": true
+        }
+      ],
+      "topics": [
+        {
+          "code": "S1",
+          "name": "Models of the particulate nature of matter",
+          "subtopics": [
+            {
+              "code": "S1.1",
+              "name": "Particulate nature of matter",
+              "hlOnly": false
+            },
+            {
+              "code": "S1.2",
+              "name": "The nuclear atom",
+              "hlOnly": false
+            },
+            {
+              "code": "S1.3",
+              "name": "Electron configurations",
+              "hlOnly": false
+            },
+            {
+              "code": "S1.4",
+              "name": "The mole",
+              "hlOnly": false
+            },
+            {
+              "code": "S1.5",
+              "name": "Ideal gases",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "S2",
+          "name": "Models of bonding and structure",
+          "subtopics": [
+            {
+              "code": "S2.1",
+              "name": "Ionic model",
+              "hlOnly": false
+            },
+            {
+              "code": "S2.2",
+              "name": "Covalent model",
+              "hlOnly": false
+            },
+            {
+              "code": "S2.3",
+              "name": "Metallic model",
+              "hlOnly": false
+            },
+            {
+              "code": "S2.4",
+              "name": "From models to materials",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "S3",
+          "name": "Classification of matter",
+          "subtopics": [
+            {
+              "code": "S3.1",
+              "name": "The periodic table",
+              "hlOnly": false
+            },
+            {
+              "code": "S3.2",
+              "name": "Functional groups",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "R1",
+          "name": "What drives chemical reactions?",
+          "subtopics": [
+            {
+              "code": "R1.1",
+              "name": "Measuring enthalpy changes",
+              "hlOnly": false
+            },
+            {
+              "code": "R1.2",
+              "name": "Energy cycles",
+              "hlOnly": false
+            },
+            {
+              "code": "R1.3",
+              "name": "Energy from fuels",
+              "hlOnly": false
+            },
+            {
+              "code": "R1.4",
+              "name": "Entropy and spontaneity",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "R2",
+          "name": "How much, how fast and how far?",
+          "subtopics": [
+            {
+              "code": "R2.1",
+              "name": "Amount of chemical change",
+              "hlOnly": false
+            },
+            {
+              "code": "R2.2",
+              "name": "Rate of chemical change",
+              "hlOnly": false
+            },
+            {
+              "code": "R2.3",
+              "name": "Extent of chemical change",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "R3",
+          "name": "Mechanisms of chemical change",
+          "subtopics": [
+            {
+              "code": "R3.1",
+              "name": "Proton transfer",
+              "hlOnly": false
+            },
+            {
+              "code": "R3.2",
+              "name": "Electron transfer",
+              "hlOnly": false
+            },
+            {
+              "code": "R3.3",
+              "name": "Electron sharing",
+              "hlOnly": false
+            },
+            {
+              "code": "R3.4",
+              "name": "Electron-pair sharing",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "economics",
+      "name": "Economics",
+      "shortName": "Economics",
+      "ibGroup": 3,
+      "resourceTag": "Economics",
+      "supportedTypes": [
+        "mcq_short",
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 75,
+            "HL": 75
+          },
+          "totalMarks": {
+            "SL": 25,
+            "HL": 25
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 105,
+            "HL": 105
+          },
+          "totalMarks": {
+            "SL": 40,
+            "HL": 40
+          },
+          "calculator": true
+        },
+        {
+          "code": "P3",
+          "duration": {
+            "HL": 105
+          },
+          "totalMarks": {
+            "HL": 60
+          },
+          "calculator": true
+        }
+      ],
+      "topics": [
+        {
+          "code": "2",
+          "name": "Microeconomics",
+          "subtopics": [
+            {
+              "code": "2.1",
+              "name": "Demand",
+              "hlOnly": false
+            },
+            {
+              "code": "2.2",
+              "name": "Supply",
+              "hlOnly": false
+            },
+            {
+              "code": "2.3",
+              "name": "Market equilibrium",
+              "hlOnly": false
+            },
+            {
+              "code": "2.5",
+              "name": "Elasticity of demand",
+              "hlOnly": false
+            },
+            {
+              "code": "2.7",
+              "name": "Role of government",
+              "hlOnly": false
+            },
+            {
+              "code": "2.8",
+              "name": "Market failure: externalities",
+              "hlOnly": false
+            },
+            {
+              "code": "2.11",
+              "name": "Market power",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "3",
+          "name": "Macroeconomics",
+          "subtopics": [
+            {
+              "code": "3.1",
+              "name": "Measuring economic activity",
+              "hlOnly": false
+            },
+            {
+              "code": "3.2",
+              "name": "Aggregate demand and supply",
+              "hlOnly": false
+            },
+            {
+              "code": "3.3",
+              "name": "Macroeconomic objectives",
+              "hlOnly": false
+            },
+            {
+              "code": "3.5",
+              "name": "Monetary policy",
+              "hlOnly": false
+            },
+            {
+              "code": "3.6",
+              "name": "Fiscal policy",
+              "hlOnly": false
+            },
+            {
+              "code": "3.7",
+              "name": "Supply-side policies",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "4",
+          "name": "The global economy",
+          "subtopics": [
+            {
+              "code": "4.1",
+              "name": "International trade",
+              "hlOnly": false
+            },
+            {
+              "code": "4.2",
+              "name": "Trade protection",
+              "hlOnly": false
+            },
+            {
+              "code": "4.5",
+              "name": "Exchange rates",
+              "hlOnly": false
+            },
+            {
+              "code": "4.6",
+              "name": "Balance of payments",
+              "hlOnly": false
+            },
+            {
+              "code": "4.8",
+              "name": "Measuring development",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "math_ai",
+      "name": "Mathematics: Applications & Interpretation",
+      "shortName": "Maths AI",
+      "ibGroup": 5,
+      "resourceTag": "Math AI",
+      "supportedTypes": [
+        "mcq_short",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 90,
+            "HL": 120
+          },
+          "totalMarks": {
+            "SL": 80,
+            "HL": 110
+          },
+          "calculator": true
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 90,
+            "HL": 120
+          },
+          "totalMarks": {
+            "SL": 80,
+            "HL": 110
+          },
+          "calculator": true
+        },
+        {
+          "code": "P3",
+          "duration": {
+            "HL": 60
+          },
+          "totalMarks": {
+            "HL": 55
+          },
+          "calculator": true
+        }
+      ],
+      "topics": [
+        {
+          "code": "1",
+          "name": "Number and algebra",
+          "subtopics": [
+            {
+              "code": "AI.1.1",
+              "name": "Scientific notation",
+              "hlOnly": false
+            },
+            {
+              "code": "AI.1.4",
+              "name": "Financial mathematics",
+              "hlOnly": false
+            },
+            {
+              "code": "AI.1.11",
+              "name": "Matrices",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "2",
+          "name": "Functions",
+          "subtopics": [
+            {
+              "code": "AI.2.5",
+              "name": "Modelling with functions",
+              "hlOnly": false
+            },
+            {
+              "code": "AI.2.9",
+              "name": "Logistic models",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "4",
+          "name": "Statistics and probability",
+          "subtopics": [
+            {
+              "code": "AI.4.4",
+              "name": "Correlation and regression",
+              "hlOnly": false
+            },
+            {
+              "code": "AI.4.11",
+              "name": "Chi-squared tests",
+              "hlOnly": false
+            },
+            {
+              "code": "AI.4.19",
+              "name": "Markov chains",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "5",
+          "name": "Calculus",
+          "subtopics": [
+            {
+              "code": "AI.5.3",
+              "name": "Differentiation",
+              "hlOnly": false
+            },
+            {
+              "code": "AI.5.5",
+              "name": "Integration",
+              "hlOnly": false
+            },
+            {
+              "code": "AI.5.14",
+              "name": "Differential equations",
+              "hlOnly": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "name": "History",
+      "shortName": "History",
+      "ibGroup": 3,
+      "resourceTag": "History",
+      "supportedTypes": [
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 60,
+            "HL": 60
+          },
+          "totalMarks": {
+            "SL": 24,
+            "HL": 24
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 90,
+            "HL": 90
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": false
+        },
+        {
+          "code": "P3",
+          "duration": {
+            "HL": 150
+          },
+          "totalMarks": {
+            "HL": 45
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "P1",
+          "name": "Prescribed subjects",
+          "subtopics": [
+            {
+              "code": "H.P1.3",
+              "name": "The move to global war",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "P2",
+          "name": "World history topics",
+          "subtopics": [
+            {
+              "code": "H.P2.10",
+              "name": "Authoritarian states",
+              "hlOnly": false
+            },
+            {
+              "code": "H.P2.12",
+              "name": "The Cold War",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "P3",
+          "name": "HL regional option",
+          "subtopics": [
+            {
+              "code": "H.P3.EU",
+              "name": "History of Europe",
+              "hlOnly": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "geography",
+      "name": "Geography",
+      "shortName": "Geography",
+      "ibGroup": 3,
+      "resourceTag": "Geography",
+      "supportedTypes": [
+        "mcq_short",
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 90,
+            "HL": 135
+          },
+          "totalMarks": {
+            "SL": 40,
+            "HL": 60
+          },
+          "calculator": true
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 75,
+            "HL": 75
+          },
+          "totalMarks": {
+            "SL": 50,
+            "HL": 50
+          },
+          "calculator": true
+        }
+      ],
+      "topics": [
+        {
+          "code": "CORE",
+          "name": "Geographic perspectives",
+          "subtopics": [
+            {
+              "code": "G.C.1",
+              "name": "Population distribution",
+              "hlOnly": false
+            },
+            {
+              "code": "G.C.2",
+              "name": "Global climate",
+              "hlOnly": false
+            },
+            {
+              "code": "G.C.3",
+              "name": "Resource consumption",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "OPT",
+          "name": "Options",
+          "subtopics": [
+            {
+              "code": "G.O.B",
+              "name": "Oceans and coastal margins",
+              "hlOnly": false
+            },
+            {
+              "code": "G.O.G",
+              "name": "Urban environments",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cs",
+      "name": "Computer Science",
+      "shortName": "Comp Sci",
+      "ibGroup": 4,
+      "resourceTag": null,
+      "supportedTypes": [
+        "mcq_short",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 90,
+            "HL": 120
+          },
+          "totalMarks": {
+            "SL": 70,
+            "HL": 100
+          },
+          "calculator": false
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 60,
+            "HL": 80
+          },
+          "totalMarks": {
+            "SL": 45,
+            "HL": 65
+          },
+          "calculator": false
+        }
+      ],
+      "topics": [
+        {
+          "code": "A",
+          "name": "Concepts of computer science",
+          "subtopics": [
+            {
+              "code": "CS.A1",
+              "name": "Computer fundamentals",
+              "hlOnly": false
+            },
+            {
+              "code": "CS.A2",
+              "name": "Networks",
+              "hlOnly": false
+            },
+            {
+              "code": "CS.A3",
+              "name": "Databases",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "B",
+          "name": "Computational thinking",
+          "subtopics": [
+            {
+              "code": "CS.B1",
+              "name": "Computational thinking",
+              "hlOnly": false
+            },
+            {
+              "code": "CS.B2",
+              "name": "Programming",
+              "hlOnly": false
+            },
+            {
+              "code": "CS.B4",
+              "name": "Abstract data types",
+              "hlOnly": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "biology",
+      "name": "Biology",
+      "shortName": "Biology",
+      "ibGroup": 4,
+      "resourceTag": "Biology",
+      "supportedTypes": [
+        "mcq_short",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1A",
+          "duration": {
+            "SL": 49,
+            "HL": 64
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 40
+          },
+          "calculator": true
+        },
+        {
+          "code": "P1B",
+          "duration": {
+            "SL": 41,
+            "HL": 56
+          },
+          "totalMarks": {
+            "SL": 25,
+            "HL": 35
+          },
+          "calculator": true
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 90,
+            "HL": 150
+          },
+          "totalMarks": {
+            "SL": 50,
+            "HL": 80
+          },
+          "calculator": true
+        }
+      ],
+      "topics": [
+        {
+          "code": "A",
+          "name": "Unity and diversity",
+          "subtopics": [
+            {
+              "code": "A1.1",
+              "name": "Water",
+              "hlOnly": false
+            },
+            {
+              "code": "A1.2",
+              "name": "Nucleic acids",
+              "hlOnly": false
+            },
+            {
+              "code": "A2.2",
+              "name": "Cell structure",
+              "hlOnly": false
+            },
+            {
+              "code": "A3.1",
+              "name": "Diversity of organisms",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "B",
+          "name": "Form and function",
+          "subtopics": [
+            {
+              "code": "B1.1",
+              "name": "Carbohydrates and lipids",
+              "hlOnly": false
+            },
+            {
+              "code": "B1.2",
+              "name": "Proteins",
+              "hlOnly": false
+            },
+            {
+              "code": "B2.1",
+              "name": "Membranes and transport",
+              "hlOnly": false
+            },
+            {
+              "code": "B3.1",
+              "name": "Gas exchange",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "C",
+          "name": "Interaction and interdependence",
+          "subtopics": [
+            {
+              "code": "C1.1",
+              "name": "Enzymes and metabolism",
+              "hlOnly": false
+            },
+            {
+              "code": "C1.2",
+              "name": "Cell respiration",
+              "hlOnly": false
+            },
+            {
+              "code": "C1.3",
+              "name": "Photosynthesis",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "D",
+          "name": "Continuity and change",
+          "subtopics": [
+            {
+              "code": "D1.1",
+              "name": "DNA replication",
+              "hlOnly": false
+            },
+            {
+              "code": "D2.1",
+              "name": "Cell and nuclear division",
+              "hlOnly": false
+            },
+            {
+              "code": "D4.1",
+              "name": "Natural selection",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business",
+      "name": "Business Management",
+      "shortName": "Business",
+      "ibGroup": 3,
+      "resourceTag": "Business",
+      "supportedTypes": [],
+      "papers": [],
+      "topics": []
+    },
+    {
+      "id": "psychology",
+      "name": "Psychology",
+      "shortName": "Psychology",
+      "ibGroup": 3,
+      "resourceTag": null,
+      "supportedTypes": [],
+      "papers": [],
+      "topics": []
+    },
+    {
+      "id": "philosophy",
+      "name": "Philosophy",
+      "shortName": "Philosophy",
+      "ibGroup": 3,
+      "resourceTag": null,
+      "supportedTypes": [],
+      "papers": [],
+      "topics": []
+    },
+    {
+      "id": "ess",
+      "name": "Environmental Systems and Societies",
+      "shortName": "ESS",
+      "ibGroup": 4,
+      "resourceTag": null,
+      "supportedTypes": [],
+      "papers": [],
+      "topics": []
+    },
+    {
+      "id": "sport_science",
+      "name": "Sports, Exercise and Health Science",
+      "shortName": "Sport Science",
+      "ibGroup": 4,
+      "resourceTag": null,
+      "supportedTypes": [],
+      "papers": [],
+      "topics": []
+    },
+    {
+      "id": "theatre",
+      "name": "Theatre",
+      "shortName": "Theatre",
+      "ibGroup": 6,
+      "resourceTag": "Theatre",
+      "supportedTypes": [],
+      "papers": [],
+      "topics": []
+    }
+  ]
+}

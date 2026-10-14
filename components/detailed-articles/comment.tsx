@@ -56,7 +56,7 @@ export default function Comment({
                 <button
                   onClick={onDelete}
                   disabled={deleting}
-                  className="text-on-surface-variant transition hover:text-red-500 cursor-pointer disabled:opacity-50"
+                  className="text-on-surface-variant transition hover:text-error cursor-pointer disabled:opacity-50"
                   aria-label="Delete"
                 >
                   {deleting ? <Spinner size={18} /> : <Trash2 size={18} />}

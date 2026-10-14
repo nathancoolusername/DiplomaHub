@@ -1,9 +1,20 @@
 @import "tailwindcss";
 
-@theme inline {
-  --font-sans: "Inter", sans-serif;
-  --font-serif: "Merriweather", serif;
+/* ── Colour tokens ───────────────────────────────────────────────────────
+   Every colour in the app comes from these tokens; no component hardcodes
+   one. `@theme static` (not inline) makes each utility read the variable at
+   render time (bg-primary → var(--color-primary)), so switching theme is just
+   swapping the values below under [data-theme="dark" | "midnight"] — set on
+   <html> by next-themes. The light values here are the original palette.
 
+   Build-spec token → Tailwind token:
+     --bg              → background            --text        → on-surface
+     --surface (cards) → surface-container-lowest
+     --surface-raised  → surface-raised        --text-muted  → on-surface-variant
+     --border          → outline-variant       --primary     → primary
+     --primary-contrast→ on-primary            --secondary   → secondary
+     --strength-base   → strength-base                                        */
+@theme static {
   --color-primary: #002c98;
   --color-on-primary: #ffffff;
   --color-primary-container: #1a43bf;
@@ -15,14 +26,14 @@
   --color-inverse-primary: #b7c4ff;
 
   --color-secondary: #006a61;
---color-on-secondary: #ffffff;
---color-secondary-container: #d0f0ec;
---color-on-secondary-container: #004a43;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #d0f0ec;
+  --color-on-secondary-container: #004a43;
 
---color-tertiary: #7a4f00;
---color-on-tertiary: #ffffff;
---color-tertiary-container: #fdecd0;
---color-on-tertiary-container: #5a3a00;
+  --color-tertiary: #7a4f00;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #fdecd0;
+  --color-on-tertiary-container: #5a3a00;
 
   --color-error: #ba1a1a;
   --color-on-error: #ffffff;
@@ -31,6 +42,7 @@
 
   --color-background: #f8f9ff;
   --color-on-background: #0b1c30;
+  --color-page: #ffffff;
   --color-surface: #f8f9ff;
   --color-on-surface: #0b1c30;
   --color-surface-dim: #cbdbf5;
@@ -42,6 +54,7 @@
   --color-surface-container: #e5eeff;
   --color-surface-container-high: #dce9ff;
   --color-surface-container-highest: #d3e4fe;
+  --color-surface-raised: #ffffff;
   --color-inverse-surface: #213145;
   --color-inverse-on-surface: #eaf1ff;
 
@@ -49,10 +62,32 @@
   --color-outline-variant: #c4c5d6;
   --color-surface-tint: #2f53ce;
 
+  /* Shadows and modal backdrops are mixed from this (e.g. 70% scrim). */
+  --color-scrim: #0b1c30;
+  /* Toggle switch knob: always solid so it reads on any track. */
+  --color-switch-thumb: #ffffff;
+
+  /* Strength map: tiles are strength-base at a per-level opacity; the
+     strongest levels put strength-on-strong text on top. */
+  --color-strength-base: #002c98;
+  --color-strength-on-strong: #ffffff;
+
+  /* One-off accents */
+  --color-like: #f50707;
+  --color-chart-1: #2f53ce;
+  --color-chart-2: #00a294;
+  --color-chart-3: #c9820a;
+}
+
+@theme inline {
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "Merriweather", serif;
+
   --radius: 0.125rem;
   --radius-lg: 0.25rem;
   --radius-xl: 0.5rem;
   --radius-full: 0.75rem;
+  /* Note: rounded-full is 12px here, not a circle; use rounded-[50%] for circles. */
 
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -83,6 +118,246 @@ body {
   color: var(--color-on-surface);
   font-family: var(--font-sans);
   overflow-x: hidden;
+}
+
+/* light-dark() (used by the subject colours) follows color-scheme. */
+:root {
+  color-scheme: light;
+}
+
+/* ── Dark (free) ─────────────────────────────────────────────────────────
+   Starting values from the build spec; every text/background pair is
+   meant to clear WCAG AA (4.5:1) — re-check when tuning. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-primary: #5b8cff;
+  --color-on-primary: #0b0f1a;
+  --color-primary-container: #1d3a8c;
+  --color-on-primary-container: #d3ddff;
+  --color-primary-fixed: #1b2850;
+  --color-primary-fixed-dim: #2a3c70;
+  --color-on-primary-fixed: #dde1ff;
+  --color-on-primary-fixed-variant: #b7c4ff;
+  --color-inverse-primary: #002c98;
+
+  --color-secondary: #2bb3a3;
+  --color-on-secondary: #0b0f1a;
+  --color-secondary-container: #0f3833;
+  --color-on-secondary-container: #a6ebe2;
+
+  --color-tertiary: #f0b54a;
+  --color-on-tertiary: #0b0f1a;
+  --color-tertiary-container: #3a2908;
+  --color-on-tertiary-container: #fdd89a;
+
+  --color-error: #ff8a80;
+  --color-on-error: #0b0f1a;
+  --color-error-container: #4a1717;
+  --color-on-error-container: #ffdad6;
+
+  --color-background: #0b0f1a;
+  --color-on-background: #e6eaf2;
+  --color-page: #0b0f1a;
+  --color-surface: #0b0f1a;
+  --color-on-surface: #e6eaf2;
+  --color-surface-dim: #0b0f1a;
+  --color-surface-bright: #1a2236;
+  --color-surface-variant: #232c40;
+  --color-on-surface-variant: #9aa4b8;
+  --color-surface-container-lowest: #131a2a;
+  --color-surface-container-low: #161e30;
+  --color-surface-container: #1a2236;
+  --color-surface-container-high: #20293f;
+  --color-surface-container-highest: #273149;
+  --color-surface-raised: #1a2236;
+  --color-inverse-surface: #e6eaf2;
+  --color-inverse-on-surface: #131a2a;
+
+  --color-outline: #8590ad;
+  --color-outline-variant: #232c40;
+  --color-surface-tint: #5b8cff;
+
+  --color-scrim: #000000;
+  --color-switch-thumb: #e6eaf2;
+
+  --color-strength-base: #5b8cff;
+  --color-strength-on-strong: #0b0f1a;
+
+  --color-like: #ff6b6b;
+  --color-chart-1: #5b8cff;
+  --color-chart-2: #2bb3a3;
+  --color-chart-3: #f0b54a;
+}
+
+/* ── Midnight (Pro) ──────────────────────────────────────────────────────
+   Deep navy with a soft brand-blue glow at the bottom, frosted cards,
+   ice-blue accents. No violet. */
+[data-theme="midnight"] {
+  color-scheme: dark;
+
+  --color-primary: #8fb3ff;
+  --color-on-primary: #001a5c;
+  --color-primary-container: rgba(143, 179, 255, 0.22);
+  --color-on-primary-container: #dbe6ff;
+  --color-primary-fixed: rgba(143, 179, 255, 0.16);
+  --color-primary-fixed-dim: rgba(143, 179, 255, 0.28);
+  --color-on-primary-fixed: #dbe6ff;
+  --color-on-primary-fixed-variant: #b7ccff;
+  --color-inverse-primary: #002c98;
+
+  --color-secondary: #2bb3a3;
+  --color-on-secondary: #001a5c;
+  --color-secondary-container: rgba(43, 179, 163, 0.18);
+  --color-on-secondary-container: #a6ebe2;
+
+  --color-tertiary: #f0b54a;
+  --color-on-tertiary: #001a5c;
+  --color-tertiary-container: rgba(240, 181, 74, 0.16);
+  --color-on-tertiary-container: #fdd89a;
+
+  --color-error: #ff8a80;
+  --color-on-error: #001a5c;
+  --color-error-container: rgba(255, 138, 128, 0.16);
+  --color-on-error-container: #ffdad6;
+
+  /* Solid fallback; the gradient itself is painted by body::before. */
+  --color-background: #020a2a;
+  --color-on-background: #eef2ff;
+  --color-page: transparent;
+  --color-surface: rgba(2, 8, 32, 0.6);
+  --color-on-surface: #eef2ff;
+  --color-surface-dim: #020a2a;
+  --color-surface-bright: rgba(255, 255, 255, 0.1);
+  --color-surface-variant: rgba(255, 255, 255, 0.1);
+  --color-on-surface-variant: #a9b4d6;
+  --color-surface-container-lowest: rgba(255, 255, 255, 0.05);
+  --color-surface-container-low: rgba(255, 255, 255, 0.04);
+  --color-surface-container: rgba(255, 255, 255, 0.07);
+  --color-surface-container-high: rgba(255, 255, 255, 0.09);
+  --color-surface-container-highest: rgba(255, 255, 255, 0.12);
+  /* Menus, dialogs and the Bro bar: opaque enough to read over content,
+     paired with the .glass blur below. */
+  --color-surface-raised: rgba(14, 24, 60, 0.92);
+  --color-inverse-surface: #eef2ff;
+  --color-inverse-on-surface: #020a2a;
+
+  --color-outline: #8a95b8;
+  --color-outline-variant: rgba(255, 255, 255, 0.1);
+  --color-surface-tint: #8fb3ff;
+
+  --color-scrim: #000000;
+  --color-switch-thumb: #eef2ff;
+
+  --color-strength-base: #8fb3ff;
+  --color-strength-on-strong: #001a5c;
+
+  --color-like: #ff8a8a;
+  --color-chart-1: #8fb3ff;
+  --color-chart-2: #2bb3a3;
+  --color-chart-3: #f0b54a;
+}
+
+/* A fixed pseudo-element rather than background-attachment: fixed, which
+   is broken on iOS Safari. Keeps the glow at the bottom of the screen
+   while content scrolls over it. */
+[data-theme="midnight"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(120% 60% at 50% 115%, rgba(30, 80, 230, 0.45) 0%, rgba(0, 44, 152, 0.35) 40%, transparent 75%),
+    linear-gradient(180deg, #02040c 0%, #020a2a 45%, #001650 100%);
+}
+
+/* The Midnight background as a box (e.g. the Midnight promo on Home). */
+.midnight-surface {
+  background:
+    radial-gradient(120% 140% at 50% 130%, rgba(30, 80, 230, 0.55) 0%, rgba(0, 44, 152, 0.35) 40%, transparent 75%),
+    linear-gradient(180deg, #02040c 0%, #020a2a 50%, #001650 100%);
+}
+
+/* The 3-second Midnight preview's countdown bar. */
+.midnight-countdown {
+  width: 100%;
+  animation: midnight-countdown 3s linear forwards;
+}
+@keyframes midnight-countdown {
+  to {
+    width: 0;
+  }
+}
+
+/* Midnight cards get a faint lighter top edge for a subtle highlight. */
+[data-theme="midnight"] .bg-surface-container-lowest {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ── Theme switch animation (components/shared/theme-transition.ts) ──────
+   The new theme is revealed in a circle growing from the middle of the
+   screen. Switching to Midnight also flashes a brief ice-blue glow (only
+   brightness/saturation: a drop-shadow over the whole page is too slow). */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html.theme-vt::view-transition-new(root) {
+  animation: theme-reveal 600ms cubic-bezier(0.45, 0, 0.2, 1) both;
+}
+html.theme-vt-midnight::view-transition-new(root) {
+  animation:
+    theme-reveal 900ms cubic-bezier(0.45, 0, 0.2, 1) both,
+    midnight-glow 1000ms ease-out both;
+}
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at 50% 50%);
+  }
+  to {
+    clip-path: circle(75vmax at 50% 50%);
+  }
+}
+@keyframes midnight-glow {
+  0% {
+    filter: brightness(1.9) saturate(1.6);
+  }
+  100% {
+    filter: none;
+  }
+}
+
+/* ── Strength map tiles ───────────────────────────────────────────────────
+   Each level is --color-strength-base at a set opacity. On light, darker
+   means stronger; on dark/midnight the base is light, so stronger tiles
+   are brighter and the mastered tile flips to dark text. The level word is
+   also in each tile's aria-label/tooltip, so colour isn't the only signal. */
+.strength-tile {
+  --strength-mix: 0%;
+  background: color-mix(in srgb, var(--color-strength-base) var(--strength-mix), transparent);
+  color: var(--color-primary);
+  border: 1px solid transparent;
+}
+.strength-tile[data-level="none"] {
+  border: 1.5px dashed var(--color-outline);
+  color: var(--color-on-surface-variant);
+}
+.strength-tile[data-level="weak"] { --strength-mix: 12%; }
+.strength-tile[data-level="developing"] { --strength-mix: 30%; }
+.strength-tile[data-level="solid"] { --strength-mix: 55%; color: var(--color-strength-on-strong); }
+.strength-tile[data-level="strong"] { --strength-mix: 80%; color: var(--color-strength-on-strong); }
+.strength-tile[data-level="mastered"] { --strength-mix: 100%; color: var(--color-strength-on-strong); }
+
+:is([data-theme="dark"], [data-theme="midnight"]) .strength-tile[data-level="developing"] { --strength-mix: 25%; }
+:is([data-theme="dark"], [data-theme="midnight"]) .strength-tile[data-level="solid"] { --strength-mix: 45%; color: var(--color-on-surface); }
+:is([data-theme="dark"], [data-theme="midnight"]) .strength-tile[data-level="strong"] { --strength-mix: 70%; color: var(--color-strength-on-strong); }
+
+/* Blur only where it matters (nav, menus, modals, Bro bar) — on every card
+   it gets slow on cheaper devices. Harmless on opaque themes. */
+.glass {
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
 }
 
 /* The type scale above was sized for desktop — on phones the largest

@@ -33,11 +33,11 @@ export function DeleteArticleButton({ articleId }: { articleId: string }) {
       <button
         onClick={handleDelete}
         disabled={loading}
-        className="text-on-surface-variant transition hover:text-red-500 hover:bg-surface-container p-sm rounded-xl cursor-pointer disabled:opacity-50"
+        className="text-on-surface-variant transition hover:text-error hover:bg-surface-container p-sm rounded-xl cursor-pointer disabled:opacity-50"
       >
         {loading ? <Spinner size={30} /> : <Trash2 size={30} />}
       </button>
-      {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+      {error && <p className="text-sm text-error mt-1">{error}</p>}
     </div>
   );
 }

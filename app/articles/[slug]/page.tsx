@@ -173,7 +173,7 @@ export default async function ArticlePage({
               initiallyLiked={article.isLiked ?? false}
               initialCount={article.like_count}
               size={30}
-              className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-white border-b-1 flex flex-row items-center"
+              className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-transparent border-b-1 flex flex-row items-center"
             />
             <div className="text-on-surface-variant transition hover:text-primary p-sm">
               <Eye size={30} />

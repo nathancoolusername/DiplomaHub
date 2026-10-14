@@ -93,4 +93,5 @@ export type UserProfile = {
   hub_subjects: string[] | null;
   hub_onboarded_at: string | null;
   custom_hub_subjects: { id: string; name: string }[] | null;
+  exam_session_id: string | null;
 };

@@ -111,7 +111,7 @@ export function FeedbackTable({
                 <button
                   onClick={() => handleDelete(f.id)}
                   disabled={deletingId === f.id}
-                  className="text-red-500 font-semibold cursor-pointer hover:underline disabled:opacity-50 disabled:no-underline inline-flex items-center gap-xs"
+                  className="text-error font-semibold cursor-pointer hover:underline disabled:opacity-50 disabled:no-underline inline-flex items-center gap-xs"
                 >
                   {deletingId === f.id && <Spinner size={14} />}
                   Delete

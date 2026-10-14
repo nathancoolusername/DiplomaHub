@@ -18,6 +18,13 @@ export default function Footer() {
           </p>
           <div className="flex flex-row flex-wrap justify-center gap-margin">
             <Link
+              href="/leaderboard"
+              prefetch={false}
+              className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
+            >
+              Leaderboard
+            </Link>
+            <Link
               href="/legal/impressum"
               className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
             >

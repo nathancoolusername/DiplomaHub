@@ -20,12 +20,12 @@ export default async function ProfilePage() {
       <h1 className="text-display-lg font-serif font-semibold">Your profile</h1>
 
       {!emailConfirmed && (
-        <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div className="flex items-center justify-between bg-tertiary-container border border-tertiary/30 rounded-lg p-4">
           <div>
-            <p className="text-sm font-medium text-amber-800">
+            <p className="text-sm font-medium text-on-tertiary-container">
               Confirm your email
             </p>
-            <p className="text-sm text-amber-700">
+            <p className="text-sm text-on-tertiary-container">
               We sent a link to {profile.email}. Check your inbox to confirm.
             </p>
           </div>

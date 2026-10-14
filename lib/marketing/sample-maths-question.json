@@ -1,0 +1,107 @@
+{
+  "id": "gen-f227a515-4b08-5179-9479-d305b7464f64",
+  "schema_version": 2,
+  "subject": "math-aa",
+  "type": "short",
+  "hl_only": false,
+  "topic": "4",
+  "subtopic": "4.11",
+  "skills": [
+    "without replacement",
+    "tree diagram",
+    "conditional probability"
+  ],
+  "paper_type": "P1",
+  "calculator": false,
+  "difficulty": 3,
+  "total_marks": 7,
+  "stem_md": "A bag contains $5$ red counters and $3$ blue counters. Two counters are taken from the bag at random, without replacement.",
+  "parts": [
+    {
+      "label": "a",
+      "marks": 2,
+      "text_md": "Find the probability that both counters are red.",
+      "answer": "$\\dfrac{5}{14}$",
+      "markscheme_md": "$\\dfrac{5}{8} \\times \\dfrac{4}{7}$ **(M1)**; $= \\dfrac{5}{14}$ **A1**",
+      "mark_points": [
+        {
+          "code": "M1",
+          "marks": 1,
+          "implied": true,
+          "text": "$\\dfrac{5}{8} \\times \\dfrac{4}{7}$"
+        },
+        {
+          "code": "A1",
+          "marks": 1,
+          "implied": false,
+          "text": "$= \\dfrac{5}{14}$"
+        }
+      ]
+    },
+    {
+      "label": "b",
+      "marks": 2,
+      "text_md": "Find the probability that the two counters are different colours.",
+      "answer": "$\\dfrac{15}{28}$",
+      "markscheme_md": "$2 \\times \\dfrac{5}{8} \\times \\dfrac{3}{7}$ **(M1)**; $= \\dfrac{15}{28}$ **A1**",
+      "mark_points": [
+        {
+          "code": "M1",
+          "marks": 1,
+          "implied": true,
+          "text": "$2 \\times \\dfrac{5}{8} \\times \\dfrac{3}{7}$"
+        },
+        {
+          "code": "A1",
+          "marks": 1,
+          "implied": false,
+          "text": "$= \\dfrac{15}{28}$"
+        }
+      ]
+    },
+    {
+      "label": "c",
+      "marks": 3,
+      "text_md": "Given that the two counters are the same colour, find the probability that they are both blue.",
+      "answer": "$\\dfrac{3}{13}$",
+      "markscheme_md": "$P(\\text{both blue}) = \\dfrac{3}{8} \\times \\dfrac{2}{7} = \\dfrac{3}{28}$ **(A1)**; recognising $\\dfrac{P(BB)}{P(RR) + P(BB)}$ **(M1)**; $= \\dfrac{3/28}{13/28} = \\dfrac{3}{13}$ **A1**",
+      "mark_points": [
+        {
+          "code": "A1",
+          "marks": 1,
+          "implied": true,
+          "text": "$P(\\text{both blue}) = \\dfrac{3}{8} \\times \\dfrac{2}{7} = \\dfrac{3}{28}$"
+        },
+        {
+          "code": "M1",
+          "marks": 1,
+          "implied": true,
+          "text": "recognising $\\dfrac{P(BB)}{P(RR) + P(BB)}$"
+        },
+        {
+          "code": "A1",
+          "marks": 1,
+          "implied": false,
+          "text": "$= \\dfrac{3/28}{13/28} = \\dfrac{3}{13}$"
+        }
+      ]
+    }
+  ],
+  "worked_solution_md": "(a) $\\frac58 \\cdot \\frac47 = \\frac{5}{14}$. (b) $2 \\cdot \\frac58 \\cdot \\frac37 = \\frac{15}{28}$. (c) $P(BB) = \\frac38 \\cdot \\frac27 = \\frac{3}{28}$ and $P(\\text{same}) = \\frac{10}{28} + \\frac{3}{28} = \\frac{13}{28}$, so the answer is $\\frac{3}{13}$.",
+  "has_diagram": false,
+  "verification": {
+    "status": "verified",
+    "auto": {
+      "answers_recomputed": true,
+      "marks_consistent": true,
+      "qualitative": false,
+      "similarity_ok": true
+    },
+    "similarity": {
+      "max_vs_reference": 0.269,
+      "max_vs_bank": 0.516
+    },
+    "human_reviewed": true,
+    "force_review": false
+  }
+}

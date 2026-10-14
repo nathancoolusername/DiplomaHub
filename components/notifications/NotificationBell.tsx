@@ -130,7 +130,7 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-x-4 top-16 max-h-[70vh] overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-md z-20 sm:absolute sm:inset-x-auto sm:left-auto sm:right-0 sm:top-full sm:mt-xs sm:w-80 sm:max-h-100">
+        <div className="fixed inset-x-4 top-16 max-h-[70vh] overflow-y-auto bg-surface-raised glass border border-outline-variant rounded-xl shadow-md z-20 sm:absolute sm:inset-x-auto sm:left-auto sm:right-0 sm:top-full sm:mt-xs sm:w-80 sm:max-h-100">
           <div className="flex flex-row justify-between items-center px-md py-sm border-b border-outline-variant sticky top-0 bg-surface-container-lowest">
             <h2 className="font-serif font-bold text-body-md">Notifications</h2>
             {notifications && notifications.some((n) => !n.read) && (

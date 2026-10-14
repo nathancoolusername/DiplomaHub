@@ -305,7 +305,7 @@ export default function UploadResourceForm({
                     <button
                       type="button"
                       onClick={clearFile}
-                      className="flex items-center gap-xs text-sm text-red-500 hover:underline cursor-pointer"
+                      className="flex items-center gap-xs text-sm text-error hover:underline cursor-pointer"
                     >
                       <X size={14} /> Remove
                     </button>
@@ -325,7 +325,7 @@ export default function UploadResourceForm({
                     <button
                       type="button"
                       onClick={clearFile}
-                      className="flex items-center gap-xs text-sm text-red-500 hover:underline cursor-pointer"
+                      className="flex items-center gap-xs text-sm text-error hover:underline cursor-pointer"
                     >
                       <X size={14} /> Remove
                     </button>
@@ -366,10 +366,10 @@ export default function UploadResourceForm({
               </div>
             </div>
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-error">{error}</p>}
 
             {status === "success" && (
-              <p className="text-sm text-green-600">
+              <p className="text-sm text-secondary">
                 {isEditing
                   ? "Resource updated successfully!"
                   : "Resource uploaded successfully!"}
@@ -393,7 +393,7 @@ export default function UploadResourceForm({
         <div className="lg:basis-1/3 flex flex-col gap-margin">
           <div className="w-full bg-surface-container-lowest p-lg  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
             <div className="flex flex-row gap-sm items-center">
-              <Verified fill="#002c98" className="text-on-primary" size={40} />
+              <Verified className="text-on-primary fill-primary" size={40} />
               <h2 className="text-primary font-bold uppercase text-headline-md">
                 Upload Guidelines
               </h2>

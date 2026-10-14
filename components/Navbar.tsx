@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 // /hub is the only route with a loading.tsx, which makes it the one dynamic
 // route Next prefetches automatically — and without a client cache for it,
@@ -16,6 +17,7 @@ const NO_PREFETCH = new Set(["/hub"]);
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "Hub", href: "/hub" },
+  { label: "Practice", href: "/practice" },
   { label: "Resources", href: "/resources" },
   { label: "Articles", href: "/articles" },
   { label: "Roadmap", href: "/roadmap" },
@@ -27,13 +29,13 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-surface border-b border-outline-variant">
+    <header className="sticky top-0 z-50 bg-surface glass border-b border-outline-variant">
       <div className="max-w-[2000px] mx-lg px-lg h-16 flex items-center justify-between">
         <div className="flex items-center gap-xl">
           <Logo />
           <nav className="hidden md:flex gap-lg">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const isActive = link.href === "/" ? pathname === "/" : pathname === link.href || pathname.startsWith(`${link.href}/`);
               return (
                 <Link
                   key={link.href}
@@ -53,6 +55,10 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
         </div>
 
         <div className="flex items-center gap-sm sm:gap-md">
+          {/* On phones the theme picker lives in the menu, away from the logo. */}
+          <div className="hidden md:block">
+            <ThemeSwitcher />
+          </div>
           {authSlot}
           <button
             onClick={() => setMenuOpen((open) => !open)}
@@ -67,7 +73,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
       {menuOpen && (
         <nav className="md:hidden flex flex-col border-t border-outline-variant bg-surface">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive = link.href === "/" ? pathname === "/" : pathname === link.href || pathname.startsWith(`${link.href}/`);
             return (
               <Link
                 key={link.href}
@@ -84,6 +90,10 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
               </Link>
             );
           })}
+          <div className="px-lg py-md flex items-center justify-between gap-md border-t border-outline-variant">
+            <span className="text-body-md text-on-surface-variant">Theme</span>
+            <ThemeSwitcher />
+          </div>
         </nav>
       )}
     </header>

@@ -5,7 +5,7 @@
 // actions in app/lib/actions/hub.ts and the client code in hub.tsx can
 // import the exact same serialize/deserialize pair — one wire format, not
 // three ad hoc ones.
-import type { HubItem, HubItemStatus, HubItemType, SubjectId, Stage } from "./mock-data";
+import type { HubItem, HubItemKind, HubItemStatus, HubItemType, SubjectId, Stage } from "./mock-data";
 
 export type HubItemRow = {
   id: string;
@@ -20,6 +20,11 @@ export type HubItemRow = {
   notes: string;
   resource_ids: string[];
   weight_label: string | null;
+  // Optional: guest rows saved before these existed don't have them.
+  has_timer?: boolean;
+  kind?: HubItemKind | null;
+  // Read only: set by "Schedule" on the server, never written from the client.
+  set_id?: string | null;
 };
 
 export function hubItemToRow(item: HubItem): HubItemRow {
@@ -36,6 +41,8 @@ export function hubItemToRow(item: HubItem): HubItemRow {
     notes: item.notes,
     resource_ids: item.resourceIds,
     weight_label: item.weightLabel ?? null,
+    has_timer: item.hasTimer ?? false,
+    kind: item.kind ?? null,
   };
 }
 
@@ -53,5 +60,8 @@ export function rowToHubItem(row: HubItemRow): HubItem {
     notes: row.notes,
     resourceIds: row.resource_ids,
     weightLabel: row.weight_label ?? undefined,
+    hasTimer: row.has_timer ?? false,
+    kind: row.kind ?? null,
+    setId: row.set_id ?? null,
   };
 }

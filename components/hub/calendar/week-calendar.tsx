@@ -10,8 +10,12 @@ import { CALENDAR_BODY_HEIGHT, END_HOUR, GRID_COLS, PX_PER_HOUR, START_HOUR, isS
 
 const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i);
 
+/** "Suggested for this task": practice for the task's subject (rule-based, or Bro's for Pro). */
+export type TaskPracticeSuggestion = { text: string; href: string; label: string; fromBro: boolean };
+
 export type PanelActions = {
   resources: Resource[];
+  practice?: TaskPracticeSuggestion | null;
   savedResourceIds: Set<string>;
   onToggleSaveResource: (id: string) => void;
   onToggleStage: (itemId: string, stageIndex: number) => void;

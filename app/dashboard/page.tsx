@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUserId } from "@/app/lib/get-current-user";
+import { isAdmin } from "@/app/lib/admin";
+import { AdminHomeBand } from "@/components/home/AdminHomeBand";
 import SignedInHome from "@/components/home/signed-in-home";
 import LinkExpiredBanner from "@/components/home/link-expired-banner";
 import { homeMetadata } from "@/components/home/home-metadata";
@@ -20,6 +22,7 @@ export default async function Dashboard() {
       <Suspense fallback={null}>
         <LinkExpiredBanner />
       </Suspense>
+      {isAdmin(userId) && <AdminHomeBand />}
       <SignedInHome />
     </div>
   );

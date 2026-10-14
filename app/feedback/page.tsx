@@ -50,7 +50,7 @@ export default function FeedbackPage() {
               placeholder="Tell us what's on your mind..."
               className="h-40 w-full border rounded-lg px-md py-sm text-body-lg"
             />
-            {error && <p className="text-red-500 text-body-sm">{error}</p>}
+            {error && <p className="text-error text-body-sm">{error}</p>}
             <button
               type="submit"
               disabled={loading}
