@@ -62,6 +62,7 @@ export {
   startOrResumeAttempt,
   saveAnswer,
   revealMarkscheme,
+  getInstantMcqKeys,
   finishAttempt,
   discardAttempt,
   confirmMarks,
