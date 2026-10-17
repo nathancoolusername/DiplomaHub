@@ -76,7 +76,7 @@ export { getSuggestions } from "./supabase/suggestions";
 export { getBroBrief } from "./supabase/brief";
 
 // Leaderboard (practice points)
-export { getLeaderboard, getMyStanding, getAttemptPoints, setLeaderboardHidden } from "./supabase/leaderboard";
+export { getLeaderboard, getMyStanding, getAttemptPoints, setLeaderboardHidden, getContributionBoard, getMyContribution } from "./supabase/leaderboard";
 
 // Pro waitlist ─ pro_waitlist (closed table; join_pro_waitlist, on_pro_waitlist)
 export { joinProWaitlist, onProWaitlist } from "./supabase/waitlist";

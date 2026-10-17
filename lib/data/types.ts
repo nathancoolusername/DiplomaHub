@@ -322,7 +322,15 @@ export type PracticeStats = {
 /** "week" resets every Monday 00:00 UTC. */
 export type LeaderboardPeriod = "week" | "all";
 
-export type LeaderboardRow = { rank: number; displayName: string; avatarUrl: string | null; points: number; isMe: boolean };
+export type LeaderboardRow = {
+  rank: number;
+  displayName: string;
+  avatarUrl: string | null;
+  points: number;
+  isMe: boolean;
+  /** Set on the Contribution board, where each row links to the profile. */
+  userId?: string;
+};
 export type LeaderboardPage = { total: number; rows: LeaderboardRow[] };
 export type LeaderboardStanding = { period: LeaderboardPeriod; points: number; rank: number | null; total: number; hidden: boolean };
 
