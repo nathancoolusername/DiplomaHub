@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Flag, LayoutGrid, Lightbulb, X } from "lucide-react";
-import type { Attempt, AttemptAnswer, Markscheme, PracticeSet, Question } from "@/lib/data/types";
+import { BookOpen, ChevronLeft, ChevronRight, Flag, LayoutGrid, Lightbulb, X } from "lucide-react";
+import type { Attempt, AttemptAnswer, Level, Markscheme, PracticeSet, Question } from "@/lib/data/types";
+import { topicOfSubtopic, type Booklet } from "@/lib/booklets";
 import { isAnswered } from "@/lib/practice/marking";
 import { links } from "@/lib/practice/links";
 import { discardAttemptAction, finishAttemptAction, revealMarkschemeAction, saveAnswerAction } from "@/app/practice/actions";
@@ -17,9 +18,22 @@ import { PlayerTimer } from "./PlayerTimer";
 import { ShortAnswer } from "./ShortAnswer";
 import { EssayAnswer } from "./EssayAnswer";
 import { paperLabel } from "./question-format";
+import { BookletPanel } from "./BookletPanel";
+import { useHintTurn } from "@/components/shared/FirstTimeHint";
+import { BOOKLET_TIP_ID } from "@/lib/booklets";
 
 const SAVE_DELAY_MS = 600;
 const BOTTOM_BAR_PX = 72;
+// Whether the booklet was left open, so it stays open from set to set (this browser only).
+const BOOKLET_OPEN_KEY = "dp-booklet-open";
+const noSubscribe = () => () => {};
+function readBookletOpen(): boolean {
+  try {
+    return localStorage.getItem(BOOKLET_OPEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 type SaveState = "saved" | "saving" | "error";
 
@@ -32,6 +46,10 @@ export function SetPlayer({
   mcqKeys = {},
   examPaceS,
   isPro,
+  booklet = null,
+  bookletTip = false,
+  level,
+  topicNames = {},
 }: {
   set: PracticeSet;
   attempt: Attempt;
@@ -43,6 +61,13 @@ export function SetPlayer({
   mcqKeys?: Record<string, string>;
   examPaceS: number;
   isPro: boolean;
+  /** The subject's formula booklet at the set's level, or null if its exam has none. */
+  booklet?: Booklet | null;
+  /** Show the one-time "the booklet is here, press B" tip (not dismissed yet). */
+  bookletTip?: boolean;
+  level: Level;
+  /** Syllabus topic names by code ("5" → "Calculus"), for the booklet. */
+  topicNames?: Record<string, string>;
 }) {
   const router = useRouter();
   const timed = attempt.timed;
@@ -61,6 +86,27 @@ export function SetPlayer({
   const [saveState, setSaveState] = useState<SaveState>("saved");
   const [elapsed, setElapsed] = useState(() => initialAnswers.reduce((s, a) => s + a.timeSpentS, 0));
   const [sheetOpen, setSheetOpen] = useState(false);
+  // Reopens if it was left open (closed on the server, which can't see localStorage).
+  const leftOpen = useSyncExternalStore(noSubscribe, readBookletOpen, () => false);
+  const [bookletChoice, setBookletChoice] = useState<boolean | null>(null);
+  const bookletOpen = !!booklet && (bookletChoice ?? leftOpen);
+  // With the booklet open, big screens give the page more room so the question keeps its width.
+  const rowWidth = bookletOpen ? "max-w-[1200px] xl:max-w-[1440px] 2xl:max-w-[1680px]" : "max-w-[1200px]";
+  const { show: showBookletTip, dismiss: dismissBookletTip } = useHintTurn(BOOKLET_TIP_ID, bookletTip);
+  const bookletTipDone = useRef(!bookletTip);
+  const toggleBooklet = useCallback((open: boolean) => {
+    setBookletChoice(open);
+    // Opening it (button or B) means they've found it: the tip goes, once.
+    if (open && !bookletTipDone.current) {
+      bookletTipDone.current = true;
+      dismissBookletTip();
+    }
+    try {
+      localStorage.setItem(BOOKLET_OPEN_KEY, open ? "1" : "0");
+    } catch {
+      // only remembered for this visit
+    }
+  }, [dismissBookletTip]);
   const [confirmFinish, setConfirmFinish] = useState(false);
   const [confirmExit, setConfirmExit] = useState(false);
   const [leaving, setLeaving] = useState<"save" | "delete" | null>(null);
@@ -211,17 +257,24 @@ export function SetPlayer({
 
   // ← / → move between questions, except while typing an answer.
   const goToRef = useRef(goTo);
+  const toggleBookletRef = useRef(() => {});
   useEffect(() => {
     goToRef.current = goTo;
+    toggleBookletRef.current = () => {
+      if (booklet) toggleBooklet(!bookletOpen);
+    };
   });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      const booklet = e.key === "b" || e.key === "B";
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" && !booklet) return;
       if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
       const el = e.target as HTMLElement | null;
       if (el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName))) return;
       e.preventDefault();
-      goToRef.current(indexRef.current + (e.key === "ArrowRight" ? 1 : -1));
+      // B opens or closes the formula booklet.
+      if (booklet) toggleBookletRef.current();
+      else goToRef.current(indexRef.current + (e.key === "ArrowRight" ? 1 : -1));
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -271,10 +324,11 @@ export function SetPlayer({
   };
 
   return (
-    <div className="pb-28">
+    // On smaller screens the open booklet covers the lower part, so the question can scroll above it.
+    <div className={bookletOpen ? "pb-[calc(60vh+7rem)] lg:pb-28" : "pb-28"}>
       {/* Top bar */}
       <div className="sticky top-16 z-30 bg-surface glass border-b border-outline-variant">
-        <div className="max-w-[1200px] mx-auto px-md h-14 flex items-center gap-md">
+        <div className={`${rowWidth} mx-auto px-md h-14 flex items-center gap-md`}>
           <div className="min-w-0 flex-1">
             <p className="font-serif font-bold text-on-surface truncate">{set.title}</p>
           </div>
@@ -285,6 +339,54 @@ export function SetPlayer({
           <span className="hidden md:inline text-label-sm text-on-surface-variant w-16 text-right" aria-live="polite">
             {saveState === "saving" ? "Saving…" : saveState === "error" ? "Not saved" : "Saved"}
           </span>
+          {booklet && (
+            <span className="relative">
+              <button
+                type="button"
+                onClick={() => toggleBooklet(!bookletOpen)}
+                aria-pressed={bookletOpen}
+                aria-keyshortcuts="B"
+                title="Formula booklet (B)"
+                className={`inline-flex items-center gap-xs rounded-lg px-sm py-xs text-label-md font-semibold cursor-pointer ${
+                  bookletOpen ? "bg-primary-fixed text-on-primary-fixed" : "text-on-surface-variant hover:text-primary"
+                }`}
+              >
+                <BookOpen size={16} aria-hidden="true" /> <span className="hidden sm:inline">Booklet</span>
+              </button>
+              {showBookletTip && (
+                <span
+                  role="note"
+                  className="absolute right-0 top-full mt-sm z-50 w-72 rounded-xl bg-inverse-surface text-inverse-on-surface shadow-xl p-md flex flex-col gap-sm"
+                >
+                  <span aria-hidden="true" className="absolute -top-1.5 right-6 w-3 h-3 rotate-45 bg-inverse-surface" />
+                  <span className="font-semibold flex items-center gap-xs">
+                    <BookOpen size={16} aria-hidden="true" /> New: your {booklet.title.includes("data") ? "data booklet" : "formula booklet"}
+                  </span>
+                  <span className="text-label-md opacity-90">
+                    Everything the exam booklet gives you, beside the question. Open it here or press <kbd className="rounded bg-inverse-on-surface/15 px-1 font-mono font-semibold">B</kbd> any time.
+                  </span>
+                  <span className="flex justify-end gap-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        bookletTipDone.current = true;
+                        dismissBookletTip();
+                      }}
+                      className="rounded-lg px-md py-xs text-label-md font-semibold opacity-90 hover:opacity-100 cursor-pointer">
+                      Got it
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleBooklet(true)}
+                      className="rounded-lg bg-inverse-on-surface/15 px-md py-xs text-label-md font-semibold hover:bg-inverse-on-surface/25 cursor-pointer"
+                    >
+                      Open it
+                    </button>
+                  </span>
+                </span>
+              )}
+            </span>
+          )}
           <button
             type="button"
             onClick={() => setConfirmExit(true)}
@@ -295,7 +397,7 @@ export function SetPlayer({
         </div>
       </div>
 
-      <div className="max-w-[1200px] mx-auto px-md pt-lg flex gap-lg">
+      <div className={`${rowWidth} mx-auto px-md pt-lg flex gap-lg`}>
         {/* Navigator rail (desktop) */}
         <aside className="hidden md:block sticky top-36 self-start pt-xs">
           <Navigator states={dotStates} current={index} onJump={goTo} layout="rail" />
@@ -397,11 +499,15 @@ export function SetPlayer({
             />
           )}
         </article>
+
+        {booklet && bookletOpen && (
+          <BookletPanel booklet={booklet} level={level} topic={topicOfSubtopic(question.subtopicId, Object.keys(topicNames)) ?? ""} topicNames={topicNames} onClose={() => toggleBooklet(false)} />
+        )}
       </div>
 
       {/* Bottom bar */}
       <div className="fixed bottom-0 inset-x-0 z-30 bg-surface glass border-t border-outline-variant" style={{ height: BOTTOM_BAR_PX }}>
-        <div className="max-w-[1200px] mx-auto h-full px-md flex items-center gap-sm">
+        <div className={`${rowWidth} mx-auto h-full px-md flex items-center gap-sm`}>
           <button
             type="button"
             onClick={() => goTo(index - 1)}

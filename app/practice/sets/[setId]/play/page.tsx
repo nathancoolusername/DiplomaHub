@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
-import { getInstantMcqKeys, getSet, getSetQuestions, getSubject, getViewer, revealMarkscheme, startOrResumeAttempt } from "@/lib/data";
+import { getDismissedHints, getInstantMcqKeys, getSet, getSetQuestions, getSubject, getTopicTree, getViewer, revealMarkscheme, startOrResumeAttempt } from "@/lib/data";
+import { BOOKLET_TIP_ID, bookletFor } from "@/lib/booklets";
 import { examPaceSeconds } from "@/lib/practice/pace";
 import { SetPlayer } from "@/components/practice/player/SetPlayer";
 
 export default async function PlayPage({ params }: { params: Promise<{ setId: string }> }) {
   const { setId } = await params;
-  const [viewer, set] = await Promise.all([getViewer(), getSet(setId)]);
+  // If the tips can't be read, the booklet tip stays hidden rather than risk repeating.
+  const [viewer, set, dismissed] = await Promise.all([getViewer(), getSet(setId), getDismissedHints().catch(() => [BOOKLET_TIP_ID])]);
   if (!set) notFound();
 
   const subject = getSubject(set.subjectId);
@@ -30,6 +32,8 @@ export default async function PlayPage({ params }: { params: Promise<{ setId: st
       : {},
   ]);
 
+  const booklet = bookletFor(subject.id, set.settings.level);
+
   return (
     <SetPlayer
       // A fresh attempt (e.g. after finishing) must not reuse the old player state.
@@ -42,6 +46,10 @@ export default async function PlayPage({ params }: { params: Promise<{ setId: st
       mcqKeys={mcqKeys}
       examPaceS={examPaceSeconds(subject, set.settings.level, questions)}
       isPro={viewer.isPro}
+      booklet={booklet}
+      bookletTip={!!booklet && !dismissed.includes(BOOKLET_TIP_ID)}
+      level={set.settings.level}
+      topicNames={Object.fromEntries(getTopicTree(subject.id).map((t) => [t.code, t.name]))}
     />
   );
 }
