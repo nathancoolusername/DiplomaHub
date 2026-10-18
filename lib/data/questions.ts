@@ -99,6 +99,7 @@ const SUBJECT_ID_BY_EXPORT_SLUG: Record<string, SubjectId> = {
   history: "history",
   "english-a": "english_a_langlit", // English A: Language & Literature
   physics: "physics",
+  chemistry: "chemistry",
 };
 
 /** Science exports keep Paper 1A (MCQ) and 1B (data-based): the catalog lists them as papers (migration 16). */
