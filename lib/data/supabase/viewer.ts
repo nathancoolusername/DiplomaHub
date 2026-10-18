@@ -4,7 +4,6 @@ import { cache } from "react";
 import type { CalendarItemKind, ExamSession, GettingStarted, Level, Subject, SubjectId, UserSubject, Viewer } from "@/lib/data/types";
 import { allSubjects, subjectById } from "@/lib/catalog";
 import { PRO_COMING_SOON } from "@/lib/plans";
-import { toCatalogSubjectId, toHubSubjectId } from "@/lib/hub-subjects";
 import { check, db, requireUserId, rpc } from "./client";
 import { getNextTimedItem } from "./calendar";
 
@@ -18,8 +17,6 @@ type UserRow = {
   exam_session_id: string | null;
   diplomapro_onboarded_at: string | null;
   dismissed_hints: string[] | null;
-  hub_subjects: string[] | null;
-  custom_hub_subjects: { id: string; name: string }[] | null;
   theme: ThemePreference | null;
 };
 
@@ -29,7 +26,7 @@ const userRow = cache(async (): Promise<UserRow> => {
   const uid = await requireUserId();
   const { data, error } = await (await db())
     .from("users")
-    .select("id, display_name, is_pro, exam_session_id, diplomapro_onboarded_at, dismissed_hints, hub_subjects, custom_hub_subjects, theme")
+    .select("id, display_name, is_pro, exam_session_id, diplomapro_onboarded_at, dismissed_hints, theme")
     .eq("id", uid)
     .single();
   check(error);
@@ -117,7 +114,7 @@ export const getUserSubjects = cache(async (): Promise<UserSubject[]> => {
   check(error);
   const list = (data ?? []).flatMap((r): UserSubject[] => {
     const subject = r.custom_name ? customSubject(r.subject_id, r.custom_name) : subjectById(r.subject_id);
-    return subject ? [{ subject, level: (r.level ?? "SL") as Level, isCore: r.is_core }] : [];
+    return subject ? [{ subject, level: (r.level ?? "SL") as Level, levelSet: r.level !== null, isCore: r.is_core }] : [];
   });
   return [...list.filter((s) => s.isCore), ...list.filter((s) => !s.isCore)];
 });
@@ -151,6 +148,15 @@ export async function addExtraClass(choice: SubjectChoice): Promise<void> {
   check(error);
 }
 
+/** Sets HL/SL on one of the student's subjects (core or extra). */
+export async function setSubjectLevel(subjectId: SubjectId, level: Level): Promise<void> {
+  if (level !== "HL" && level !== "SL") throw new Error("Unknown level");
+  const uid = await requireUserId();
+  const { data, error } = await (await db()).from("user_subjects").update({ level }).eq("user_id", uid).eq("subject_id", subjectId).select("subject_id");
+  check(error);
+  if (!data?.length) throw new Error("You don't take this subject");
+}
+
 export async function removeExtraClass(subjectId: SubjectId): Promise<void> {
   const uid = await requireUserId();
   check((await (await db()).from("user_subjects").delete().eq("user_id", uid).eq("subject_id", subjectId).eq("is_core", false)).error);
@@ -163,26 +169,16 @@ export async function needsOnboarding(): Promise<boolean> {
 }
 
 /**
- * The rows onboarding starts from: the student's core subjects if set,
- * otherwise what they picked in the Hub (users.hub_subjects). Never padded
- * with guesses: with fewer than six, the wizard asks them to pick the rest.
+ * The rows onboarding starts from: the student's core subjects (which also
+ * hold what they picked in the Hub). Never padded with guesses: with fewer
+ * than six, the wizard asks them to pick the rest.
  */
 export async function getOnboardingSubjects(): Promise<SubjectChoice[]> {
-  const [current, u] = await Promise.all([getUserSubjects(), userRow()]);
-  const rows: SubjectChoice[] = current
+  const current = await getUserSubjects();
+  return current
     .filter((s) => s.isCore)
-    .map((s) => ({ subjectId: s.subject.id, level: s.level, ...(isCustomSubjectId(s.subject.id) ? { name: s.subject.name } : {}) }));
-  for (const hubId of u.hub_subjects ?? []) {
-    if (rows.length >= CORE_SUBJECT_COUNT) break;
-    // The Hub only says "English": skip it if they already have an English course, else start from the likeliest one.
-    if (rows.some((r) => toHubSubjectId(r.subjectId) === hubId)) continue;
-    const id = toCatalogSubjectId(hubId);
-    // The Hub's own custom subjects come along with their names.
-    const custom = isCustomSubjectId(id) ? u.custom_hub_subjects?.find((c) => c.id === id) : undefined;
-    if (custom) rows.push({ subjectId: id, level: "SL", name: custom.name.slice(0, 40) });
-    else if (subjectById(id)) rows.push({ subjectId: id, level: "SL" });
-  }
-  return rows.slice(0, CORE_SUBJECT_COUNT);
+    .map((s) => ({ subjectId: s.subject.id, level: s.level, ...(isCustomSubjectId(s.subject.id) ? { name: s.subject.name } : {}) }))
+    .slice(0, CORE_SUBJECT_COUNT);
 }
 
 export type OnboardingAnswers = {
@@ -203,6 +199,11 @@ export type HintId = (typeof HINT_IDS)[number];
 /** Whether this student has dismissed a hint (regardless of setup). */
 export async function hasDismissedHint(id: HintId): Promise<boolean> {
   return ((await userRow()).dismissed_hints ?? []).includes(id);
+}
+
+/** Every tip and announcement this student has dismissed. */
+export async function getDismissedHints(): Promise<string[]> {
+  return (await userRow()).dismissed_hints ?? [];
 }
 
 /** Hints still to show; none while onboarding is open, so they don't stack on the wizard. */

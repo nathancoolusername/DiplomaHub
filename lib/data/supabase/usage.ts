@@ -22,8 +22,9 @@ function nextMonthStartUtc(): Date {
 }
 
 export async function getUsage(): Promise<UsageItem[]> {
-  const { isPro } = await getViewer();
-  const writtenThisWeek = isPro ? 0 : await rpc<number>("written_questions_this_week");
+  // Both at once (nobody is Pro while it's coming soon, so the count is nearly always needed).
+  const [{ isPro }, written] = await Promise.all([getViewer(), rpc<number>("written_questions_this_week")]);
+  const writtenThisWeek = isPro ? 0 : written;
   return BANNER_FEATURES[isPro ? "pro" : "free"].map((feature) => {
     const a = access(feature, isPro);
     const period = a.allowed && a.period ? a.period : "month";

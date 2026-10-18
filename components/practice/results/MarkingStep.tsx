@@ -10,6 +10,7 @@ import { QuestionFigures } from "@/components/shared/QuestionFigures";
 import { MarkPointList } from "../MarkPointList";
 import { partHeading } from "../player/question-format";
 import { EssayMarking } from "./EssayMarking";
+import { Spinner } from "@/components/spinner";
 
 /**
  * After finishing: every written answer that wasn't marked during the set
@@ -129,9 +130,10 @@ export function MarkingStep({ result }: { result: AttemptResult }) {
                 router.refresh();
               })
             }
-            className="rounded-lg bg-primary text-on-primary px-lg py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-60 cursor-pointer"
+            className="inline-flex items-center justify-center gap-xs rounded-lg bg-primary text-on-primary px-lg py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-60 cursor-pointer"
           >
-            {saving ? "Saving…" : "Confirm marks"}
+            {saving && <Spinner size={14} />}
+                {saving ? "Saving…" : "Confirm marks"}
           </button>
         </div>
       </div>

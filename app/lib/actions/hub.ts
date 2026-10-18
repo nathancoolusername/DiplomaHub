@@ -363,16 +363,24 @@ export async function completeHubOnboarding(
     if ("error" in title) return { success: false, error: title.error };
   }
 
-  const { error } = await supabase
-    .from("users")
-    .update({
-      hub_subjects: subjectIds,
-      hub_onboarded_at: new Date().toISOString(),
-      custom_hub_subjects: customSubjects,
-    })
-    .eq("id", user.id);
-
-  if (error) return { success: false, error: error.message };
+  // Straight to user_subjects, the list Practice uses too (migration 26). Until
+  // that has run, the old columns, which a trigger copies across.
+  const { error } = await supabase.rpc("set_hub_subjects", { p_hub: subjectIds, p_custom: customSubjects });
+  if (error?.code === "PGRST202" || error?.code === "42883") {
+    const fallback = await supabase
+      .from("users")
+      .update({
+        hub_subjects: subjectIds,
+        hub_onboarded_at: new Date().toISOString(),
+        custom_hub_subjects: customSubjects,
+      })
+      .eq("id", user.id);
+    if (fallback.error) return { success: false, error: fallback.error.message };
+  } else if (error) {
+    return { success: false, error: error.message };
+  }
+  // Practice and Home read these subjects too.
+  revalidatePath("/", "layout");
   return { success: true, data: null };
 }
 

@@ -34,7 +34,10 @@ export type Subject = {
 
 export type UserSubject = {
   subject: Subject;
+  /** SL until the student says (see levelSet), so papers and timings still work. */
   level: Level;
+  /** False for subjects that came from the Hub, which has no HL/SL: the card asks. */
+  levelSet: boolean;
   isCore: boolean;
 };
 

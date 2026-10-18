@@ -15,21 +15,20 @@ export default async function PlayPage({ params }: { params: Promise<{ setId: st
   const [questions, { attempt, answers }] = await Promise.all([getSetQuestions(setId), startOrResumeAttempt(setId)]);
   if (questions.length === 0) notFound();
 
-  // Untimed: bring back markschemes the student had already opened.
-  const initialSchemes = attempt.timed
-    ? {}
-    : Object.fromEntries(
-        await Promise.all(
+  // Untimed: bring back markschemes the student had already opened. Feedback
+  // after each question: the MCQ answers come with the page so right/wrong
+  // shows at once ({} before migration 23: the player falls back to asking
+  // the server). Both at once.
+  const [initialSchemes, mcqKeys] = await Promise.all([
+    attempt.timed
+      ? {}
+      : Promise.all(
           answers.filter((a) => a.revealed).map(async (a) => [a.questionId, await revealMarkscheme(attempt.id, a.questionId)] as const),
-        ),
-      );
-
-  // Feedback after each question: the MCQ answers come with the page so right/wrong shows at once.
-  // ({} before migration 23: the player falls back to asking the server.)
-  const mcqKeys =
+        ).then((pairs) => Object.fromEntries(pairs)),
     !attempt.timed && set.settings.mcqFeedback === "each" && questions.some((q) => q.type === "mcq")
-      ? await getInstantMcqKeys(attempt.id).catch(() => ({}))
-      : {};
+      ? getInstantMcqKeys(attempt.id).catch(() => ({}))
+      : {},
+  ]);
 
   return (
     <SetPlayer

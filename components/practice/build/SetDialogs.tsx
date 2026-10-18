@@ -9,6 +9,7 @@ import { links } from "@/lib/practice/links";
 import { redeemCodeAction } from "@/app/practice/actions";
 import { Dialog } from "@/components/shared/Dialog";
 import { DeleteSetButton } from "@/components/practice/sets/DeleteSetButton";
+import { Spinner } from "@/components/spinner";
 
 const primaryBtn = "inline-flex items-center gap-xs rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-50 cursor-pointer";
 const ghostBtn = "rounded-lg px-md py-sm text-label-md font-semibold text-on-surface-variant hover:text-primary cursor-pointer";
@@ -124,7 +125,8 @@ export function EnterCodeDialog({ onClose, initialCode = "" }: { onClose: () => 
               Cancel
             </button>
             <button type="button" onClick={redeem} disabled={busy || code.trim().length < 4} className={primaryBtn}>
-              {busy ? "Checking…" : "Add set"}
+              {busy && <Spinner size={14} />}
+                {busy ? "Checking…" : "Add set"}
             </button>
           </>
         )

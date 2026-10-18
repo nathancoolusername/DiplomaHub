@@ -26,19 +26,22 @@ export default async function BuildPage({ params, searchParams }: Props) {
   const [{ subjectId, type }, { topics, set: setId }] = await Promise.all([params, searchParams]);
   if (!isPracticeType(type)) notFound();
 
-  const [viewer, us] = await Promise.all([getViewer(), getUserSubject(subjectId)]);
-  if (!us || !us.subject.supportedTypes.includes(type)) notFound();
-  // No questions for this subject yet: the subject page explains it.
-  const practiceIds = await getSubjectsWithQuestions().catch(() => null);
-  if (practiceIds && !practiceIds.includes(subjectId)) redirect(links.subject(subjectId));
-
-  const [map, suggestions, usage, savedSets] = await Promise.all([
+  // All at once (they're all reads); the checks below still run in order.
+  const [viewer, us, practiceIds, map, allSuggestions, usage, savedSets, set] = await Promise.all([
+    getViewer(),
+    getUserSubject(subjectId),
+    getSubjectsWithQuestions().catch(() => null),
     getStrengthMap(subjectId),
-    viewer.isPro ? getSuggestions("build", subjectId) : [],
+    getSuggestions("build", subjectId),
     getUsage(),
     getSavedSets(subjectId),
+    setId ? getSet(setId) : Promise.resolve(null),
   ]);
+  if (!us || !us.subject.supportedTypes.includes(type)) notFound();
+  // No questions for this subject yet: the subject page explains it.
+  if (practiceIds && !practiceIds.includes(subjectId)) redirect(links.subject(subjectId));
   if (!map) notFound();
+  const suggestions = viewer.isPro ? allSuggestions : [];
 
   // Only topics that exist in this syllabus (and the student's level) can be preselected.
   const known = new Set(map.topics.flatMap((t) => t.subtopics.map((s) => s.id)));
@@ -51,7 +54,6 @@ export default async function BuildPage({ params, searchParams }: Props) {
   // ?set=<id>: change one of your sets with the same form.
   let editing: { setId: string; title: string; locked: boolean; settings: BuildSettings } | null = null;
   if (setId) {
-    const set = await getSet(setId);
     if (!set) notFound();
     if (set.subjectId !== subjectId || set.practiceType !== type) redirect(links.editSet(set));
     const [questions, locked] = await Promise.all([set.build ? Promise.resolve([]) : getSetQuestions(set.id), hasOpenAttempt(set.id)]);

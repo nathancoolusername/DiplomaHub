@@ -1,6 +1,5 @@
 import { getHubStats, parseRange } from "@/app/lib/admin-stats";
-import { SUBJECTS } from "@/components/hub/mock-data";
-import { isCoreSubject } from "@/components/hub/onboarding/subject-cap";
+import { subjectById } from "@/lib/catalog";
 import { LineChart } from "@/components/admin/charts/LineChart";
 import { BarChart } from "@/components/admin/charts/BarChart";
 import { CHART_1, CHART_2, CHART_3, Empty, PageHeader, Panel, RangeSelect, StatCard, StatGrid, StatsError, percent } from "@/components/admin/ui";
@@ -14,9 +13,8 @@ const TYPE_LABELS: Record<string, string> = {
   study_block: "Study block",
   university: "University deadline",
 };
-// The Hub's own names ("math_aa" → "Math AA"); custom subjects show as "Own subject".
-const HUB_SUBJECT_NAMES: Record<string, string> = Object.fromEntries(SUBJECTS.map((s) => [s.id, s.name]));
-const subjectLabel = (id: string) => HUB_SUBJECT_NAMES[id] ?? (id.startsWith("custom:") ? "Own subject" : id);
+// Catalog names ("english_b" → "English B"); students' own subjects arrive as one "custom:" row.
+const subjectLabel = (id: string) => (id === "custom:" ? "Own subjects" : (subjectById(id)?.name ?? id));
 
 const relabel = (rows: { label: string; count: number }[], map: Record<string, string>) => rows.map((r) => ({ label: map[r.label] ?? r.label, value: r.count }));
 
@@ -64,16 +62,17 @@ export default async function AdminHubPage({ searchParams }: Props) {
         <Panel title="Items by kind" description="What students say each item is">
           {h.by_kind.length ? <BarChart color={CHART_1} data={relabel(h.by_kind, KIND_LABELS)} /> : <Empty>No items yet.</Empty>}
         </Panel>
-        <Panel title="Subjects picked in the Hub" description="Students who picked each subject (TOK, EE, CAS and General left out: everyone has them)">
+        <Panel title="Subjects picked" description="Students taking each subject, from the Hub or Practice (TOK, EE and CAS left out: everyone has them)">
           {(() => {
-            // TOK, EE, CAS and General are on for everyone, so they'd only crowd out the real choices.
-            const picked = h.top_subjects.filter((s) => !isCoreSubject(s.label));
-            const own = picked.filter((s) => s.label.startsWith("custom:")).reduce((n, s) => n + s.count, 0);
-            const rows = [
-              ...picked.filter((s) => !s.label.startsWith("custom:")).map((s) => ({ label: subjectLabel(s.label), value: s.count })),
-              ...(own ? [{ label: "Own subjects", value: own }] : []),
-            ].sort((a, b) => b.value - a.value);
-            return rows.length ? <BarChart color={CHART_3} data={rows} /> : <Empty>No subjects yet.</Empty>;
+            // Before migration 27 the list still has the always-on core and one row per own subject.
+            const rows = new Map<string, number>();
+            for (const s of h.top_subjects) {
+              if (["tok", "ee", "cas", "general"].includes(s.label)) continue;
+              const label = subjectLabel(s.label.startsWith("custom:") ? "custom:" : s.label);
+              rows.set(label, (rows.get(label) ?? 0) + s.count);
+            }
+            const data = [...rows].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+            return data.length ? <BarChart color={CHART_3} data={data} /> : <Empty>No subjects yet.</Empty>;
           })()}
         </Panel>
         <Panel title="Exam sessions" description="Which session students are sitting">

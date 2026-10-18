@@ -9,6 +9,7 @@ import { Dialog } from "@/components/shared/Dialog";
 import { SubjectPicker, type SubjectPick } from "../SubjectPicker";
 import { subjectRequestKey } from "@/lib/data/request-key";
 import { SubjectCard } from "./SubjectCard";
+import { Spinner } from "@/components/spinner";
 
 /** Subjects a student practises beyond their six, plus the "Add a class" card. */
 export function ExtraClasses({
@@ -33,6 +34,7 @@ export function ExtraClasses({
   const [open, setOpen] = useState(false);
   const [pick, setPick] = useState<SubjectPick[]>([]);
   const [busy, start] = useTransition();
+  const [removing, setRemoving] = useState<string | null>(null);
 
   const add = () =>
     start(async () => {
@@ -42,11 +44,13 @@ export function ExtraClasses({
       router.refresh();
     });
 
-  const remove = (id: string) =>
+  const remove = (id: string) => {
+    setRemoving(id);
     start(async () => {
       await removeExtraClassAction(id);
       router.refresh();
     });
+  };
 
   const openDialog = () => {
     setPick([]);
@@ -69,7 +73,7 @@ export function ExtraClasses({
               aria-label={`Remove ${us.subject.shortName}`}
               className="absolute -top-2 -right-2 z-20 w-6 h-6 rounded-[50%] bg-surface-raised border border-outline-variant text-on-surface-variant hover:text-error flex items-center justify-center cursor-pointer"
             >
-              <X size={12} />
+              {busy && removing === us.subject.id ? <Spinner size={12} /> : <X size={12} />}
             </button>
           </div>
         ))}
@@ -104,8 +108,9 @@ export function ExtraClasses({
                 type="button"
                 onClick={add}
                 disabled={busy || pick.length === 0}
-                className="rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center justify-center gap-xs rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
               >
+                {busy && <Spinner size={14} />}
                 {busy ? "Adding…" : "Add"}
               </button>
             </>

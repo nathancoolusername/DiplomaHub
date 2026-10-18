@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { ArrowDown, ArrowRight, ArrowUp, Bookmark, Check, Copy, RotateCcw, Share2, Trophy } from "lucide-react";
+import { Spinner } from "@/components/spinner";
 import type { AttemptResult, LeaderboardStanding, StrengthChange } from "@/lib/data/types";
 import { links } from "@/lib/practice/links";
 import { formatMinutes } from "@/lib/practice/pace";
@@ -50,6 +51,12 @@ export function ResultsView({
   const [code, setCode] = useState<string | null>(set.shareCode);
   const [copied, setCopied] = useState(false);
   const [busy, start] = useTransition();
+  const [doing, setDoing] = useState<"redo" | "save" | "share" | null>(null);
+  // Which button is working; its spinner shows while `busy` (Redo keeps it until the redirect lands).
+  const run = (what: "redo" | "save" | "share", fn: () => Promise<void>) => {
+    setDoing(what);
+    start(fn);
+  };
 
   return (
     <div className="max-w-[1000px] mx-auto px-md py-xl flex flex-col gap-lg">
@@ -197,27 +204,29 @@ export function ResultsView({
           <button
             type="button"
             disabled={busy}
-            onClick={() => start(() => redoWrongAction(result.attempt.id))}
+            onClick={() => run("redo", () => redoWrongAction(result.attempt.id))}
             className="inline-flex items-center gap-xs rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-60 cursor-pointer"
           >
-            <RotateCcw size={14} aria-hidden="true" /> Redo the {wrongCount === 1 ? "one" : `${wrongCount}`} I got wrong
+            {busy && doing === "redo" ? <Spinner size={14} /> : <RotateCcw size={14} aria-hidden="true" />} Redo the {wrongCount === 1 ? "one" : `${wrongCount}`} I got wrong
           </button>
         )}
         <button
           type="button"
-          disabled={saved}
-          onClick={() => start(async () => { await saveSetAction(set.id); setSaved(true); })}
+          disabled={saved || (busy && doing === "save")}
+          onClick={() => run("save", async () => { await saveSetAction(set.id); setSaved(true); })}
           className="inline-flex items-center gap-xs rounded-lg border border-outline-variant px-md py-sm text-label-md font-semibold text-on-surface hover:border-primary disabled:opacity-70 cursor-pointer"
         >
-          {saved ? <Check size={14} aria-hidden="true" /> : <Bookmark size={14} aria-hidden="true" />} {saved ? "Saved to My sets" : "Save"}
+          {saved ? <Check size={14} aria-hidden="true" /> : busy && doing === "save" ? <Spinner size={14} /> : <Bookmark size={14} aria-hidden="true" />}{" "}
+          {saved ? "Saved to My sets" : busy && doing === "save" ? "Saving…" : "Save"}
         </button>
         <span className="inline-flex items-center gap-xs">
           <button
             type="button"
-            onClick={() => start(async () => setCode(await shareSetAction(set.id)))}
-            className="inline-flex items-center gap-xs rounded-lg border border-outline-variant px-md py-sm text-label-md font-semibold text-on-surface hover:border-primary cursor-pointer"
+            disabled={busy && doing === "share"}
+            onClick={() => run("share", async () => setCode(await shareSetAction(set.id)))}
+            className="inline-flex items-center gap-xs rounded-lg border border-outline-variant px-md py-sm text-label-md font-semibold text-on-surface hover:border-primary disabled:opacity-70 cursor-pointer"
           >
-            <Share2 size={14} aria-hidden="true" /> Share
+            {busy && doing === "share" ? <Spinner size={14} /> : <Share2 size={14} aria-hidden="true" />} Share
           </button>
           {code && (
             <button

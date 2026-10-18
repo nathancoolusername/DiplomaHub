@@ -2,12 +2,15 @@ import Link from "next/link";
 import { ArrowRight, Clock } from "lucide-react";
 import type { StrengthMap, UserSubject } from "@/lib/data/types";
 import { RequestSubjectButton } from "@/components/practice/RequestSubjectButton";
+import { SetLevel } from "@/components/practice/SetLevel";
 import { links } from "@/lib/practice/links";
 import { STRENGTH_LABELS, levelFor, MIN_ANSWERED } from "@/lib/practice/strength";
 
 /**
  * A subject on the Practice page: name, HL/SL, overall strength bar and up
  * to two weak topics. Before any practice it says so and offers a start.
+ * Subjects the student typed themselves are tagged "Your subject"; a subject
+ * from the Hub with no HL/SL yet asks for it instead of guessing.
  */
 export function SubjectCard({
   us,
@@ -28,6 +31,7 @@ export function SubjectCard({
   const level = overall === null ? "none" : levelFor(overall, MIN_ANSWERED);
   const weak = (map?.weakest ?? []).slice(0, 2);
   const practiceType = us.subject.supportedTypes[0] ?? "mcq_short";
+  const custom = us.subject.id.startsWith("custom:");
 
   return (
     <article
@@ -42,8 +46,16 @@ export function SubjectCard({
             {compact ? us.subject.shortName : us.subject.name}
           </Link>
         </h3>
-        <span className="shrink-0 rounded-full bg-primary text-on-primary px-sm py-px text-label-sm font-bold">{us.level}</span>
+        {us.levelSet ? (
+          <span className="shrink-0 rounded-full bg-primary text-on-primary px-sm py-px text-label-sm font-bold">{us.level}</span>
+        ) : (
+          // Above the card's stretched link so it can be clicked.
+          <SetLevel subjectId={us.subject.id} className="relative z-10" />
+        )}
       </header>
+      {custom && (
+        <span className="self-start -mt-xs rounded-full bg-surface-container text-on-surface-variant px-sm py-px text-label-sm font-semibold">Your subject</span>
+      )}
 
       {us.subject.supportedTypes.length === 0 || !hasPractice ? (
         <div className="mt-auto flex flex-col items-start gap-xs">

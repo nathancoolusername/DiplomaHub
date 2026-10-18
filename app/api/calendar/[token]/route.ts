@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/app/lib/supabase/admin";
+import { readHubSubjects } from "@/app/lib/hub-subjects";
 import { checkRateLimit, getClientIp } from "@/app/lib/ratelimit";
 import { generateHubIcs, type IcsFeedItem } from "@/app/lib/ics";
 import {
@@ -57,7 +58,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   if (feed.include_tasks) allowedTypes.push("task");
   if (feed.include_study_blocks) allowedTypes.push("study_block");
 
-  const [{ data: rows, error }, { data: ownerProfile }] = await Promise.all([
+  const [{ data: rows, error }, { customSubjects }] = await Promise.all([
     admin
       .from("hub_items")
       .select("id, title, type, subject_id, start_at, end_at, all_day, status")
@@ -65,12 +66,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
       .in("type", allowedTypes)
       .gte("start_at", windowStart.toISOString())
       .lte("start_at", windowEnd.toISOString()),
-    admin.from("users").select("custom_hub_subjects").eq("id", feed.user_id).maybeSingle(),
+    readHubSubjects(admin, feed.user_id).catch(() => ({ customSubjects: [] as CustomSubject[] })),
   ]);
 
   if (error) return new NextResponse("Internal error", { status: 500 });
-
-  const customSubjects = (ownerProfile?.custom_hub_subjects as CustomSubject[] | null) ?? [];
 
   const items: IcsFeedItem[] = (rows ?? []).map((row) => ({
     id: row.id as string,

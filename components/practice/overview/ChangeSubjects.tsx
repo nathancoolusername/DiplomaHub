@@ -6,6 +6,7 @@ import type { Subject, UserSubject } from "@/lib/data/types";
 import { setCoreSubjectsAction } from "@/app/practice/actions";
 import { Dialog } from "@/components/shared/Dialog";
 import { SubjectPicker, type SubjectPick } from "../SubjectPicker";
+import { Spinner } from "@/components/spinner";
 
 const SIX = 6;
 
@@ -61,8 +62,9 @@ export function ChangeSubjects({ core, catalog, practiceIds = null }: { core: Us
                 type="button"
                 onClick={save}
                 disabled={saving || picks.length !== SIX}
-                className="rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center justify-center gap-xs rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
               >
+                {saving && <Spinner size={14} />}
                 {saving ? "Saving…" : picks.length === SIX ? "Save" : `Pick ${SIX - picks.length} more`}
               </button>
             </>

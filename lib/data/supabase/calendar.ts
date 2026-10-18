@@ -38,18 +38,22 @@ function toItem(r: HubItemRow, takenIds: string[]): CalendarItem {
 /** Upcoming items (from the start of today), soonest first. */
 export const getCalendarItems = cache(async (): Promise<CalendarItem[]> => {
   const uid = await requireUserId();
-  const takenIds = (await getUserSubjects()).map((s) => s.subject.id);
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
-  const { data, error } = await (await db())
-    .from("hub_items")
-    .select("id, title, type, subject_id, start_at, has_timer, kind, set_id")
-    .eq("owner_id", uid)
-    .neq("status", "done")
-    .gte("start_at", today.toISOString())
-    .order("start_at")
-    .limit(200);
+  // Both at once: the subjects only matter for naming languages afterwards.
+  const [subjects, { data, error }] = await Promise.all([
+    getUserSubjects(),
+    (await db())
+      .from("hub_items")
+      .select("id, title, type, subject_id, start_at, has_timer, kind, set_id")
+      .eq("owner_id", uid)
+      .neq("status", "done")
+      .gte("start_at", today.toISOString())
+      .order("start_at")
+      .limit(200),
+  ]);
   check(error);
+  const takenIds = subjects.map((s) => s.subject.id);
   return ((data ?? []) as HubItemRow[]).map((r) => toItem(r, takenIds));
 });
 
