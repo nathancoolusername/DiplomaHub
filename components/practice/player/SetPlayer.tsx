@@ -19,6 +19,7 @@ import { ShortAnswer } from "./ShortAnswer";
 import { EssayAnswer } from "./EssayAnswer";
 import { paperLabel } from "./question-format";
 import { BookletPanel } from "./BookletPanel";
+import { PeriodicTable } from "./PeriodicTable";
 import { useHintTurn } from "@/components/shared/FirstTimeHint";
 import { BOOKLET_TIP_ID } from "@/lib/booklets";
 
@@ -94,6 +95,9 @@ export function SetPlayer({
   const rowWidth = bookletOpen ? "max-w-[1200px] xl:max-w-[1440px] 2xl:max-w-[1680px]" : "max-w-[1200px]";
   const { show: showBookletTip, dismiss: dismissBookletTip } = useHintTurn(BOOKLET_TIP_ID, bookletTip);
   const bookletTipDone = useRef(!bookletTip);
+  // Chemistry: the booklet's element data as a full-screen periodic table (button or P).
+  const hasPeriodicTable = !!booklet?.sections.some((s) => s.periodicTable);
+  const [tableOpen, setTableOpen] = useState(false);
   const toggleBooklet = useCallback((open: boolean) => {
     setBookletChoice(open);
     // Opening it (button or B) means they've found it: the tip goes, once.
@@ -258,22 +262,28 @@ export function SetPlayer({
   // ← / → move between questions, except while typing an answer.
   const goToRef = useRef(goTo);
   const toggleBookletRef = useRef(() => {});
+  const openTableRef = useRef(() => {});
   useEffect(() => {
     goToRef.current = goTo;
     toggleBookletRef.current = () => {
       if (booklet) toggleBooklet(!bookletOpen);
     };
+    openTableRef.current = () => {
+      if (hasPeriodicTable) setTableOpen(true);
+    };
   });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const booklet = e.key === "b" || e.key === "B";
-      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" && !booklet) return;
+      const table = e.key === "p" || e.key === "P";
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" && !booklet && !table) return;
       if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
       const el = e.target as HTMLElement | null;
       if (el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName))) return;
       e.preventDefault();
-      // B opens or closes the formula booklet.
+      // B opens or closes the formula booklet; P opens the periodic table (Chemistry; P or Esc closes it).
       if (booklet) toggleBookletRef.current();
+      else if (table) openTableRef.current();
       else goToRef.current(indexRef.current + (e.key === "ArrowRight" ? 1 : -1));
     };
     document.addEventListener("keydown", onKey);
@@ -364,6 +374,12 @@ export function SetPlayer({
                   </span>
                   <span className="text-label-md opacity-90">
                     Everything the exam booklet gives you, beside the question. Open it here or press <kbd className="rounded bg-inverse-on-surface/15 px-1 font-mono font-semibold">B</kbd> any time.
+                  {hasPeriodicTable && (
+                    <>
+                      {" "}
+                      The periodic table opens with <kbd className="rounded bg-inverse-on-surface/15 px-1 font-mono font-semibold">P</kbd>.
+                    </>
+                  )}
                   </span>
                   <span className="flex justify-end gap-xs">
                     <button
@@ -386,6 +402,17 @@ export function SetPlayer({
                 </span>
               )}
             </span>
+          )}
+          {hasPeriodicTable && (
+            <button
+              type="button"
+              onClick={() => setTableOpen(true)}
+              aria-keyshortcuts="P"
+              title="Periodic table (P)"
+              className="inline-flex items-center gap-xs rounded-lg px-sm py-xs text-label-md font-semibold text-on-surface-variant hover:text-primary cursor-pointer"
+            >
+              <LayoutGrid size={16} aria-hidden="true" /> <span className="hidden sm:inline">Periodic table</span>
+            </button>
           )}
           <button
             type="button"
@@ -504,6 +531,8 @@ export function SetPlayer({
           <BookletPanel booklet={booklet} level={level} topic={topicOfSubtopic(question.subtopicId, Object.keys(topicNames)) ?? ""} topicNames={topicNames} onClose={() => toggleBooklet(false)} />
         )}
       </div>
+
+      {tableOpen && <PeriodicTable onClose={() => setTableOpen(false)} />}
 
       {/* Bottom bar */}
       <div className="fixed bottom-0 inset-x-0 z-30 bg-surface glass border-t border-outline-variant" style={{ height: BOTTOM_BAR_PX }}>

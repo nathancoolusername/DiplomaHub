@@ -3,8 +3,9 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
-import { Search, X } from "lucide-react";
-import { searchBooklet, type Booklet } from "@/lib/booklets";
+import { ArrowUpRight, LayoutGrid, Search, X } from "lucide-react";
+import { searchBooklet, searchElements, type Booklet } from "@/lib/booklets";
+import { PeriodicTable } from "./PeriodicTable";
 import type { Level } from "@/lib/data/types";
 
 /** One formula. Booklet content is our own static data, so its KaTeX HTML is safe to inject. */
@@ -38,6 +39,10 @@ export function BookletPanel({
   const scroller = useRef<HTMLDivElement>(null);
   const sections = useMemo(() => searchBooklet(booklet, query), [booklet, query]);
   const topics = useMemo(() => [...new Set(booklet.sections.map((s) => s.topic))], [booklet]);
+  // Chemistry's element data opens as a full-screen periodic table (undefined = closed, a Z = that element picked).
+  const [table, setTable] = useState<number | null | undefined>(undefined);
+  const hasTable = booklet.sections.some((s) => s.periodicTable);
+  const elementHits = useMemo(() => (hasTable ? searchElements(query) : []), [hasTable, query]);
 
   // Follow the question: a new topic moves the booklet there.
   const [seenTopic, setSeenTopic] = useState(topic);
@@ -74,6 +79,15 @@ export function BookletPanel({
           <p className="font-serif font-bold text-on-surface">
             {booklet.title} <span className="text-label-md font-sans font-semibold text-on-surface-variant">· {level}</span>
           </p>
+          {hasTable && (
+            <button
+              type="button"
+              onClick={() => setTable(null)}
+              className="ml-auto inline-flex items-center gap-xs rounded-lg border border-outline-variant px-sm py-xs text-label-md font-semibold text-on-surface hover:border-primary hover:text-primary cursor-pointer"
+            >
+              <LayoutGrid size={14} aria-hidden="true" /> Periodic table
+            </button>
+          )}
           <button type="button" onClick={onClose} aria-label="Close booklet" className="p-0.5 text-on-surface-variant hover:text-primary cursor-pointer">
             <X size={18} />
           </button>
@@ -109,7 +123,37 @@ export function BookletPanel({
       </div>
 
       <div ref={scroller} className="relative flex-1 overflow-y-auto px-md py-sm">
-        {sections.length === 0 && <p className="text-label-md text-on-surface-variant py-md">Nothing matches “{query}”.</p>}
+        {elementHits.length > 0 && (
+          <section className="py-sm" aria-label="Elements">
+            <h3 className="font-semibold text-on-surface text-body-md pb-xs">Elements</h3>
+            <ul className="flex flex-col divide-y divide-outline-variant">
+              {elementHits.map((e) => (
+                <li key={e.z}>
+                  <button
+                    type="button"
+                    onClick={() => setTable(e.z)}
+                    className="w-full flex items-center gap-sm py-xs text-left text-label-md hover:text-primary cursor-pointer"
+                  >
+                    <span className="w-9 h-9 shrink-0 rounded-md bg-primary text-on-primary flex flex-col items-center justify-center leading-none">
+                      <span className="text-[9px] tabular-nums opacity-90">{e.z}</span>
+                      <span className="font-bold">{e.symbol}</span>
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="font-semibold text-on-surface">{e.name}</span>
+                      <span className="block text-on-surface-variant tabular-nums truncate">
+                        Aᵣ {e.mass}
+                        {e.electronegativity && ` · EN ${e.electronegativity}`}
+                        {e.ionizationEnergy && ` · 1st IE ${e.ionizationEnergy} kJ mol⁻¹`}
+                      </span>
+                    </span>
+                    <ArrowUpRight size={14} className="shrink-0 text-on-surface-variant" aria-hidden="true" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {sections.length === 0 && elementHits.length === 0 && <p className="text-label-md text-on-surface-variant py-md">Nothing matches “{query}”.</p>}
         {sections.map((s, i) => {
           const firstOfTopic = i === 0 || sections[i - 1].topic !== s.topic;
           return (
@@ -121,6 +165,21 @@ export function BookletPanel({
                 </p>
               )}
               <h3 className="font-semibold text-on-surface text-body-md pb-xs">{s.title}</h3>
+              {s.periodicTable && (
+                <div className="rounded-xl border border-outline-variant bg-surface-container p-md flex flex-col gap-sm">
+                  <p className="text-label-md text-on-surface-variant">
+                    Atomic masses, electronegativities, ionization energies, electron affinities, radii, and melting and boiling points for every element, on an
+                    interactive periodic table.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setTable(null)}
+                    className="self-start inline-flex items-center gap-xs rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 cursor-pointer"
+                  >
+                    <LayoutGrid size={16} aria-hidden="true" /> Open the periodic table
+                  </button>
+                </div>
+              )}
               {s.entries.length > 0 && (
                 <ul className="flex flex-col divide-y divide-outline-variant">
                   {s.entries.map((e) => (
@@ -148,7 +207,7 @@ export function BookletPanel({
                       <thead className="bg-surface-container text-on-surface-variant text-left">
                         <tr>
                           {t.columns.map((c) => (
-                            <th key={c} scope="col" className="font-semibold px-sm py-xs whitespace-nowrap">
+                            <th key={c} scope="col" className="font-semibold px-sm py-xs align-bottom min-w-12">
                               {c}
                             </th>
                           ))}
@@ -175,6 +234,7 @@ export function BookletPanel({
         })}
         <p className="text-label-sm text-on-surface-variant pt-md pb-sm">DiplomaHub’s own write-up of what the exam booklet gives. Your school’s IB booklet is the official one.</p>
       </div>
+      {table !== undefined && <PeriodicTable initialZ={table} onClose={() => setTable(undefined)} />}
     </aside>
   );
 }

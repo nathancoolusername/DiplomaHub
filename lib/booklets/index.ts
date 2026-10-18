@@ -5,6 +5,16 @@ import { PHYSICS_BOOKLET } from "./physics";
 import { CHEMISTRY_BOOKLET } from "./chemistry";
 
 export type { Booklet, BookletEntry, BookletSection, BookletTable } from "./types";
+import { ELEMENTS, type ElementData } from "./elements";
+
+/** Elements whose symbol, name or atomic number matches a booklet search ("Cu", "copper", "29"). */
+export function searchElements(query: string, limit = 6): ElementData[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const exact = ELEMENTS.filter((e) => e.symbol.toLowerCase() === q || String(e.z) === q || e.name.toLowerCase() === q);
+  const starts = ELEMENTS.filter((e) => !exact.includes(e) && q.length >= 2 && e.name.toLowerCase().startsWith(q));
+  return [...exact, ...starts].slice(0, limit);
+}
 
 /** The one-time "the booklet is here, press B" tip in the player (an announcement id, remembered per account). */
 export const BOOKLET_TIP_ID = "news-booklet";
@@ -24,7 +34,7 @@ export function bookletFor(subjectId: string, level: Level): Booklet | null {
   if (level === "HL") return b;
   const sections: BookletSection[] = b.sections
     .map((s) => ({ ...s, entries: s.entries.filter((e) => !e.hl), tables: s.tables?.filter((t) => !t.hl) }))
-    .filter((s) => s.entries.length > 0 || (s.tables?.length ?? 0) > 0);
+    .filter((s) => s.entries.length > 0 || (s.tables?.length ?? 0) > 0 || s.periodicTable);
   return { ...b, sections };
 }
 
@@ -54,7 +64,7 @@ export function searchBooklet(b: Booklet, query: string): BookletSection[] {
         return rows.length > 0 ? [{ ...t, rows }] : [];
       });
       if (entries.length === 0 && tables.length === 0 && matches(s.title)) return s;
-      return { ...s, entries, tables };
+      return { ...s, entries, tables, periodicTable: s.periodicTable && matches(`${s.title} periodic table elements`) };
     })
-    .filter((s) => s.entries.length > 0 || (s.tables?.length ?? 0) > 0);
+    .filter((s) => s.entries.length > 0 || (s.tables?.length ?? 0) > 0 || s.periodicTable);
 }

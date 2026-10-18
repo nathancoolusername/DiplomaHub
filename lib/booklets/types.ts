@@ -34,6 +34,8 @@ export type BookletSection = {
   title: string;
   entries: BookletEntry[];
   tables?: BookletTable[];
+  /** Show the "Open the periodic table" card here (Chemistry: the element data lives in lib/booklets/elements.ts). */
+  periodicTable?: boolean;
 };
 
 export type Booklet = {

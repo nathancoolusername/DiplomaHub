@@ -2,8 +2,9 @@ import type { Booklet } from "./types";
 
 const r = String.raw;
 
-// Maths AA (first assessment 2021). SL students see the entries without
-// `hl`; HL students see everything, as in the exam.
+// Maths AA (first assessment 2021): what the official formula booklet gives,
+// checked against it, in our own layout. SL students see the entries without
+// `hl` (the booklet's "HL only" pages); HL students see everything.
 export const MATH_AA_BOOKLET: Booklet = {
   subjectId: "math_aa",
   title: "Maths AA formulas",
@@ -28,7 +29,6 @@ export const MATH_AA_BOOKLET: Booklet = {
         },
         { name: "Geometric series: sum to infinity", math: [r`S_\infty = \frac{u_1}{1 - r}`], condition: r`|r| < 1`, keywords: ["GP", "infinite", "convergent"] },
         { name: "Compound interest", math: [r`FV = PV \times \left(1 + \frac{r}{100k}\right)^{kn}`], keywords: ["future value", "present value", "finance"] },
-        { name: "Percentage error", math: [r`\varepsilon = \left|\frac{v_A - v_E}{v_E}\right| \times 100\%`], keywords: ["approximate", "exact", "error"] },
       ],
     },
     {
@@ -36,14 +36,12 @@ export const MATH_AA_BOOKLET: Booklet = {
       title: "Exponents and logarithms",
       entries: [
         { name: "Definition of a logarithm", math: [r`a^x = b \iff x = \log_a b`], condition: r`a > 0,\ b > 0,\ a \ne 1`, keywords: ["log"] },
-        { name: "Inverse relationship", math: [r`\log_a a^x = x = a^{\log_a x}`], keywords: ["log"] },
         {
           name: "Laws of logarithms",
           math: [r`\log_a xy = \log_a x + \log_a y`, r`\log_a \frac{x}{y} = \log_a x - \log_a y`, r`\log_a x^m = m\log_a x`],
           keywords: ["log", "rules"],
         },
         { name: "Change of base", math: [r`\log_a x = \frac{\log_b x}{\log_b a}`], keywords: ["log"] },
-        { name: "Exponential with base e", math: [r`a^x = e^{x \ln a}`], keywords: ["exponential", "ln"] },
       ],
     },
     {
@@ -58,13 +56,6 @@ export const MATH_AA_BOOKLET: Booklet = {
           keywords: ["expansion"],
         },
         { name: "Permutations", math: [r`{}^nP_r = \frac{n!}{(n-r)!}`], hl: true, keywords: ["arrangements", "order"] },
-        {
-          name: "Binomial theorem for any rational n",
-          math: [r`(1+x)^n = 1 + nx + \frac{n(n-1)}{2!}x^2 + \cdots`],
-          condition: r`n \in \mathbb{Q},\ |x| < 1`,
-          hl: true,
-          keywords: ["expansion", "series", "fractional", "negative"],
-        },
       ],
     },
     {
@@ -104,6 +95,12 @@ export const MATH_AA_BOOKLET: Booklet = {
         { name: "Quadratic formula", math: [r`x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}`], condition: r`a \ne 0`, keywords: ["roots", "solve"] },
         { name: "Discriminant", math: [r`\Delta = b^2 - 4ac`], keywords: ["roots", "real", "nature"] },
         {
+          name: "Exponential and logarithmic functions",
+          math: [r`a^x = e^{x \ln a}`, r`\log_a a^x = x = a^{\log_a x}`],
+          condition: r`a, x > 0,\ a \ne 1`,
+          keywords: ["exponential", "ln", "log", "inverse"],
+        },
+        {
           name: "Sum and product of the roots of a polynomial",
           math: [r`\text{sum} = \frac{-a_{n-1}}{a_n}`, r`\text{product} = \frac{(-1)^n a_0}{a_n}`],
           condition: r`a_n x^n + a_{n-1}x^{n-1} + \cdots + a_0 = 0`,
@@ -131,7 +128,7 @@ export const MATH_AA_BOOKLET: Booklet = {
         { name: "Trapezium", math: [r`A = \frac{1}{2}(a + b)h`], keywords: ["area", "trapezoid"] },
         { name: "Circle", math: [r`A = \pi r^2`, r`C = 2\pi r`], keywords: ["area", "circumference"] },
         { name: "Cuboid", math: [r`V = lwh`], keywords: ["volume", "box"] },
-        { name: "Cylinder", math: [r`V = \pi r^2 h`, r`A = 2\pi r h + 2\pi r^2`], keywords: ["volume", "surface area"] },
+        { name: "Cylinder", math: [r`V = \pi r^2 h`, r`A_{\text{curved}} = 2\pi r h`], keywords: ["volume", "surface area"] },
         { name: "Prism", math: [r`V = Ah`], keywords: ["volume", "cross-section"] },
         { name: "Right pyramid", math: [r`V = \frac{1}{3}Ah`], keywords: ["volume"] },
         { name: "Right cone", math: [r`V = \frac{1}{3}\pi r^2 h`, r`A_{\text{curved}} = \pi r l`], keywords: ["volume", "surface area", "slant height"] },
@@ -196,6 +193,7 @@ export const MATH_AA_BOOKLET: Booklet = {
         { name: "Area of a parallelogram", math: [r`A = |\mathbf{v}\times\mathbf{w}|`], hl: true, keywords: ["cross product"] },
         { name: "Line: vector equation", math: [r`\mathbf{r} = \mathbf{a} + \lambda\mathbf{b}`], hl: true },
         { name: "Line: parametric form", math: [r`x = x_0 + \lambda l,\quad y = y_0 + \lambda m,\quad z = z_0 + \lambda n`], hl: true },
+        { name: "Line: Cartesian equations", math: [r`\frac{x - x_0}{l} = \frac{y - y_0}{m} = \frac{z - z_0}{n}`], hl: true },
         { name: "Plane: vector equation", math: [r`\mathbf{r} = \mathbf{a} + \lambda\mathbf{b} + \mu\mathbf{c}`], hl: true },
         { name: "Plane: normal and Cartesian forms", math: [r`\mathbf{r}\cdot\mathbf{n} = \mathbf{a}\cdot\mathbf{n}`, r`ax + by + cz = d`], hl: true, keywords: ["normal"] },
       ],
@@ -239,14 +237,20 @@ export const MATH_AA_BOOKLET: Booklet = {
         { name: "Expected value of a discrete random variable", math: [r`E(X) = \sum x\,P(X = x)`], keywords: ["mean", "expectation"] },
         {
           name: "Binomial distribution",
-          math: [r`X \sim B(n, p)`, r`P(X = r) = \binom{n}{r}p^r(1 - p)^{n-r}`, r`E(X) = np`, r`\operatorname{Var}(X) = np(1 - p)`],
-          condition: r`r = 0, 1, \ldots, n`,
+          math: [r`X \sim B(n, p)`, r`E(X) = np`, r`\operatorname{Var}(X) = np(1 - p)`],
           keywords: ["mean", "variance"],
         },
         { name: "Standardized normal variable", math: [r`z = \frac{x - \mu}{\sigma}`], keywords: ["normal", "z-score"] },
         {
+          name: "Variance and standard deviation of data",
+          math: [r`\sigma^2 = \frac{\sum_{i=1}^{k} f_i (x_i - \mu)^2}{n} = \frac{\sum_{i=1}^{k} f_i x_i^2}{n} - \mu^2`, r`\sigma = \sqrt{\frac{\sum_{i=1}^{k} f_i (x_i - \mu)^2}{n}}`],
+          hl: true,
+          keywords: ["spread", "frequency"],
+        },
+        { name: "Variance", math: [r`\operatorname{Var}(X) = E(X - \mu)^2 = E(X^2) - \left[E(X)\right]^2`], hl: true },
+        {
           name: "Variance of a discrete random variable",
-          math: [r`\operatorname{Var}(X) = E\left[(X - \mu)^2\right] = E(X^2) - \left[E(X)\right]^2`],
+          math: [r`\operatorname{Var}(X) = \sum (x - \mu)^2\,P(X = x) = \sum x^2\,P(X = x) - \mu^2`],
           hl: true,
         },
         { name: "Linear transformation", math: [r`E(aX + b) = aE(X) + b`, r`\operatorname{Var}(aX + b) = a^2\operatorname{Var}(X)`], hl: true },
@@ -316,8 +320,8 @@ export const MATH_AA_BOOKLET: Booklet = {
           hl: true,
           keywords: ["integrate", "inverse trig"],
         },
-        { name: "Integration by parts", math: [r`\int u\frac{dv}{dx}\,dx = uv - \int v\frac{du}{dx}\,dx`], hl: true, keywords: ["by parts"] },
-        { name: "Area between a curve and the x-axis", math: [r`A = \int_a^b |y|\,dx`], keywords: ["definite integral"] },
+        { name: "Integration by parts", math: [r`\int u\frac{dv}{dx}\,dx = uv - \int v\frac{du}{dx}\,dx`, r`\int u\,dv = uv - \int v\,du`], hl: true, keywords: ["by parts"] },
+        { name: "Area between a curve and the x-axis", math: [r`A = \int_a^b y\,dx \quad \text{where } f(x) > 0`, r`A = \int_a^b |y|\,dx \quad \text{(region enclosed)}`], keywords: ["definite integral"] },
         { name: "Area between a curve and the y-axis", math: [r`A = \int_a^b |x|\,dy`], hl: true },
         { name: "Volume of revolution", math: [r`V = \int_a^b \pi y^2\,dx \quad \text{(about the } x\text{-axis)}`, r`V = \int_a^b \pi x^2\,dy \quad \text{(about the } y\text{-axis)}`], hl: true, keywords: ["solid", "rotation"] },
       ],
@@ -326,8 +330,9 @@ export const MATH_AA_BOOKLET: Booklet = {
       topic: "5",
       title: "Kinematics",
       entries: [
-        { name: "Velocity and acceleration", math: [r`v = \frac{ds}{dt}`, r`a = \frac{dv}{dt} = \frac{d^2s}{dt^2} = v\frac{dv}{ds}`], keywords: ["displacement", "motion"] },
-        { name: "Distance travelled", math: [r`\text{distance} = \int_{t_1}^{t_2} |v(t)|\,dt`], keywords: ["motion"] },
+        { name: "Acceleration", math: [r`a = \frac{dv}{dt} = \frac{d^2s}{dt^2}`], keywords: ["velocity", "motion"] },
+        { name: "Distance travelled from t₁ to t₂", math: [r`\text{distance} = \int_{t_1}^{t_2} |v(t)|\,dt`], keywords: ["motion"] },
+        { name: "Displacement from t₁ to t₂", math: [r`\text{displacement} = \int_{t_1}^{t_2} v(t)\,dt`], keywords: ["motion"] },
       ],
     },
     {
