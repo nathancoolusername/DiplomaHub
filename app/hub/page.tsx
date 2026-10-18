@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Hub from "@/components/hub/hub";
 import { getCurrentUserId, getCurrentUserProfile } from "@/app/lib/get-current-user";
 import { getHubItems, getHubStudyLog, getHubRecommendedResources } from "@/app/lib/actions/hub";
+import { getMyHubSubjects } from "@/app/lib/hub-subjects";
 import { getWeekDates, toDateInputValue } from "@/components/hub/calendar/calendar-utils";
 import type { SubjectId } from "@/components/hub/mock-data";
 import type { TaskPracticeSuggestion } from "@/components/hub/calendar/week-calendar";
@@ -27,17 +28,21 @@ export default async function HubPage({ searchParams }: { searchParams: Promise<
   const weekStart = toDateInputValue(weekDates[0]);
   const weekEnd = toDateInputValue(weekDates[6]);
 
-  const [profile, itemsResult, studyLogResult, resourcesBySubject] = await Promise.all([
+  // DiplomaPro additions: signed-in students only (guests keep the plain Hub).
+  // Started now, alongside the Hub's own data, rather than after it.
+  const proPromise = userId ? loadPro() : Promise.resolve(null);
+
+  const [profile, hubSubjects, itemsResult, studyLogResult, resourcesBySubject, pro] = await Promise.all([
     userId ? getCurrentUserProfile() : Promise.resolve(null),
+    getMyHubSubjects(),
     userId ? getHubItems() : Promise.resolve(null),
     userId ? getHubStudyLog(weekStart, weekEnd) : Promise.resolve(null),
     getHubRecommendedResources(),
+    proPromise,
   ]);
 
   const firstName = profile?.display_name?.split(" ")[0] ?? null;
 
-  // DiplomaPro additions: signed-in students only (guests keep the plain Hub).
-  const pro = userId ? await loadPro() : null;
 
   return (
     <>
@@ -49,8 +54,8 @@ export default async function HubPage({ searchParams }: { searchParams: Promise<
         initialItems={itemsResult?.success ? itemsResult.data : []}
         initialStudyLog={studyLogResult?.success ? studyLogResult.data : []}
         hasOnboarded={profile?.hub_onboarded_at != null}
-        hubSubjects={(profile?.hub_subjects as SubjectId[] | null) ?? null}
-        initialCustomSubjects={profile?.custom_hub_subjects ?? []}
+        hubSubjects={hubSubjects.subjectIds}
+        initialCustomSubjects={hubSubjects.customSubjects}
         resourcesBySubject={resourcesBySubject}
         proRows={
           pro && (

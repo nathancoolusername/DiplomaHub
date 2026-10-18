@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Check } from "lucide-react";
 import { joinWaitlistAction, waitlistStatusAction } from "@/app/pro/actions";
 import { useViewerPrefs } from "@/components/shared/use-is-pro";
+import { Spinner } from "@/components/spinner";
 
 /**
  * The DiplomaPro waitlist. Signed-in students join with one click (their
@@ -71,9 +72,10 @@ export function WaitlistForm({ source = "pro-page" }: { source?: string }) {
         <button
           type="submit"
           disabled={busy || prefs === null}
-          className="shrink-0 rounded-lg bg-primary text-on-primary px-lg py-sm text-label-md font-bold hover:opacity-90 disabled:opacity-60 cursor-pointer"
+          className="inline-flex items-center justify-center gap-xs shrink-0 rounded-lg bg-primary text-on-primary px-lg py-sm text-label-md font-bold hover:opacity-90 disabled:opacity-60 cursor-pointer"
         >
-          {busy ? "Joining…" : "Join the waitlist"}
+          {busy && <Spinner size={14} />}
+                {busy ? "Joining…" : "Join the waitlist"}
         </button>
       </div>
       {error && (

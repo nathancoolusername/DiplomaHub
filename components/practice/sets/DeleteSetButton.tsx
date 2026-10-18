@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { deleteSetAction } from "@/app/practice/actions";
 import { Dialog } from "@/components/shared/Dialog";
+import { Spinner } from "@/components/spinner";
 
 /**
  * Delete a set, after asking. A set with results only leaves My sets (its
@@ -71,8 +72,9 @@ export function DeleteSetButton({
                 type="button"
                 onClick={confirm}
                 disabled={pending}
-                className="rounded-lg bg-error text-on-error px-md py-sm text-label-md font-semibold hover:bg-error/90 disabled:opacity-60 cursor-pointer"
+                className="inline-flex items-center justify-center gap-xs rounded-lg bg-error text-on-error px-md py-sm text-label-md font-semibold hover:bg-error/90 disabled:opacity-60 cursor-pointer"
               >
+                {pending && <Spinner size={14} />}
                 {pending ? "Deleting…" : "Delete"}
               </button>
             </>

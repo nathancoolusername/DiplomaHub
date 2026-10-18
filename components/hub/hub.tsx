@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
+import { Spinner } from "@/components/spinner";
 import type { ActionResult, Resource } from "@/app/lib/types";
 import {
   createHubItem as createHubItemAction,
@@ -194,6 +195,20 @@ export default function Hub({
   // identical to a successful one) and re-syncs from the server so the UI
   // never keeps showing a change that didn't actually stick.
   const [actionError, setActionError] = useState<string | null>(null);
+  // Changes show at once and save in the background; this counts the saves
+  // still on their way, so a small "Saving…" shows until they land.
+  const [savesInFlight, setSavesInFlight] = useState(0);
+  const [showSaving, setShowSaving] = useState(false);
+  const saving = savesInFlight > 0;
+  // Only once a save takes a moment, so quick ones don't flash it.
+  useEffect(() => {
+    if (!saving) return;
+    const id = setTimeout(() => setShowSaving(true), 400);
+    return () => {
+      clearTimeout(id);
+      setShowSaving(false);
+    };
+  }, [saving]);
   const [isEditSubjectsOpen, setIsEditSubjectsOpen] = useState(false);
   const [timer, setTimer] = useState<TimerState>(INITIAL_TIMER_STATE);
   const [isFocusModeOpen, setIsFocusModeOpen] = useState(false);
@@ -537,7 +552,9 @@ export default function Hub({
     promise: Promise<ActionResult<unknown>>,
     message = "Couldn't save your change — try again.",
   ) {
-    const result = await promise;
+    setSavesInFlight((n) => n + 1);
+    const result = await promise.catch((): ActionResult<unknown> => ({ success: false, error: message }));
+    setSavesInFlight((n) => n - 1);
     if (!result.success) {
       setActionError(message);
       const fresh = await getHubItems();
@@ -931,6 +948,12 @@ export default function Hub({
           >
             <X size={16} />
           </button>
+        </div>
+      )}
+
+      {showSaving && saving && !actionError && (
+        <div role="status" className="fixed bottom-8 left-1/2 -translate-x-1/2 z-100 inline-flex items-center gap-xs rounded-full bg-inverse-surface text-inverse-on-surface shadow-lg px-md py-xs text-label-md">
+          <Spinner size={14} /> Saving…
         </div>
       )}
 

@@ -21,8 +21,13 @@ import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
  * "Next 3 days" and "Resources" are the existing dashboard sections, fed
  * the same data as before; everything else reads from lib/data.
  */
-export async function DiplomaProHome({ nextDaysItems, hubSubjects }: { nextDaysItems: HubItem[]; hubSubjects: string[] | null }) {
-  const [viewer, session, nextItem, suggestions, maps, gettingStarted, hints, standing] = await Promise.all([
+/**
+ * Home's own data. SignedInHome starts this together with its own queries
+ * and passes the promise down, so the two batches run at once rather than
+ * one after the other.
+ */
+export function loadDiplomaProHome() {
+  return Promise.all([
     getViewer(),
     getExamSession(),
     getNextTimedItem(),
@@ -32,6 +37,18 @@ export async function DiplomaProHome({ nextDaysItems, hubSubjects }: { nextDaysI
     getPendingHints(),
     getMyStanding("week").catch(() => null), // null until the leaderboard migration runs
   ]);
+}
+
+export async function DiplomaProHome({
+  nextDaysItems,
+  hubSubjects,
+  data,
+}: {
+  nextDaysItems: HubItem[];
+  hubSubjects: string[] | null;
+  data: ReturnType<typeof loadDiplomaProHome>;
+}) {
+  const [viewer, session, nextItem, suggestions, maps, gettingStarted, hints, standing] = await data;
 
   return (
     <div className="bg-surface-container-low">

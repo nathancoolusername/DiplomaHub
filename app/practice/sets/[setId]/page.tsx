@@ -14,11 +14,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // Edit a set before starting it: name, settings, which questions and their order.
 export default async function EditSetPage({ params }: Props) {
   const { setId } = await params;
-  const set = await getSet(setId);
+  // All at once; a set that isn't theirs comes back empty and is a 404 below.
+  const [set, questions, locked] = await Promise.all([getSet(setId), getSetQuestions(setId).catch(() => []), hasOpenAttempt(setId)]);
   if (!set) notFound();
   const subject = getSubject(set.subjectId);
   if (!subject) notFound();
-  const [questions, locked] = await Promise.all([getSetQuestions(setId), hasOpenAttempt(setId)]);
   if (questions.length === 0) notFound();
 
   return <SetEditor set={set} subject={subject} questions={questions} questionsLocked={locked} />;

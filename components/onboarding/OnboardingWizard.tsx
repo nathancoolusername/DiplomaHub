@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, CalendarDays, Gauge, ListChecks, Sparkles } from "lucide-react";
+import { Spinner } from "@/components/spinner";
 import type { CalendarItemKind, ExamSession, Subject } from "@/lib/data/types";
 import { completeOnboardingAction } from "@/app/onboarding/actions";
 import { Segmented } from "@/components/shared/Segmented";
@@ -73,11 +74,13 @@ export function OnboardingWizard({
   const [test, setTest] = useState({ title: "", subjectId: initialSubjects[0]?.subjectId ?? "", kind: "test" as CalendarItemKind, date: inDays(7), hasTimer: true });
   const [error, setError] = useState<string | null>(null);
   const [saving, start] = useTransition();
+  const [finishing, setFinishing] = useState<"stay" | "practice">("stay");
 
   const nameOf = (id: string) => rows.find((r) => r.subjectId === id)?.name ?? catalog.find((s) => s.id === id)?.shortName ?? id;
 
   // Saves, then stays on this page or opens Practice. Nothing is started for them.
-  const finish = (then: "stay" | "practice") =>
+  const finish = (then: "stay" | "practice") => {
+    setFinishing(then);
     start(async () => {
       setError(null);
       try {
@@ -93,6 +96,7 @@ export function OnboardingWizard({
         setError(e instanceof Error ? e.message : "Couldn't save. Try again.");
       }
     });
+  };
 
   const canNext = step !== 2 || rows.length === 6;
 
@@ -264,10 +268,12 @@ export function OnboardingWizard({
               ) : (
                 <>
                   <button type="button" onClick={() => finish("practice")} disabled={saving} className={ghost}>
+                    {saving && finishing === "practice" && <Spinner size={16} />}
                     Open Practice
                   </button>
                   <button type="button" onClick={() => finish("stay")} disabled={saving} className={primary}>
-                    {saving ? "Saving…" : "Done"}
+                    {saving && finishing === "stay" && <Spinner size={16} />}
+                    {saving && finishing === "stay" ? "Saving…" : "Done"}
                   </button>
                 </>
               )}

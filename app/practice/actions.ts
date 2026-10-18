@@ -18,6 +18,7 @@ import {
   scheduleSet,
   getViewer,
   removeExtraClass,
+  setSubjectLevel,
   requestSubject,
   revealMarkscheme,
   saveAnswer,
@@ -153,6 +154,12 @@ export async function setCoreSubjectsAction(core: SubjectChoice[]): Promise<void
 export async function addExtraClassAction(choice: SubjectChoice): Promise<void> {
   await getViewer();
   await addExtraClass(choice);
+  revalidatePath("/practice", "layout");
+}
+
+export async function setSubjectLevelAction(subjectId: SubjectId, level: Level): Promise<void> {
+  await getViewer();
+  await setSubjectLevel(subjectId, level);
   revalidatePath("/practice", "layout");
 }
 

@@ -6,7 +6,7 @@ import { createClient } from "../supabase/server";
 import { checkRateLimit } from "../ratelimit";
 import { requireOneOf } from "../validation";
 import type { ActionResult } from "../types";
-import { getCurrentUserProfile } from "../get-current-user";
+import { getMyHubSubjects } from "../hub-subjects";
 import {
   parseIcsFile,
   buildExternalUid,
@@ -61,8 +61,7 @@ export async function parseIcsImportPreview(
     return { success: false, error: "That file is too large — the limit is 2 MB." };
   }
 
-  const profile = await getCurrentUserProfile();
-  const mySubjectIds = computeMySubjectIds((profile?.hub_subjects as SubjectId[] | null) ?? null);
+  const mySubjectIds = computeMySubjectIds((await getMyHubSubjects()).subjectIds);
   const candidateSubjects = SUBJECTS.filter((s) => mySubjectIds.has(s.id)).map((s) => s.id);
 
   const parsed = parseIcsFile(fileText, {

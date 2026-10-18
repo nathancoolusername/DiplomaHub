@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ChevronLeft } from "lucide-react";
-import { getPastSets, getMySubjectRequests, getStrengthMap, getSubject, getSubjectsWithQuestions, subjectRequestKey, getSuggestions, getTopicTree, getUserSubject, getViewer } from "@/lib/data";
+import { getCalendarItems, getPastSets, getMySubjectRequests, getStrengthMap, getSubject, getSubjectsWithQuestions, subjectRequestKey, getSuggestions, getTopicTree, getUserSubject, getViewer } from "@/lib/data";
 import { links } from "@/lib/practice/links";
 import { SuggestionBar } from "@/components/shared/SuggestionBar";
 import { StrengthLegend } from "@/components/shared/strength/StrengthLegend";
 import { StrengthMapView } from "@/components/shared/strength/StrengthMapView";
 import { GeneralInfo } from "@/components/practice/subject/GeneralInfo";
+import { CustomSubjectInfo } from "@/components/practice/subject/CustomSubjectInfo";
+import { SetLevel } from "@/components/practice/SetLevel";
 import { PracticeBoxes } from "@/components/practice/subject/PracticeBoxes";
 import { PastSets } from "@/components/shared/PastSets";
 
@@ -22,19 +24,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // bar, the practice boxes, this subject's strength map, then past sets.
 export default async function SubjectPage({ params }: Props) {
   const { subjectId } = await params;
-  const [viewer, us] = await Promise.all([getViewer(), getUserSubject(subjectId)]);
-  // Only subjects the student takes (core or extra) have a page.
-  if (!us) notFound();
-
-  const [map, suggestions, pastSets, practiceIds, myRequests] = await Promise.all([
+  const [viewer, us, map, suggestions, pastSets, practiceIds, myRequests, calendar] = await Promise.all([
+    getViewer(),
+    getUserSubject(subjectId),
     getStrengthMap(subjectId),
     getSuggestions("subject", subjectId),
     getPastSets({ subjectId, limit: 20 }),
     getSubjectsWithQuestions().catch(() => null),
     getMySubjectRequests().catch(() => [] as string[]), // empty until migration 18 runs
+    getCalendarItems().catch(() => []),
   ]);
+  // Only subjects the student takes (core or extra) have a page.
+  if (!us) notFound();
   const hasPractice = !practiceIds || practiceIds.includes(subjectId);
   const { subject, level } = us;
+  const custom = subject.id.startsWith("custom:");
 
   return (
     <div className="max-w-[1200px] mx-auto px-md py-xl flex flex-col gap-xl">
@@ -45,12 +49,23 @@ export default async function SubjectPage({ params }: Props) {
           </Link>
           <div className="flex items-center gap-sm flex-wrap">
             <h1 className="font-serif font-bold text-headline-lg md:text-display-lg text-on-surface">{subject.name}</h1>
-            <span className="rounded-full bg-primary text-on-primary px-md py-xs text-label-md font-bold">{level}</span>
+            {us.levelSet ? (
+              <span className="rounded-full bg-primary text-on-primary px-md py-xs text-label-md font-bold">{level}</span>
+            ) : (
+              <SetLevel subjectId={subject.id} />
+            )}
           </div>
-          {!us.isCore && <p className="text-label-md text-on-surface-variant">Extra class</p>}
+          {(custom || !us.isCore) && (
+            <p className="text-label-md text-on-surface-variant">{[custom && "Your subject", !us.isCore && "Extra class"].filter(Boolean).join(" · ")}</p>
+          )}
         </header>
 
-        <GeneralInfo subject={subject} level={level} topics={getTopicTree(subject.id)} />
+        {/* Typed in by the student, so no syllabus: what it's for, and their own Hub items for it. */}
+        {custom ? (
+          <CustomSubjectInfo subject={subject} custom={custom} items={calendar.filter((i) => i.subjectId === subject.id).slice(0, 5)} />
+        ) : (
+          <GeneralInfo subject={subject} level={level} topics={getTopicTree(subject.id)} />
+        )}
       </div>
 
       {/* Full width, straight under the heading row. */}

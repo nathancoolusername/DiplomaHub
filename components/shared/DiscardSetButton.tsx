@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
 import { discardAttemptAction } from "@/app/practice/actions";
 import { Dialog } from "./Dialog";
+import { Spinner } from "@/components/spinner";
 
 /** Trash button on an unfinished set: asks first, then deletes the attempt (and an unsaved set). */
 export function DiscardSetButton({ attemptId, title }: { attemptId: string; title: string }) {
@@ -53,8 +54,9 @@ export function DiscardSetButton({ attemptId, title }: { attemptId: string; titl
                 type="button"
                 onClick={discard}
                 disabled={pending}
-                className="rounded-lg bg-error text-on-error px-md py-sm text-label-md font-semibold hover:bg-error/90 disabled:opacity-60 cursor-pointer"
+                className="inline-flex items-center justify-center gap-xs rounded-lg bg-error text-on-error px-md py-sm text-label-md font-semibold hover:bg-error/90 disabled:opacity-60 cursor-pointer"
               >
+                {pending && <Spinner size={14} />}
                 {pending ? "Deleting…" : "Delete"}
               </button>
             </>

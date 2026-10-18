@@ -6,16 +6,19 @@ import { dismissHintAction } from "@/app/onboarding/actions";
 
 // One-time tooltips. Several can be on a page; only the first pending one
 // (in `order`) shows, the next appears once it's dismissed. The Midnight tip
-// (components/MidnightTip.tsx) takes its turn last.
+// (components/MidnightTip.tsx) takes its turn last; announcements
+// (components/NewsToast.tsx, ids "news-…") go first.
 
 const ORDER = ["strength-map", "bro-button", "midnight"];
+// Announcements first, then ORDER; ids in neither never show.
+const rank = (id: string) => (id.startsWith("news-") ? -1 : ORDER.includes(id) ? ORDER.indexOf(id) : null);
 let mounted: string[] = [];
 let dismissedNow: string[] = [];
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 let snapshot = "";
 const read = () => {
-  const next = ORDER.filter((id) => mounted.includes(id) && !dismissedNow.includes(id))[0] ?? "";
+  const next = mounted.filter((id) => rank(id) !== null && !dismissedNow.includes(id)).sort((a, b) => rank(a)! - rank(b)!)[0] ?? "";
   snapshot = next;
   return snapshot;
 };

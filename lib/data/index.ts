@@ -22,6 +22,8 @@ export {
   getOnboardingSubjects,
   completeOnboarding,
   getPendingHints,
+  getDismissedHints,
+  setSubjectLevel,
   hasDismissedHint,
   dismissHint,
   getGettingStarted,

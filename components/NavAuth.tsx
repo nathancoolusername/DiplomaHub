@@ -12,6 +12,14 @@ import { NotificationBell } from "./notifications/NotificationBell";
 
 type NavUser = { id: string; display_name: string; points: number; is_pro: boolean };
 
+// The name and points barely change between pages, and the points come from
+// my_leaderboard_standing, which adds up everyone's points to rank you. So
+// they're kept for a minute, and fetched again straight away only where they
+// can change: results (points just earned), the leaderboard and the profile.
+const NAV_TTL_MS = 60_000;
+const FRESH_PATHS = ["/practice/attempts/", "/leaderboard", "/profile"];
+let navCache: { user: NavUser; at: number } | null = null;
+
 // Rendered in the browser on purpose. As a server component in the root
 // layout, this read the session (via headers()) and queried the users row
 // twice on every request, which forced every page on the site to render
@@ -38,7 +46,13 @@ export function AuthNav() {
       } = await supabase.auth.getSession();
       const userId = session?.user.id;
       if (!userId) {
+        navCache = null;
         if (!cancelled) setUser(null);
+        return;
+      }
+      const fresh = navCache && navCache.user.id === userId && Date.now() - navCache.at < NAV_TTL_MS;
+      if (fresh && !FRESH_PATHS.some((p) => pathname.startsWith(p))) {
+        if (!cancelled) setUser(navCache!.user);
         return;
       }
       // Next to the profile: all-time practice points (the leaderboard's points).
@@ -47,7 +61,9 @@ export function AuthNav() {
         supabase.rpc("my_leaderboard_standing", { p_period: "all" }),
       ]);
       const points = (standing.data as { points?: number } | null)?.points ?? 0;
-      if (!cancelled) setUser(profile ? { id: userId, ...profile, points } : null);
+      const next = profile ? { id: userId, ...profile, points } : null;
+      navCache = next ? { user: next, at: Date.now() } : null;
+      if (!cancelled) setUser(next);
     })();
     return () => {
       cancelled = true;

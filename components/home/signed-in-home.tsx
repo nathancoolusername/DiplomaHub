@@ -1,12 +1,17 @@
 import { getCurrentUserProfile } from "@/app/lib/get-current-user";
 import { getHubItems } from "@/app/lib/actions/hub";
+import { getMyHubSubjects } from "@/app/lib/hub-subjects";
 import DashboardGreeting from "./dashboard-greeting";
 import DashboardSetupPrompt from "./dashboard-setup-prompt";
 import DashboardResources from "./dashboard-resources";
-import { DiplomaProHome } from "./pro-home/DiplomaProHome";
+import { DiplomaProHome, loadDiplomaProHome } from "./pro-home/DiplomaProHome";
 
 export default async function SignedInHome() {
-  const [profile, itemsResult] = await Promise.all([getCurrentUserProfile(), getHubItems()]);
+  // Nearly everyone has set up the Hub, so Home's own data starts now, alongside this.
+  const homeData = loadDiplomaProHome();
+  // Marked handled now; DiplomaProHome still gets (and throws) any error when it awaits it.
+  homeData.catch(() => {});
+  const [profile, itemsResult, hubSubjects] = await Promise.all([getCurrentUserProfile(), getHubItems(), getMyHubSubjects()]);
 
   const firstName = profile?.display_name?.split(" ")[0] ?? null;
   const hasOnboarded = profile?.hub_onboarded_at != null;
@@ -31,5 +36,5 @@ export default async function SignedInHome() {
     );
   }
 
-  return <DiplomaProHome nextDaysItems={items} hubSubjects={profile?.hub_subjects ?? null} />;
+  return <DiplomaProHome nextDaysItems={items} hubSubjects={hubSubjects.subjectIds} data={homeData} />;
 }
