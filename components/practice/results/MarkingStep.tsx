@@ -83,6 +83,8 @@ export function MarkingStep({ result }: { result: AttemptResult }) {
                   criteria={markscheme.criteria}
                   answer={answer}
                   chosen={essays[question.id] ?? {}}
+                  feedbackPoints={markscheme.feedbackPoints}
+                  planMd={markscheme.workedSolutionMd}
                   onChange={(criterion, mark) => setEssays((e) => ({ ...e, [question.id]: { ...e[question.id], [criterion]: mark } }))}
                 />
               </>

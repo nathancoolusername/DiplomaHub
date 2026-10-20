@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { StrengthMap } from "@/lib/data/types";
 import { STRENGTH_LABELS } from "@/lib/practice/strength";
+import { comingSoonIds } from "@/lib/practice/coming-soon";
 
 function TopicCheckbox({ state, onChange, label }: { state: "all" | "some" | "none"; onChange: () => void; label: string }) {
   const ref = useRef<HTMLInputElement>(null);
@@ -40,7 +41,8 @@ export function TopicPicker({
   includeHl: boolean;
   weakIds: string[];
 }) {
-  const chosen = new Set(selected);
+  const soon = comingSoonIds(map.subject.id);
+  const chosen = new Set(selected.filter((id) => !soon.has(id)));
   // Groups start open when partly ticked (e.g. arriving from a strength tile), then follow the student.
   const [openTopics, setOpenTopics] = useState<Set<string>>(
     () =>
@@ -92,7 +94,7 @@ export function TopicPicker({
 
       <ul className="flex flex-col rounded-xl border border-outline-variant divide-y divide-outline-variant max-h-[460px] overflow-y-auto">
         {topics.map((t) => {
-          const ids = t.subtopics.map((s) => s.id);
+          const ids = t.subtopics.filter((s) => !soon.has(s.id)).map((s) => s.id);
           const count = ids.filter((id) => chosen.has(id)).length;
           const state = count === 0 ? "none" : count === ids.length ? "all" : "some";
           return (
@@ -123,22 +125,30 @@ export function TopicPicker({
                 <ul className="pb-sm">
                   {t.subtopics.map((s) => (
                     <li key={s.id}>
-                      <label className="flex items-center gap-sm pl-xl pr-md py-xs cursor-pointer hover:bg-surface-container-low" title={s.name}>
+                      <label
+                        className={`flex items-center gap-sm pl-xl pr-md py-xs ${soon.has(s.id) ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-surface-container-low"}`}
+                        title={soon.has(s.id) ? `${s.name} (coming soon)` : s.name}
+                      >
                         <input
                           type="checkbox"
                           checked={chosen.has(s.id)}
+                          disabled={soon.has(s.id)}
                           onChange={(e) => toggle([s.id], e.target.checked)}
                           className="w-4 h-4 accent-[var(--color-primary)] cursor-pointer"
                         />
                         <span className="w-12 shrink-0 text-label-sm font-semibold text-on-surface-variant tabular-nums">{s.code}</span>
                         <span className="flex-1 min-w-0 truncate text-label-md text-on-surface">{s.shortName}</span>
                         {s.hlOnly && <span className="text-[10px] font-bold text-on-surface-variant">HL</span>}
-                        <span
-                          data-level={s.level}
-                          className="strength-tile w-4 h-3 rounded-sm shrink-0"
-                          aria-label={STRENGTH_LABELS[s.level]}
-                          title={STRENGTH_LABELS[s.level]}
-                        />
+                        {soon.has(s.id) ? (
+                          <span className="rounded-full bg-surface-container-high px-sm py-0.5 text-[10px] font-bold text-on-surface-variant shrink-0">Coming soon</span>
+                        ) : (
+                          <span
+                            data-level={s.level}
+                            className="strength-tile w-4 h-3 rounded-sm shrink-0"
+                            aria-label={STRENGTH_LABELS[s.level]}
+                            title={STRENGTH_LABELS[s.level]}
+                          />
+                        )}
                       </label>
                     </li>
                   ))}
