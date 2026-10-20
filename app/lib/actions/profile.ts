@@ -2,7 +2,7 @@
 "use server";
 
 import { createClient } from "../supabase/server";
-import type { ActionResult, UserProfile, Article, Resource } from "@/app/lib/types";
+import type { ActionResult, PublicProfile, Article, Resource } from "@/app/lib/types";
 
 type ProfileComment = {
   id: string;
@@ -17,7 +17,7 @@ type ProfileComment = {
 
 export async function getPublicProfile(userId: string): Promise<
   ActionResult<{
-    user: UserProfile;
+    user: PublicProfile;
     articles: Article[];
     resources: Resource[];
     commentsWritten: ProfileComment[];
@@ -29,11 +29,12 @@ export async function getPublicProfile(userId: string): Promise<
 > {
   const supabase = await createClient();
 
+  // Someone else's profile: the public view, never users (no email or Hub data).
   const { data: user, error: userError } = await supabase
-    .from("users")
+    .from("public_profiles")
     .select("*")
     .eq("id", userId)
-    .single();
+    .single<PublicProfile>();
 
   if (userError) return { success: false, error: userError.message };
 
@@ -51,20 +52,20 @@ export async function getPublicProfile(userId: string): Promise<
   ] = await Promise.all([
     supabase
       .from("articles")
-      .select("*, author:users(display_name, is_pro, avatar_url)")
+      .select("*, author:public_profiles(display_name, is_pro, avatar_url)")
       .eq("author_id", userId)
       .eq("published", true)
       .order("created_at", { ascending: false }),
     supabase
       .from("resources")
-      .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
+      .select("*, author:public_profiles(display_name, is_pro, ib_year, avatar_url)")
       .eq("author_id", userId)
       .eq("published", true)
       .order("created_at", { ascending: false }),
     supabase.from("discussions").select("like_count").eq("author_id", userId),
     // Leaderboard rank — count of users strictly ahead on points, +1.
     supabase
-      .from("users")
+      .from("public_profiles")
       .select("id", { count: "exact", head: true })
       .gt("points", user.points),
   ]);
@@ -72,7 +73,7 @@ export async function getPublicProfile(userId: string): Promise<
 
   const { data: drafts, error: draftError } = await supabase
     .from("articles")
-    .select("*, author:users(display_name, is_pro, avatar_url)")
+    .select("*, author:public_profiles(display_name, is_pro, avatar_url)")
     .eq("author_id", userId)
     .eq("published", false)
     .order("created_at", { ascending: false });
@@ -191,8 +192,9 @@ export async function getTopContributors(
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from("users")
+    .from("public_profiles")
     .select("id, display_name, points, is_pro, avatar_url")
+    .eq("hide_from_leaderboard", false)
     .order("points", { ascending: false })
     .limit(limit);
 

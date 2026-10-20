@@ -404,7 +404,7 @@ const getCachedRecommendedResources = unstable_cache(
 
     const { data, error } = await createPublicClient()
       .from("resources")
-      .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
+      .select("*, author:public_profiles(display_name, is_pro, ib_year, avatar_url)")
       .eq("published", true)
       .in("subject_tag", [...idByName.keys()])
       .order("like_count", { ascending: false });
