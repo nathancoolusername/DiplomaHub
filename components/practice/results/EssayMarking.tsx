@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { AttemptAnswer, EssayCriterion } from "@/lib/data/types";
 import { PLAN_KEY } from "@/lib/practice/marking";
+import { MathMarkdown } from "@/components/shared/MathMarkdown";
 
 /**
  * Marking an essay: for each criterion, read the bands and pick the mark
@@ -14,11 +15,16 @@ export function EssayMarking({
   answer,
   chosen,
   onChange,
+  feedbackPoints,
+  planMd,
 }: {
   criteria: EssayCriterion[];
   answer: AttemptAnswer;
   chosen: Record<string, number>;
   onChange?: (criterion: string, mark: number) => void;
+  /** Tailored points for this prompt: what a strong answer does, shown while marking. */
+  feedbackPoints?: string[] | null;
+  planMd?: string;
 }) {
   const essay = answer.partAnswers.whole?.trim();
   const plan = answer.partAnswers[PLAN_KEY]?.trim();
@@ -52,6 +58,25 @@ export function EssayMarking({
           </div>
         )}
       </div>
+
+      {feedbackPoints && feedbackPoints.length > 0 && (
+        <div className="rounded-xl bg-surface-container-low border border-outline-variant p-md flex flex-col gap-xs">
+          <p className="text-label-md font-semibold text-on-surface">What a strong answer to this prompt does</p>
+          <ul className="list-disc pl-lg flex flex-col gap-0.5 text-body-md text-on-surface">
+            {feedbackPoints.map((f) => (
+              <li key={f}>{f}</li>
+            ))}
+          </ul>
+          {planMd && (
+            <details className="mt-xs">
+              <summary className="text-label-md text-on-surface-variant cursor-pointer">Suggested plan</summary>
+              <div className="mt-xs text-body-md text-on-surface">
+                <MathMarkdown>{planMd}</MathMarkdown>
+              </div>
+            </details>
+          )}
+        </div>
+      )}
 
       {criteria.map((c) => {
         const mark = chosen[c.name];
