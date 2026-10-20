@@ -57,7 +57,7 @@ export async function getContributionBoard(page = 1, pageSize = 20): Promise<Lea
   const me = await getCurrentUserId();
   const from = (Math.max(1, page) - 1) * pageSize;
   const { data, error, count } = await sb
-    .from("users")
+    .from("public_profiles")
     .select("id, display_name, avatar_url, points", { count: "exact" })
     .gt("points", 0)
     .eq("hide_from_leaderboard", false)
@@ -87,7 +87,7 @@ export async function getMyContribution(): Promise<{ points: number; rank: numbe
   const points = data?.points ?? 0;
   const hidden = !!data?.hide_from_leaderboard;
   if (hidden || points <= 0) return { points, rank: null, hidden };
-  const ahead = await sb.from("users").select("id", { count: "exact", head: true }).gt("points", points).eq("hide_from_leaderboard", false);
+  const ahead = await sb.from("public_profiles").select("id", { count: "exact", head: true }).gt("points", points).eq("hide_from_leaderboard", false);
   check(ahead.error);
   return { points, rank: (ahead.count ?? 0) + 1, hidden };
 }

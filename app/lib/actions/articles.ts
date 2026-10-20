@@ -80,7 +80,7 @@ export async function getArticle(slug: string): Promise<ActionResult<Article>> {
 
   const { data, error } = await supabase
     .from("articles")
-    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
+    .select("*, author:public_profiles(display_name, is_pro, ib_year, avatar_url)")
     .eq("slug", slug)
     .eq("published", true)
     .single();
@@ -144,7 +144,7 @@ export async function getArticlesPage(filters: {
 
   let query = supabase
     .from("articles")
-    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)", {
+    .select("*, author:public_profiles(display_name, is_pro, ib_year, avatar_url)", {
       count: "exact",
     })
     .eq("published", true);
@@ -228,7 +228,7 @@ export async function getArticleForEdit(
 
   const { data, error } = await supabase
     .from("articles")
-    .select("*, author:users(display_name, is_pro, avatar_url)")
+    .select("*, author:public_profiles(display_name, is_pro, avatar_url)")
     .eq("slug", slug)
     .single();
 
@@ -250,7 +250,7 @@ export async function getArticles(): Promise<ActionResult<Article[]>> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("articles")
-    .select("*, author:users(display_name, is_pro, avatar_url)")
+    .select("*, author:public_profiles(display_name, is_pro, avatar_url)")
     .eq("published", true)
     .order("created_at", { ascending: false });
 

@@ -17,7 +17,7 @@ export type HomepageStats = {
 const getCachedUserCount = unstable_cache(
   async (): Promise<number> => {
     const { count, error } = await createPublicClient()
-      .from("users")
+      .from("public_profiles")
       .select("id", { count: "exact", head: true });
     if (error) throw new Error(error.message);
     return count ?? 0;

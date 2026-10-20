@@ -14,7 +14,9 @@ async function requireAdmin() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!isAdmin(user?.id)) return null;
-  return { supabase, user: user! };
+  // public.users is owner-only since migration 28, so anything that reads
+  // other students' rows uses the service-role client, after the admin check.
+  return { supabase, admin: createAdminClient(), user: user! };
 }
 
 export type AdminStats = {
@@ -39,7 +41,7 @@ export async function getAdminStats(): Promise<ActionResult<AdminStats>> {
     { count: unpublishedArticles },
     { count: unpublishedResources },
   ] = await Promise.all([
-    supabase.from("users").select("*", { count: "exact", head: true }),
+    ctx.admin.from("users").select("*", { count: "exact", head: true }),
     supabase.from("resources").select("*", { count: "exact", head: true }),
     supabase.from("articles").select("*", { count: "exact", head: true }),
     supabase.from("discussions").select("*", { count: "exact", head: true }),
@@ -153,7 +155,7 @@ export async function getAdminAnalytics(): Promise<ActionResult<AdminAnalytics>>
     { count: activeUsers7d },
     { count: activeUsers30d },
   ] = await Promise.all([
-    supabase.from("users").select("created_at").gte("created_at", sinceIso),
+    ctx.admin.from("users").select("created_at").gte("created_at", sinceIso),
     supabase
       .from("resources")
       .select("created_at")
@@ -171,11 +173,11 @@ export async function getAdminAnalytics(): Promise<ActionResult<AdminAnalytics>>
     supabase.from("resources").select("label:subject_tag"),
     supabase.from("resources").select("label:type_tag"),
     supabase.from("resources").select("download_count, like_count"),
-    supabase
+    ctx.admin
       .from("users")
       .select("*", { count: "exact", head: true })
       .gte("last_active_at", since7d.toISOString()),
-    supabase
+    ctx.admin
       .from("users")
       .select("*", { count: "exact", head: true })
       .gte("last_active_at", since30d.toISOString()),
@@ -242,7 +244,6 @@ export async function getAdminHubAnalytics(): Promise<
 > {
   const ctx = await requireAdmin();
   if (!ctx) return { success: false, error: "Not authorized" };
-  const { supabase } = ctx;
 
   const since = new Date();
   since.setUTCDate(since.getUTCDate() - (ANALYTICS_WINDOW_DAYS - 1));
@@ -252,10 +253,8 @@ export async function getAdminHubAnalytics(): Promise<
   // admin-bypass policy (unlike resources/articles/discussions, which got
   // one — see PROJECT_CONTEXT.md) — the regular client would only ever see
   // the admin's own rows, so any cross-user Hub aggregate needs the
-  // service-role client. users.hub_onboarded_at/hub_subjects stay on the
-  // regular client since that table's SELECT policy is already broad
-  // (getAdminStats/getAdminAnalytics already read every user's row with it).
-  const admin = createAdminClient();
+  // service-role client. users is owner-only too (migration 28).
+  const { admin } = ctx;
 
   const [
     { count: totalUsers },
@@ -266,12 +265,12 @@ export async function getAdminHubAnalytics(): Promise<
     { data: itemTypeRows },
     { data: studyLogRows },
   ] = await Promise.all([
-    supabase.from("users").select("*", { count: "exact", head: true }),
-    supabase
+    admin.from("users").select("*", { count: "exact", head: true }),
+    admin
       .from("users")
       .select("*", { count: "exact", head: true })
       .not("hub_onboarded_at", "is", null),
-    supabase
+    admin
       .from("users")
       .select("hub_onboarded_at")
       .gte("hub_onboarded_at", since.toISOString()),
@@ -359,7 +358,7 @@ export async function getUsersPage(filters: {
   const to = from + pageSize - 1;
   const search = filters.search?.trim();
 
-  let query = ctx.supabase
+  let query = ctx.admin
     .from("users")
     .select(
       "id, display_name, email, points, is_pro, author_trust_score, ib_year, avatar_url, created_at",
@@ -530,7 +529,7 @@ async function getAdminContentPage(
 export async function getAdminResourcesPage(filters: AdminContentFilters) {
   return getAdminContentPage(
     "resources",
-    "id, title, author_id, created_at, published, community_trust, like_count, author:users(display_name)",
+    "id, title, author_id, created_at, published, community_trust, like_count, author:public_profiles(display_name)",
     filters,
   );
 }
@@ -538,7 +537,7 @@ export async function getAdminResourcesPage(filters: AdminContentFilters) {
 export async function getAdminArticlesPage(filters: AdminContentFilters) {
   return getAdminContentPage(
     "articles",
-    "id, title, slug, author_id, created_at, published, like_count, author:users(display_name)",
+    "id, title, slug, author_id, created_at, published, like_count, author:public_profiles(display_name)",
     filters,
   );
 }
@@ -546,7 +545,7 @@ export async function getAdminArticlesPage(filters: AdminContentFilters) {
 export async function getAdminDiscussionsPage(filters: AdminContentFilters) {
   return getAdminContentPage(
     "discussions",
-    "id, title, author_id, created_at, like_count, author:users(display_name)",
+    "id, title, author_id, created_at, like_count, author:public_profiles(display_name)",
     filters,
   );
 }
@@ -642,7 +641,7 @@ export async function getFeedbackPage(filters: {
   const admin = createAdminClient();
   let query = admin
     .from("feedback")
-    .select("id, user_id, content, created_at, author:users(display_name)", {
+    .select("id, user_id, content, created_at, author:public_profiles(display_name)", {
       count: "exact",
     })
     .order("created_at", { ascending: false });

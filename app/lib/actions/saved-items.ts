@@ -67,8 +67,8 @@ export async function getSavedItems(): Promise<
     .select(
       `
       created_at,
-      resource:resources(*, author:users(display_name, is_pro, ib_year, avatar_url)),
-      article:articles(*, author:users(display_name, is_pro, ib_year, avatar_url))
+      resource:resources(*, author:public_profiles(display_name, is_pro, ib_year, avatar_url)),
+      article:articles(*, author:public_profiles(display_name, is_pro, ib_year, avatar_url))
     `,
     )
     .eq("user_id", user.id)

@@ -121,7 +121,7 @@ export async function getResourceForEdit(
 
   const { data, error } = await supabase
     .from("resources")
-    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
+    .select("*, author:public_profiles(display_name, is_pro, ib_year, avatar_url)")
     .eq("id", resourceId)
     .single();
 
@@ -183,7 +183,7 @@ export async function getResourceDetail(
 
   const { data, error } = await supabase
     .from("resources")
-    .select("*, author:users(display_name, is_pro, ib_year, avatar_url)")
+    .select("*, author:public_profiles(display_name, is_pro, ib_year, avatar_url)")
     .eq("id", resourceId)
     .eq("published", true)
     .single();
@@ -229,7 +229,7 @@ export async function getResources(filters?: {
 
   let query = supabase
     .from("resources")
-    .select("*, author:users(display_name, is_pro, avatar_url)")
+    .select("*, author:public_profiles(display_name, is_pro, avatar_url)")
     .eq("published", true)
     .order("created_at", { ascending: false });
 
@@ -374,7 +374,7 @@ export async function getResourcesPage(filters: {
     .select(
       `
       *,
-      author:users(display_name, is_pro, ib_year, avatar_url)
+      author:public_profiles(display_name, is_pro, ib_year, avatar_url)
     `,
       { count: "exact" },
     )
@@ -492,7 +492,7 @@ const getCachedFeaturedResources = unstable_cache(
 
     const authorIds = [...new Set(resources.map((r) => r.author_id))];
     const { data: authors, error: authorsError } = await supabase
-      .from("users")
+      .from("public_profiles")
       .select("id, display_name, is_pro, ib_year, avatar_url")
       .in("id", authorIds);
     if (authorsError) throw new Error(authorsError.message);

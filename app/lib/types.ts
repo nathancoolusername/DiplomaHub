@@ -79,6 +79,25 @@ export type RoadmapItem = {
   tags: RoadmapTag[];
 };
 
+/**
+ * Anyone's public profile: the public.public_profiles view (no email, no
+ * private Hub data). Use this for other users; UserProfile is only ever the
+ * signed-in student's own row.
+ */
+export type PublicProfile = {
+  id: string;
+  display_name: string;
+  avatar_url: string;
+  bio: string | null;
+  ib_year: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
+  points: number;
+  is_pro: boolean;
+  author_trust_score: number;
+  created_at: string;
+  hide_from_leaderboard: boolean;
+};
+
+/** The signed-in student's own users row (readable only by them, since migration 28). */
 export type UserProfile = {
   id: string;
   email: string;
