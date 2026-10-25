@@ -2416,6 +2416,17 @@
               "hlOnly": false
             }
           ]
+        },
+        {
+          "code": "T",
+          "name": "Tools and inquiry",
+          "subtopics": [
+            {
+              "code": "TI",
+              "name": "Measurement, uncertainties and data",
+              "hlOnly": false
+            }
+          ]
         }
       ]
     },
