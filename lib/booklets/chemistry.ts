@@ -11,6 +11,8 @@ export const CHEMISTRY_BOOKLET: Booklet = {
   subjectId: "chemistry",
   title: "Chemistry data booklet",
   searchHint: "Search formulas, elements and data",
+  // Tables, the periodic table and the drawings open in the full-screen reference viewer.
+  referenceViewer: true,
   sections: [
     // ── Constants, units, uncertainties ───────────────────────────────
     {
@@ -99,25 +101,12 @@ export const CHEMISTRY_BOOKLET: Booklet = {
     {
       topic: "S1",
       title: "Light",
+      diagrams: ["em-spectrum", "colour-wheel"],
       entries: [
         { name: "Speed, frequency and wavelength", math: [r`c = f\lambda`], keywords: ["electromagnetic", "wave"] },
         { name: "Photon energy", math: [r`E = hf`], keywords: ["emission spectrum", "ionization"] },
       ],
       tables: [
-        {
-          caption: "Electromagnetic spectrum (in order of increasing wavelength)",
-          columns: ["Region", "Note"],
-          keywords: ["electromagnetic spectrum", "wavelength", "energy"],
-          rows: [
-            ["γ-rays", "shortest wavelength, highest energy"],
-            ["X-rays", "–"],
-            ["ultraviolet", "–"],
-            ["visible", "400–700 nm (violet to red)"],
-            ["infrared", "–"],
-            ["microwaves", "–"],
-            ["radio waves", "longest wavelength, lowest energy"],
-          ],
-        },
         {
           caption: "Visible spectrum (colour wheel boundaries; complementary colours sit opposite each other)",
           columns: ["Colour", "Wavelength / nm"],
@@ -137,7 +126,8 @@ export const CHEMISTRY_BOOKLET: Booklet = {
     // ── S2 Bonding and structure ──────────────────────────────────────
     {
       topic: "S2",
-      title: "Bond lengths",
+      title: "Bonding",
+      diagrams: ["bonding-triangle"],
       entries: [],
       tables: [
         {
@@ -625,6 +615,32 @@ export const CHEMISTRY_BOOKLET: Booklet = {
           ],
         },
       ],
+    },
+  ],
+  diagrams: [
+    {
+      id: "em-spectrum",
+      title: "Electromagnetic spectrum",
+      topic: "S1",
+      caption: "The electromagnetic spectrum by wavelength, with visible light (400–700 nm) expanded.",
+      facts: ["Energy increases as wavelength decreases: E = hf and c = fλ", "Visible light runs from violet (about 400 nm) to red (about 700 nm)"],
+      keywords: ["wavelength", "light", "UV", "IR", "emission"],
+    },
+    {
+      id: "colour-wheel",
+      title: "Colour wheel",
+      topic: "S1",
+      caption: "The colour wheel with the wavelength boundaries of each colour; complementary colours sit opposite each other.",
+      facts: ["A substance absorbing light of one colour appears the complementary colour", "Transition metal complexes are coloured because d–d transitions absorb visible light"],
+      keywords: ["complementary", "visible", "transition metal", "absorption"],
+    },
+    {
+      id: "bonding-triangle",
+      title: "Bonding triangle (van Arkel–Ketelaar)",
+      topic: "S2",
+      caption: "Where a substance’s bonding sits, from the average electronegativity (horizontal) and the electronegativity difference (vertical) of its two elements.",
+      facts: ["Δχ = |χa − χb| and Σχ = (χa + χb) / 2, with χ from the electronegativity data", "High Δχ: ionic; low Δχ and high Σχ: covalent; low Δχ and low Σχ: metallic", "Right-hand scale: percentage covalent and ionic character"],
+      keywords: ["ionic", "covalent", "metallic", "electronegativity", "van Arkel", "Ketelaar"],
     },
   ],
 };

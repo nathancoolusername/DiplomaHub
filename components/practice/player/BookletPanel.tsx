@@ -3,9 +3,9 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
-import { ArrowUpRight, LayoutGrid, Search, X } from "lucide-react";
-import { searchBooklet, searchElements, type Booklet } from "@/lib/booklets";
-import { PeriodicTable } from "./PeriodicTable";
+import { ArrowUpRight, ChevronRight, LayoutGrid, Search, Shapes, Table2, X } from "lucide-react";
+import { searchBooklet, searchElements, tableId, type Booklet } from "@/lib/booklets";
+import { ReferenceViewer } from "./ReferenceViewer";
 import type { Level } from "@/lib/data/types";
 
 /** One formula. Booklet content is our own static data, so its KaTeX HTML is safe to inject. */
@@ -18,7 +18,9 @@ const Tex = memo(function Tex({ math, className = "" }: { math: string; classNam
 /**
  * The subject's formula booklet beside the question: a side panel on large
  * screens, a sheet above the bottom bar on smaller ones. Opens at the current
- * question's topic; search looks through names and keywords.
+ * question's topic; search looks through names and keywords. Booklets with a
+ * reference viewer (Chemistry, Biology) show their tables, diagrams and the
+ * periodic table as cards that open it full screen.
  */
 export function BookletPanel({
   booklet,
@@ -39,9 +41,10 @@ export function BookletPanel({
   const scroller = useRef<HTMLDivElement>(null);
   const sections = useMemo(() => searchBooklet(booklet, query), [booklet, query]);
   const topics = useMemo(() => [...new Set(booklet.sections.map((s) => s.topic))], [booklet]);
-  // Chemistry's element data opens as a full-screen periodic table (undefined = closed, a Z = that element picked).
-  const [table, setTable] = useState<number | null | undefined>(undefined);
+  // The full-screen reference viewer: null = closed; otherwise what to open at.
+  const [viewer, setViewer] = useState<{ item?: string; query?: string; z?: number | null } | null>(null);
   const hasTable = booklet.sections.some((s) => s.periodicTable);
+  const inViewer = !!booklet.referenceViewer;
   const elementHits = useMemo(() => (hasTable ? searchElements(query) : []), [hasTable, query]);
 
   // Follow the question: a new topic moves the booklet there.
@@ -79,15 +82,28 @@ export function BookletPanel({
           <p className="font-serif font-bold text-on-surface">
             {booklet.title} <span className="text-label-md font-sans font-semibold text-on-surface-variant">· {level}</span>
           </p>
-          {hasTable && (
-            <button
-              type="button"
-              onClick={() => setTable(null)}
-              className="ml-auto inline-flex items-center gap-xs rounded-lg border border-outline-variant px-sm py-xs text-label-md font-semibold text-on-surface hover:border-primary hover:text-primary cursor-pointer"
-            >
-              <LayoutGrid size={14} aria-hidden="true" /> Periodic table
-            </button>
-          )}
+          <span className="ml-auto flex items-center gap-xs">
+            {hasTable && (
+              <button
+                type="button"
+                onClick={() => setViewer({ item: "periodic" })}
+                title="Periodic table (P)"
+                className="inline-flex items-center gap-xs rounded-lg border border-outline-variant px-sm py-xs text-label-md font-semibold text-on-surface hover:border-primary hover:text-primary cursor-pointer"
+              >
+                <LayoutGrid size={14} aria-hidden="true" /> <span className="hidden xl:inline">Periodic table</span>
+              </button>
+            )}
+            {inViewer && (
+              <button
+                type="button"
+                onClick={() => setViewer({})}
+                title="Tables and diagrams (D)"
+                className="inline-flex items-center gap-xs rounded-lg border border-outline-variant px-sm py-xs text-label-md font-semibold text-on-surface hover:border-primary hover:text-primary cursor-pointer"
+              >
+                <Table2 size={14} aria-hidden="true" /> <span className="hidden xl:inline">{booklet.diagrams?.length ? "Tables & diagrams" : "Tables"}</span>
+              </button>
+            )}
+          </span>
           <button type="button" onClick={onClose} aria-label="Close booklet" className="p-0.5 text-on-surface-variant hover:text-primary cursor-pointer">
             <X size={18} />
           </button>
@@ -131,7 +147,7 @@ export function BookletPanel({
                 <li key={e.z}>
                   <button
                     type="button"
-                    onClick={() => setTable(e.z)}
+                    onClick={() => setViewer({ item: "periodic", z: e.z })}
                     className="w-full flex items-center gap-sm py-xs text-left text-label-md hover:text-primary cursor-pointer"
                   >
                     <span className="w-9 h-9 shrink-0 rounded-md bg-primary text-on-primary flex flex-col items-center justify-center leading-none">
@@ -173,7 +189,7 @@ export function BookletPanel({
                   </p>
                   <button
                     type="button"
-                    onClick={() => setTable(null)}
+                    onClick={() => setViewer({ item: "periodic" })}
                     className="self-start inline-flex items-center gap-xs rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 cursor-pointer"
                   >
                     <LayoutGrid size={16} aria-hidden="true" /> Open the periodic table
@@ -199,7 +215,30 @@ export function BookletPanel({
                   ))}
                 </ul>
               )}
-              {s.tables?.map((t) => (
+              {/* Reference viewer booklets: tables and diagrams as cards that open it. */}
+              {inViewer && ((s.tables?.length ?? 0) > 0 || (s.diagrams?.length ?? 0) > 0) && (
+                <ul className="flex flex-col gap-xs pt-xs">
+                  {s.tables?.map((t) => (
+                    <li key={t.caption}>
+                      <RefCard
+                        icon={<Table2 size={16} aria-hidden="true" />}
+                        title={t.caption}
+                        meta={query ? `${t.rows.length} matching row${t.rows.length === 1 ? "" : "s"}` : `${t.rows.length} row${t.rows.length === 1 ? "" : "s"}`}
+                        onClick={() => setViewer({ item: tableId(t.caption), query })}
+                      />
+                    </li>
+                  ))}
+                  {s.diagrams?.map((id) => {
+                    const d = booklet.diagrams?.find((x) => x.id === id);
+                    return d ? (
+                      <li key={id}>
+                        <RefCard icon={<Shapes size={16} aria-hidden="true" />} title={d.title} meta={d.hl ? "Diagram · HL" : "Diagram"} onClick={() => setViewer({ item: `diagram:${id}` })} />
+                      </li>
+                    ) : null;
+                  })}
+                </ul>
+              )}
+              {!inViewer && s.tables?.map((t) => (
                 <div key={t.caption} className="py-xs">
                   <p className="text-label-md text-on-surface-variant pb-xs">{t.caption}</p>
                   <div className="overflow-x-auto rounded-lg border border-outline-variant">
@@ -234,7 +273,34 @@ export function BookletPanel({
         })}
         <p className="text-label-sm text-on-surface-variant pt-md pb-sm">DiplomaHub’s own write-up of what the exam booklet gives. Your school’s IB booklet is the official one.</p>
       </div>
-      {table !== undefined && <PeriodicTable initialZ={table} onClose={() => setTable(undefined)} />}
+      {viewer && (
+        <ReferenceViewer
+          booklet={booklet}
+          topicNames={topicNames}
+          initialItem={viewer.item}
+          initialQuery={viewer.query}
+          initialZ={viewer.z ?? null}
+          onClose={() => setViewer(null)}
+        />
+      )}
     </aside>
+  );
+}
+
+/** A table or diagram in a reference-viewer booklet: opens it full screen. */
+function RefCard({ icon, title, meta, onClick }: { icon: React.ReactNode; title: string; meta: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full flex items-center gap-sm rounded-lg border border-outline-variant bg-surface-container/50 px-sm py-xs text-left hover:border-primary hover:text-primary cursor-pointer"
+    >
+      <span className="shrink-0 w-8 h-8 rounded-md bg-primary/12 text-primary flex items-center justify-center">{icon}</span>
+      <span className="flex-1 min-w-0">
+        <span className="block text-label-md font-semibold text-on-surface truncate">{title}</span>
+        <span className="block text-label-sm text-on-surface-variant">{meta}</span>
+      </span>
+      <ChevronRight size={16} className="shrink-0 text-on-surface-variant" aria-hidden="true" />
+    </button>
   );
 }

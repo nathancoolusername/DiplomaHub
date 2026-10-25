@@ -321,7 +321,7 @@ body {
   background: linear-gradient(var(--color-surface-raised), var(--color-surface-raised)), var(--color-background);
 }
 [data-theme="midnight"] .periodic-panel {
-  background: linear-gradient(160deg, rgba(40, 64, 140, 0.42), rgba(8, 16, 48, 0.55));
+  background: linear-gradient(160deg, rgba(40, 64, 140, 0.6), rgba(8, 16, 48, 0.74));
   -webkit-backdrop-filter: blur(28px) saturate(1.5);
   backdrop-filter: blur(28px) saturate(1.5);
   border-color: rgba(173, 200, 255, 0.18);
@@ -331,6 +331,12 @@ body {
 }
 [data-theme="midnight"] .periodic-scrim {
   background: rgba(0, 4, 20, 0.45);
+}
+/* On phones the panel covers busier content at reading distance: less see-through. */
+@media (max-width: 767px) {
+  [data-theme="midnight"] .periodic-panel {
+    background: linear-gradient(160deg, rgba(30, 50, 115, 0.86), rgba(6, 12, 40, 0.92));
+  }
 }
 
 /* Midnight cards get a faint lighter top edge for a subtle highlight. */

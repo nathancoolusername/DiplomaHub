@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { ELEMENTS, elementPosition, type ElementData } from "@/lib/booklets/elements";
 
 type PropertyKey = Exclude<keyof ElementData, "z" | "symbol" | "name">;
@@ -51,13 +50,12 @@ const DETAIL_ROWS: { key: PropertyKey; label: string; unit: string }[] = [
 const BY_POSITION = new Map(ELEMENTS.map((e) => [`${elementPosition(e.z).row},${elementPosition(e.z).col}`, e]));
 
 /**
- * The Chemistry booklet's element data as an interactive periodic table, over
- * the whole screen with the page dimmed behind it. Switch what it shows
+ * The Chemistry booklet's element data as an interactive periodic table, shown
+ * inside the reference viewer (ReferenceViewer.tsx). Switch what it shows
  * (atomic mass, electronegativity …); cells are shaded by value; pick an
  * element (click, or arrow keys) to see everything the booklet gives for it.
- * Esc, the close button or a click outside closes it.
  */
-export function PeriodicTable({ initialZ = null, onClose }: { initialZ?: number | null; onClose: () => void }) {
+export function PeriodicTable({ initialZ = null }: { initialZ?: number | null }) {
   const [property, setProperty] = useState<PropertyKey>("mass");
   const [selected, setSelected] = useState<number>(initialZ ?? 26);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -81,26 +79,14 @@ export function PeriodicTable({ initialZ = null, onClose }: { initialZ?: number 
     cells.current.get(z)?.focus();
   };
 
-  // Keys stay in here: Esc closes, arrows move around the table, and the
-  // player's own shortcuts (B, ← →) don't fire underneath.
+  // Arrow keys move around the table. This runs before the reference viewer's
+  // own keys (a child's listener is added first) and keeps them for itself.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.stopPropagation();
-        onClose();
-        return;
-      }
       const typing = (e.target as HTMLElement | null)?.tagName === "INPUT";
-      // P (the shortcut that opens it) closes it again.
-      if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "p" || e.key === "P")) {
-        e.preventDefault();
-        e.stopPropagation();
-        onClose();
-        return;
-      }
       if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key) && !typing) {
         e.preventDefault();
-        e.stopPropagation();
+        e.stopImmediatePropagation();
         const here = elementPosition(selected);
         if (e.key === "ArrowLeft" && selected > 1) move(selected - 1);
         else if (e.key === "ArrowRight" && selected < 118) move(selected + 1);
@@ -114,39 +100,20 @@ export function PeriodicTable({ initialZ = null, onClose }: { initialZ?: number 
             }
           }
         }
-        return;
       }
-      if (!typing && (e.key === "b" || e.key === "B")) e.stopPropagation();
     };
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
   });
 
-  // Focus moves in, the page behind stops scrolling, and focus goes back where it was on close.
+  // Focus starts on the element it opened at.
   useEffect(() => {
-    const before = document.activeElement as HTMLElement | null;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     cells.current.get(initialZ ?? 26)?.focus({ preventScroll: true });
-    return () => {
-      document.body.style.overflow = overflow;
-      before?.focus?.();
-    };
   }, [initialZ]);
 
-  return createPortal(
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-sm md:p-lg">
-      <div className="periodic-scrim overlay-dim absolute inset-0 bg-scrim/75" onClick={onClose} aria-hidden="true" />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="periodic-table-title"
-        className="periodic-panel overlay-pop relative w-full max-w-[1240px] max-h-full overflow-auto rounded-2xl border border-outline-variant shadow-2xl p-md md:p-lg flex flex-col gap-md"
-      >
+  return (
+      <div className="flex flex-col gap-md">
         <header className="flex flex-wrap items-center gap-sm">
-          <h2 id="periodic-table-title" className="font-serif font-bold text-headline-sm text-on-surface mr-auto">
-            Periodic table
-          </h2>
           <label className="flex items-center gap-xs rounded-lg border border-outline-variant bg-surface px-sm py-xs focus-within:border-primary">
             <Search size={14} className="text-on-surface-variant shrink-0" aria-hidden="true" />
             <input
@@ -163,9 +130,6 @@ export function PeriodicTable({ initialZ = null, onClose }: { initialZ?: number 
               className="w-36 bg-transparent text-label-md text-on-surface placeholder:text-on-surface-variant outline-none"
             />
           </label>
-          <button type="button" onClick={onClose} aria-label="Close periodic table" className="p-xs text-on-surface-variant hover:text-primary cursor-pointer">
-            <X size={20} />
-          </button>
         </header>
 
         <div role="radiogroup" aria-label="Show" className="flex gap-xs overflow-x-auto -mx-md px-md md:mx-0 md:px-0 md:flex-wrap">
@@ -291,11 +255,9 @@ export function PeriodicTable({ initialZ = null, onClose }: { initialZ?: number 
             />
             <span className="tabular-nums">{range.max}</span>
           </span>
-          <span>Grey: not given. Arrow keys move; Esc or P closes.</span>
+          <span>Grey: not given. Arrow keys move between elements.</span>
           <span className="ml-auto">Values from the IB Chemistry data booklet (2025).</span>
         </footer>
       </div>
-    </div>,
-    document.body,
   );
 }
