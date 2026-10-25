@@ -28,6 +28,22 @@ export type BookletTable = {
   keywords?: string[];
 };
 
+/** One of our own drawings, shown in the reference viewer (components/practice/player/diagrams). */
+export type BookletDiagram = {
+  /** Key into the drawings registry ("water", "sarcomere"). */
+  id: string;
+  title: string;
+  /** Syllabus topic it belongs to, like a section's. */
+  topic: string;
+  /** Only in the HL booklet. */
+  hl?: boolean;
+  /** What the drawing shows, in a sentence. */
+  caption: string;
+  /** Short facts beside the drawing. */
+  facts?: string[];
+  keywords?: string[];
+};
+
 export type BookletSection = {
   /** The syllabus topic it belongs to ("1", "A", "S1" …), so the player opens at the question's topic. */
   topic: string;
@@ -36,6 +52,8 @@ export type BookletSection = {
   tables?: BookletTable[];
   /** Show the "Open the periodic table" card here (Chemistry: the element data lives in lib/booklets/elements.ts). */
   periodicTable?: boolean;
+  /** Diagrams (ids from Booklet.diagrams) shown as cards in this section. */
+  diagrams?: string[];
 };
 
 export type Booklet = {
@@ -44,4 +62,11 @@ export type Booklet = {
   /** The search box's placeholder ("Search formulas and data"). */
   searchHint?: string;
   sections: BookletSection[];
+  /** Drawings, opened in the reference viewer. */
+  diagrams?: BookletDiagram[];
+  /**
+   * Tables open in the full-screen reference viewer (with the periodic table
+   * and the diagrams) instead of inline in the booklet panel.
+   */
+  referenceViewer?: boolean;
 };

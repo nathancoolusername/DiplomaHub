@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, ChevronLeft, ChevronRight, Flag, LayoutGrid, Lightbulb, X } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Flag, LayoutGrid, Lightbulb, Table2, X } from "lucide-react";
 import type { Attempt, AttemptAnswer, Level, Markscheme, PracticeSet, Question } from "@/lib/data/types";
 import { topicOfSubtopic, type Booklet } from "@/lib/booklets";
 import { isAnswered } from "@/lib/practice/marking";
@@ -19,7 +19,7 @@ import { ShortAnswer } from "./ShortAnswer";
 import { EssayAnswer } from "./EssayAnswer";
 import { paperLabel } from "./question-format";
 import { BookletPanel } from "./BookletPanel";
-import { PeriodicTable } from "./PeriodicTable";
+import { ReferenceViewer } from "./ReferenceViewer";
 import { useHintTurn } from "@/components/shared/FirstTimeHint";
 import { BOOKLET_TIP_ID } from "@/lib/booklets";
 
@@ -97,7 +97,9 @@ export function SetPlayer({
   const bookletTipDone = useRef(!bookletTip);
   // Chemistry: the booklet's element data as a full-screen periodic table (button or P).
   const hasPeriodicTable = !!booklet?.sections.some((s) => s.periodicTable);
-  const [tableOpen, setTableOpen] = useState(false);
+  // Chemistry and Biology: tables, diagrams (and the periodic table) in the full-screen reference viewer (D, or P for the periodic table).
+  const hasViewer = !!booklet?.referenceViewer;
+  const [viewer, setViewer] = useState<{ item?: string } | null>(null);
   const toggleBooklet = useCallback((open: boolean) => {
     setBookletChoice(open);
     // Opening it (button or B) means they've found it: the tip goes, once.
@@ -262,28 +264,32 @@ export function SetPlayer({
   // ← / → move between questions, except while typing an answer.
   const goToRef = useRef(goTo);
   const toggleBookletRef = useRef(() => {});
-  const openTableRef = useRef(() => {});
+  const openViewerRef = useRef((item?: string) => {
+    void item;
+  });
   useEffect(() => {
     goToRef.current = goTo;
     toggleBookletRef.current = () => {
       if (booklet) toggleBooklet(!bookletOpen);
     };
-    openTableRef.current = () => {
-      if (hasPeriodicTable) setTableOpen(true);
+    openViewerRef.current = (item?: string) => {
+      if (item === "periodic" ? hasPeriodicTable : hasViewer) setViewer({ item });
     };
   });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const booklet = e.key === "b" || e.key === "B";
       const table = e.key === "p" || e.key === "P";
-      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" && !booklet && !table) return;
+      const data = e.key === "d" || e.key === "D";
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" && !booklet && !table && !data) return;
       if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
       const el = e.target as HTMLElement | null;
       if (el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName))) return;
       e.preventDefault();
-      // B opens or closes the formula booklet; P opens the periodic table (Chemistry; P or Esc closes it).
+      // B opens or closes the formula booklet; P opens the periodic table, D the tables and diagrams (the viewer closes itself).
       if (booklet) toggleBookletRef.current();
-      else if (table) openTableRef.current();
+      else if (table) openViewerRef.current("periodic");
+      else if (data) openViewerRef.current();
       else goToRef.current(indexRef.current + (e.key === "ArrowRight" ? 1 : -1));
     };
     document.addEventListener("keydown", onKey);
@@ -380,6 +386,12 @@ export function SetPlayer({
                       The periodic table opens with <kbd className="rounded bg-inverse-on-surface/15 px-1 font-mono font-semibold">P</kbd>.
                     </>
                   )}
+                  {hasViewer && (
+                    <>
+                      {" "}
+                      Tables{booklet.diagrams?.length ? " and diagrams" : ""} open with <kbd className="rounded bg-inverse-on-surface/15 px-1 font-mono font-semibold">D</kbd>.
+                    </>
+                  )}
                   </span>
                   <span className="flex justify-end gap-xs">
                     <button
@@ -406,12 +418,23 @@ export function SetPlayer({
           {hasPeriodicTable && (
             <button
               type="button"
-              onClick={() => setTableOpen(true)}
+              onClick={() => setViewer({ item: "periodic" })}
               aria-keyshortcuts="P"
               title="Periodic table (P)"
               className="inline-flex items-center gap-xs rounded-lg px-sm py-xs text-label-md font-semibold text-on-surface-variant hover:text-primary cursor-pointer"
             >
-              <LayoutGrid size={16} aria-hidden="true" /> <span className="hidden sm:inline">Periodic table</span>
+              <LayoutGrid size={16} aria-hidden="true" /> <span className="hidden lg:inline">Periodic table</span>
+            </button>
+          )}
+          {hasViewer && (
+            <button
+              type="button"
+              onClick={() => setViewer({})}
+              aria-keyshortcuts="D"
+              title={`${booklet?.diagrams?.length ? "Tables and diagrams" : "Tables"} (D)`}
+              className="inline-flex items-center gap-xs rounded-lg px-sm py-xs text-label-md font-semibold text-on-surface-variant hover:text-primary cursor-pointer"
+            >
+              <Table2 size={16} aria-hidden="true" /> <span className="hidden lg:inline">{booklet?.diagrams?.length ? "Tables & diagrams" : "Tables"}</span>
             </button>
           )}
           <button
@@ -532,7 +555,7 @@ export function SetPlayer({
         )}
       </div>
 
-      {tableOpen && <PeriodicTable onClose={() => setTableOpen(false)} />}
+      {viewer && booklet && <ReferenceViewer booklet={booklet} topicNames={topicNames} initialItem={viewer.item} onClose={() => setViewer(null)} />}
 
       {/* Bottom bar */}
       <div className="fixed bottom-0 inset-x-0 z-30 bg-surface glass border-t border-outline-variant" style={{ height: BOTTOM_BAR_PX }}>
