@@ -51,6 +51,8 @@ export type ExportQuestion = {
   /** Essays only: criteria with markbands, and what a strong answer includes. */
   criteria?: { name: string; max_marks: number; bands: { min: number; max: number; descriptor: string }[] }[];
   feedback_points?: string[];
+  /** Questions in the same subtopic that differ only in numbers/wording share a group (pipeline scripts/variant_groups.py). */
+  variant_group?: string;
   /** Server-only: dropped by exportToRow except for its status. */
   verification: { status: "verified" | "needs_review" | "rejected" } & Record<string, unknown>;
 };
@@ -75,6 +77,8 @@ export type QuestionRow = {
   parts: { label: string; marks: number; text_md: string }[];
   options: { key: string; text_md: string }[] | null;
   figures: { svg: string; alt: string }[] | null;
+  /** Family of near-identical questions; dp_candidates picks round-robin across families (migration 30). */
+  variant_group?: string | null;
   // ── answer columns: never sent to a client except via reveal_markscheme
   correct_option: string | null;
   markscheme: {
@@ -129,6 +133,7 @@ export function exportToRow(q: ExportQuestion): QuestionRow {
     parts: q.parts.map((p) => ({ label: p.label, marks: p.marks, text_md: p.text_md })),
     options: q.options ?? null,
     figures: q.figures?.length ? sanitizeFigures(q.figures) : null,
+    variant_group: q.variant_group ?? null,
     correct_option: q.correct_option ?? null,
     markscheme: q.parts.map((p) => ({
       label: p.label,
