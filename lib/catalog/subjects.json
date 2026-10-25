@@ -2338,13 +2338,38 @@
               "hlOnly": false
             },
             {
+              "code": "A2.1",
+              "name": "Origins of cells",
+              "hlOnly": true
+            },
+            {
               "code": "A2.2",
               "name": "Cell structure",
               "hlOnly": false
             },
             {
+              "code": "A2.3",
+              "name": "Viruses",
+              "hlOnly": true
+            },
+            {
               "code": "A3.1",
               "name": "Diversity of organisms",
+              "hlOnly": false
+            },
+            {
+              "code": "A3.2",
+              "name": "Classification and cladistics",
+              "hlOnly": true
+            },
+            {
+              "code": "A4.1",
+              "name": "Evolution and speciation",
+              "hlOnly": false
+            },
+            {
+              "code": "A4.2",
+              "name": "Conservation of biodiversity",
               "hlOnly": false
             }
           ]
@@ -2369,8 +2394,38 @@
               "hlOnly": false
             },
             {
+              "code": "B2.2",
+              "name": "Organelles and compartmentalization",
+              "hlOnly": false
+            },
+            {
+              "code": "B2.3",
+              "name": "Cell specialization",
+              "hlOnly": false
+            },
+            {
               "code": "B3.1",
               "name": "Gas exchange",
+              "hlOnly": false
+            },
+            {
+              "code": "B3.2",
+              "name": "Transport",
+              "hlOnly": false
+            },
+            {
+              "code": "B3.3",
+              "name": "Muscle and motility",
+              "hlOnly": true
+            },
+            {
+              "code": "B4.1",
+              "name": "Adaptation to environment",
+              "hlOnly": false
+            },
+            {
+              "code": "B4.2",
+              "name": "Ecological niches",
               "hlOnly": false
             }
           ]
@@ -2393,6 +2448,36 @@
               "code": "C1.3",
               "name": "Photosynthesis",
               "hlOnly": false
+            },
+            {
+              "code": "C2.1",
+              "name": "Chemical signalling",
+              "hlOnly": true
+            },
+            {
+              "code": "C2.2",
+              "name": "Neural signalling",
+              "hlOnly": false
+            },
+            {
+              "code": "C3.1",
+              "name": "Integration of body systems",
+              "hlOnly": false
+            },
+            {
+              "code": "C3.2",
+              "name": "Defence against disease",
+              "hlOnly": false
+            },
+            {
+              "code": "C4.1",
+              "name": "Populations and communities",
+              "hlOnly": false
+            },
+            {
+              "code": "C4.2",
+              "name": "Transfers of energy and matter",
+              "hlOnly": false
             }
           ]
         },
@@ -2406,13 +2491,58 @@
               "hlOnly": false
             },
             {
+              "code": "D1.2",
+              "name": "Protein synthesis",
+              "hlOnly": false
+            },
+            {
+              "code": "D1.3",
+              "name": "Mutation and gene editing",
+              "hlOnly": false
+            },
+            {
               "code": "D2.1",
               "name": "Cell and nuclear division",
               "hlOnly": false
             },
             {
+              "code": "D2.2",
+              "name": "Gene expression",
+              "hlOnly": true
+            },
+            {
+              "code": "D2.3",
+              "name": "Water potential",
+              "hlOnly": false
+            },
+            {
+              "code": "D3.1",
+              "name": "Reproduction",
+              "hlOnly": false
+            },
+            {
+              "code": "D3.2",
+              "name": "Inheritance",
+              "hlOnly": false
+            },
+            {
+              "code": "D3.3",
+              "name": "Homeostasis",
+              "hlOnly": false
+            },
+            {
               "code": "D4.1",
               "name": "Natural selection",
+              "hlOnly": false
+            },
+            {
+              "code": "D4.2",
+              "name": "Stability and change",
+              "hlOnly": false
+            },
+            {
+              "code": "D4.3",
+              "name": "Climate change",
               "hlOnly": false
             }
           ]
