@@ -2149,43 +2149,99 @@
             "HL": 50
           },
           "calculator": true
+        },
+        {
+          "code": "P3",
+          "duration": {
+            "HL": 60
+          },
+          "totalMarks": {
+            "HL": 28
+          },
+          "calculator": true
         }
       ],
       "topics": [
         {
-          "code": "CORE",
-          "name": "Geographic perspectives",
+          "code": "OPT",
+          "name": "Part one: Geographic themes (options)",
           "subtopics": [
             {
-              "code": "G.C.1",
-              "name": "Population distribution",
+              "code": "A",
+              "name": "Freshwater",
               "hlOnly": false
             },
             {
-              "code": "G.C.2",
-              "name": "Global climate",
+              "code": "B",
+              "name": "Oceans and coastal margins",
               "hlOnly": false
             },
             {
-              "code": "G.C.3",
-              "name": "Resource consumption",
+              "code": "C",
+              "name": "Extreme environments",
+              "hlOnly": false
+            },
+            {
+              "code": "D",
+              "name": "Geophysical hazards",
+              "hlOnly": false
+            },
+            {
+              "code": "E",
+              "name": "Leisure, tourism and sport",
+              "hlOnly": false
+            },
+            {
+              "code": "F",
+              "name": "Food and health",
+              "hlOnly": false
+            },
+            {
+              "code": "G",
+              "name": "Urban environments",
               "hlOnly": false
             }
           ]
         },
         {
-          "code": "OPT",
-          "name": "Options",
+          "code": "CORE",
+          "name": "Core: Geographic perspectives, global change",
           "subtopics": [
             {
-              "code": "G.O.B",
-              "name": "Oceans and coastal margins",
+              "code": "U1",
+              "name": "Changing population",
               "hlOnly": false
             },
             {
-              "code": "G.O.G",
-              "name": "Urban environments",
+              "code": "U2",
+              "name": "Global climate—vulnerability and resilience",
               "hlOnly": false
+            },
+            {
+              "code": "U3",
+              "name": "Global resource consumption and security",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "HLX",
+          "name": "HL extension: Geographic perspectives, global interactions",
+          "subtopics": [
+            {
+              "code": "U4",
+              "name": "Power, places and networks",
+              "hlOnly": true
+            },
+            {
+              "code": "U5",
+              "name": "Human development and diversity",
+              "hlOnly": true
+            },
+            {
+              "code": "U6",
+              "name": "Global risks and resilience",
+              "hlOnly": true
             }
           ]
         }
