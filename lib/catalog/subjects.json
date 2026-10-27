@@ -1787,6 +1787,22 @@
       ],
       "topics": [
         {
+          "code": "1",
+          "name": "Introduction to economics",
+          "subtopics": [
+            {
+              "code": "1.1",
+              "name": "What is economics?",
+              "hlOnly": false
+            },
+            {
+              "code": "1.2",
+              "name": "How do economists approach the world?",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
           "code": "2",
           "name": "Microeconomics",
           "subtopics": [
@@ -1802,7 +1818,12 @@
             },
             {
               "code": "2.3",
-              "name": "Market equilibrium",
+              "name": "Competitive market equilibrium",
+              "hlOnly": false
+            },
+            {
+              "code": "2.4",
+              "name": "Critique of maximizing behaviour",
               "hlOnly": false
             },
             {
@@ -1811,18 +1832,38 @@
               "hlOnly": false
             },
             {
+              "code": "2.6",
+              "name": "Elasticity of supply",
+              "hlOnly": false
+            },
+            {
               "code": "2.7",
-              "name": "Role of government",
+              "name": "Role of government in microeconomics",
               "hlOnly": false
             },
             {
               "code": "2.8",
-              "name": "Market failure: externalities",
+              "name": "Market failure: externalities and common pool resources",
               "hlOnly": false
             },
             {
+              "code": "2.9",
+              "name": "Market failure: public goods",
+              "hlOnly": false
+            },
+            {
+              "code": "2.10",
+              "name": "Market failure: asymmetric information",
+              "hlOnly": true
+            },
+            {
               "code": "2.11",
-              "name": "Market power",
+              "name": "Market failure: market power",
+              "hlOnly": true
+            },
+            {
+              "code": "2.12",
+              "name": "Market failure: inequity",
               "hlOnly": true
             }
           ]
@@ -1838,7 +1879,7 @@
             },
             {
               "code": "3.2",
-              "name": "Aggregate demand and supply",
+              "name": "Variations in economic activity: AD and AS",
               "hlOnly": false
             },
             {
@@ -1847,13 +1888,18 @@
               "hlOnly": false
             },
             {
+              "code": "3.4",
+              "name": "Economics of inequality and poverty",
+              "hlOnly": false
+            },
+            {
               "code": "3.5",
-              "name": "Monetary policy",
+              "name": "Demand management: monetary policy",
               "hlOnly": false
             },
             {
               "code": "3.6",
-              "name": "Fiscal policy",
+              "name": "Demand management: fiscal policy",
               "hlOnly": false
             },
             {
@@ -1869,12 +1915,22 @@
           "subtopics": [
             {
               "code": "4.1",
-              "name": "International trade",
+              "name": "Benefits of international trade",
               "hlOnly": false
             },
             {
               "code": "4.2",
-              "name": "Trade protection",
+              "name": "Types of trade protection",
+              "hlOnly": false
+            },
+            {
+              "code": "4.3",
+              "name": "Arguments for and against trade protection",
+              "hlOnly": false
+            },
+            {
+              "code": "4.4",
+              "name": "Economic integration",
               "hlOnly": false
             },
             {
@@ -1888,8 +1944,23 @@
               "hlOnly": false
             },
             {
+              "code": "4.7",
+              "name": "Sustainable development",
+              "hlOnly": false
+            },
+            {
               "code": "4.8",
               "name": "Measuring development",
+              "hlOnly": false
+            },
+            {
+              "code": "4.9",
+              "name": "Barriers to economic growth and/or development",
+              "hlOnly": false
+            },
+            {
+              "code": "4.10",
+              "name": "Economic growth and/or development strategies",
               "hlOnly": false
             }
           ]
@@ -2622,9 +2693,276 @@
       "shortName": "Business",
       "ibGroup": 3,
       "resourceTag": "Business",
-      "supportedTypes": [],
-      "papers": [],
-      "topics": []
+      "supportedTypes": [
+        "mcq_short",
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 90,
+            "HL": 90
+          },
+          "totalMarks": {
+            "SL": 30,
+            "HL": 30
+          },
+          "calculator": true
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 90,
+            "HL": 105
+          },
+          "totalMarks": {
+            "SL": 40,
+            "HL": 50
+          },
+          "calculator": true
+        },
+        {
+          "code": "P3",
+          "duration": {
+            "HL": 75
+          },
+          "totalMarks": {
+            "HL": 25
+          },
+          "calculator": true
+        }
+      ],
+      "topics": [
+        {
+          "code": "1",
+          "name": "Introduction to business management",
+          "subtopics": [
+            {
+              "code": "1.1",
+              "name": "What is a business?",
+              "hlOnly": false
+            },
+            {
+              "code": "1.2",
+              "name": "Types of business entities",
+              "hlOnly": false
+            },
+            {
+              "code": "1.3",
+              "name": "Business objectives",
+              "hlOnly": false
+            },
+            {
+              "code": "1.4",
+              "name": "Stakeholders",
+              "hlOnly": false
+            },
+            {
+              "code": "1.5",
+              "name": "Growth and evolution",
+              "hlOnly": false
+            },
+            {
+              "code": "1.6",
+              "name": "Multinational companies (MNCs)",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "2",
+          "name": "Human resource management",
+          "subtopics": [
+            {
+              "code": "2.1",
+              "name": "Introduction to human resource management",
+              "hlOnly": false
+            },
+            {
+              "code": "2.2",
+              "name": "Organizational structure",
+              "hlOnly": false
+            },
+            {
+              "code": "2.3",
+              "name": "Leadership and management",
+              "hlOnly": false
+            },
+            {
+              "code": "2.4",
+              "name": "Motivation and demotivation",
+              "hlOnly": false
+            },
+            {
+              "code": "2.5",
+              "name": "Organizational (corporate) culture",
+              "hlOnly": true
+            },
+            {
+              "code": "2.6",
+              "name": "Communication",
+              "hlOnly": false
+            },
+            {
+              "code": "2.7",
+              "name": "Industrial/employee relations",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "3",
+          "name": "Finance and accounts",
+          "subtopics": [
+            {
+              "code": "3.1",
+              "name": "Introduction to finance",
+              "hlOnly": false
+            },
+            {
+              "code": "3.2",
+              "name": "Sources of finance",
+              "hlOnly": false
+            },
+            {
+              "code": "3.3",
+              "name": "Costs and revenues",
+              "hlOnly": false
+            },
+            {
+              "code": "3.4",
+              "name": "Final accounts",
+              "hlOnly": false
+            },
+            {
+              "code": "3.5",
+              "name": "Profitability and liquidity ratio analysis",
+              "hlOnly": false
+            },
+            {
+              "code": "3.6",
+              "name": "Efficiency ratio analysis",
+              "hlOnly": true
+            },
+            {
+              "code": "3.7",
+              "name": "Cash flow",
+              "hlOnly": false
+            },
+            {
+              "code": "3.8",
+              "name": "Investment appraisal",
+              "hlOnly": false
+            },
+            {
+              "code": "3.9",
+              "name": "Budgets",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "4",
+          "name": "Marketing",
+          "subtopics": [
+            {
+              "code": "4.1",
+              "name": "Introduction to marketing",
+              "hlOnly": false
+            },
+            {
+              "code": "4.2",
+              "name": "Marketing planning",
+              "hlOnly": false
+            },
+            {
+              "code": "4.3",
+              "name": "Sales forecasting",
+              "hlOnly": true
+            },
+            {
+              "code": "4.4",
+              "name": "Market research",
+              "hlOnly": false
+            },
+            {
+              "code": "4.5",
+              "name": "The seven Ps of the marketing mix",
+              "hlOnly": false
+            },
+            {
+              "code": "4.6",
+              "name": "International marketing",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "5",
+          "name": "Operations management",
+          "subtopics": [
+            {
+              "code": "5.1",
+              "name": "Introduction to operations management",
+              "hlOnly": false
+            },
+            {
+              "code": "5.2",
+              "name": "Operations methods",
+              "hlOnly": false
+            },
+            {
+              "code": "5.3",
+              "name": "Lean production and quality management",
+              "hlOnly": true
+            },
+            {
+              "code": "5.4",
+              "name": "Location",
+              "hlOnly": false
+            },
+            {
+              "code": "5.5",
+              "name": "Break-even analysis",
+              "hlOnly": false
+            },
+            {
+              "code": "5.6",
+              "name": "Production planning",
+              "hlOnly": true
+            },
+            {
+              "code": "5.7",
+              "name": "Crisis management and contingency planning",
+              "hlOnly": true
+            },
+            {
+              "code": "5.8",
+              "name": "Research and development",
+              "hlOnly": true
+            },
+            {
+              "code": "5.9",
+              "name": "Management information systems",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "T",
+          "name": "Business management toolkit",
+          "subtopics": [
+            {
+              "code": "T.1",
+              "name": "Business management tools and theories (toolkit)",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "psychology",
