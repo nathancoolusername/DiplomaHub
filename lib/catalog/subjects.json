@@ -2020,18 +2020,68 @@
           "name": "Number and algebra",
           "subtopics": [
             {
-              "code": "AI.1.1",
-              "name": "Scientific notation",
+              "code": "1.2",
+              "name": "Arithmetic sequences and series",
               "hlOnly": false
             },
             {
-              "code": "AI.1.4",
-              "name": "Financial mathematics",
+              "code": "1.3",
+              "name": "Geometric sequences and series",
               "hlOnly": false
             },
             {
-              "code": "AI.1.11",
-              "name": "Matrices",
+              "code": "1.4",
+              "name": "Financial applications of geometric sequences and series",
+              "hlOnly": false
+            },
+            {
+              "code": "1.5",
+              "name": "Laws of exponents with integer exponents; introduction to logarithms",
+              "hlOnly": false
+            },
+            {
+              "code": "1.6",
+              "name": "Approximation, bounds, percentage error, estimation",
+              "hlOnly": false
+            },
+            {
+              "code": "1.7",
+              "name": "Amortization and annuities using technology",
+              "hlOnly": false
+            },
+            {
+              "code": "1.8",
+              "name": "Systems of linear equations and polynomial equations using technology",
+              "hlOnly": false
+            },
+            {
+              "code": "1.9",
+              "name": "Laws of logarithms",
+              "hlOnly": true
+            },
+            {
+              "code": "1.11",
+              "name": "Sum of infinite geometric sequences",
+              "hlOnly": true
+            },
+            {
+              "code": "1.12",
+              "name": "Complex numbers: Cartesian form",
+              "hlOnly": true
+            },
+            {
+              "code": "1.13",
+              "name": "Complex numbers: modulus-argument (polar) and exponential (Euler) form",
+              "hlOnly": true
+            },
+            {
+              "code": "1.14",
+              "name": "Matrices: algebra, determinant, inverse, powers",
+              "hlOnly": true
+            },
+            {
+              "code": "1.15",
+              "name": "Eigenvalues, eigenvectors and diagonalization of 2x2 matrices",
               "hlOnly": true
             }
           ]
@@ -2041,13 +2091,134 @@
           "name": "Functions",
           "subtopics": [
             {
-              "code": "AI.2.5",
-              "name": "Modelling with functions",
+              "code": "2.1",
+              "name": "Equation of a straight line; gradient; parallel and perpendicular lines",
               "hlOnly": false
             },
             {
-              "code": "AI.2.9",
-              "name": "Logistic models",
+              "code": "2.2",
+              "name": "Concept of a function; domain and range; inverse functions",
+              "hlOnly": false
+            },
+            {
+              "code": "2.3",
+              "name": "The graph of a function; sketching",
+              "hlOnly": false
+            },
+            {
+              "code": "2.4",
+              "name": "Key features of graphs; intersections using technology",
+              "hlOnly": false
+            },
+            {
+              "code": "2.5",
+              "name": "Modelling with linear, quadratic, exponential, direct/inverse variation, cubic and sinusoidal functions",
+              "hlOnly": false
+            },
+            {
+              "code": "2.6",
+              "name": "Modelling skills: creating, fitting and using models",
+              "hlOnly": false
+            },
+            {
+              "code": "2.7",
+              "name": "Composite functions and inverse functions",
+              "hlOnly": true
+            },
+            {
+              "code": "2.8",
+              "name": "Transformations of graphs",
+              "hlOnly": true
+            },
+            {
+              "code": "2.9",
+              "name": "Further modelling: exponential (half-life), natural log, sinusoidal, logistic, piecewise",
+              "hlOnly": true
+            },
+            {
+              "code": "2.10",
+              "name": "Scaling very large or small numbers using logarithms; linearizing data",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "3",
+          "name": "Geometry and trigonometry",
+          "subtopics": [
+            {
+              "code": "3.1",
+              "name": "3D coordinates, distance, volume and surface area of solids, angles",
+              "hlOnly": false
+            },
+            {
+              "code": "3.2",
+              "name": "Right-angled and non-right-angled triangles: sine rule, cosine rule, area",
+              "hlOnly": false
+            },
+            {
+              "code": "3.3",
+              "name": "Applications of trigonometry: bearings, elevation and depression",
+              "hlOnly": false
+            },
+            {
+              "code": "3.4",
+              "name": "The circle: arc length and sector area",
+              "hlOnly": false
+            },
+            {
+              "code": "3.5",
+              "name": "Equations of perpendicular bisectors",
+              "hlOnly": false
+            },
+            {
+              "code": "3.6",
+              "name": "Voronoi diagrams and nearest neighbour interpolation",
+              "hlOnly": false
+            },
+            {
+              "code": "3.7",
+              "name": "Radian measure; arc length and sector area in radians",
+              "hlOnly": true
+            },
+            {
+              "code": "3.9",
+              "name": "Matrix transformations of the plane",
+              "hlOnly": true
+            },
+            {
+              "code": "3.10",
+              "name": "Vectors: concept, components, magnitude, operations",
+              "hlOnly": true
+            },
+            {
+              "code": "3.11",
+              "name": "Vector equation of a line",
+              "hlOnly": true
+            },
+            {
+              "code": "3.12",
+              "name": "Vector applications to kinematics",
+              "hlOnly": true
+            },
+            {
+              "code": "3.13",
+              "name": "Scalar product, vector product and angles between vectors",
+              "hlOnly": true
+            },
+            {
+              "code": "3.14",
+              "name": "Graph theory: graphs, vertices, edges, degree",
+              "hlOnly": true
+            },
+            {
+              "code": "3.15",
+              "name": "Adjacency matrices and walks",
+              "hlOnly": true
+            },
+            {
+              "code": "3.16",
+              "name": "Tree and cycle algorithms; Chinese postman; travelling salesman",
               "hlOnly": true
             }
           ]
@@ -2057,18 +2228,93 @@
           "name": "Statistics and probability",
           "subtopics": [
             {
-              "code": "AI.4.4",
-              "name": "Correlation and regression",
+              "code": "4.1",
+              "name": "Populations, samples, sampling techniques and reliability of data",
               "hlOnly": false
             },
             {
-              "code": "AI.4.11",
-              "name": "Chi-squared tests",
+              "code": "4.2",
+              "name": "Presentation of data: frequency tables, histograms, cumulative frequency, box plots",
               "hlOnly": false
             },
             {
-              "code": "AI.4.19",
-              "name": "Markov chains",
+              "code": "4.3",
+              "name": "Measures of central tendency and dispersion",
+              "hlOnly": false
+            },
+            {
+              "code": "4.4",
+              "name": "Linear correlation (Pearson) and least-squares regression",
+              "hlOnly": false
+            },
+            {
+              "code": "4.6",
+              "name": "Venn diagrams, tree diagrams, combined, conditional and independent events",
+              "hlOnly": false
+            },
+            {
+              "code": "4.7",
+              "name": "Discrete random variables and expected value",
+              "hlOnly": false
+            },
+            {
+              "code": "4.8",
+              "name": "Binomial distribution",
+              "hlOnly": false
+            },
+            {
+              "code": "4.9",
+              "name": "Normal distribution",
+              "hlOnly": false
+            },
+            {
+              "code": "4.10",
+              "name": "Spearman's rank correlation coefficient",
+              "hlOnly": false
+            },
+            {
+              "code": "4.11",
+              "name": "Hypothesis testing: chi-squared tests and t-tests",
+              "hlOnly": false
+            },
+            {
+              "code": "4.12",
+              "name": "Design of data collection; reliability and validity",
+              "hlOnly": true
+            },
+            {
+              "code": "4.13",
+              "name": "Non-linear regression; residuals; coefficient of determination",
+              "hlOnly": true
+            },
+            {
+              "code": "4.14",
+              "name": "Linear transformation of a single random variable",
+              "hlOnly": true
+            },
+            {
+              "code": "4.15",
+              "name": "Linear combinations of random variables; central limit theorem; unbiased estimates",
+              "hlOnly": true
+            },
+            {
+              "code": "4.16",
+              "name": "Confidence intervals for the mean",
+              "hlOnly": true
+            },
+            {
+              "code": "4.17",
+              "name": "Poisson distribution",
+              "hlOnly": true
+            },
+            {
+              "code": "4.18",
+              "name": "Critical values and regions; tests for the mean; Type I and Type II errors; further tests",
+              "hlOnly": true
+            },
+            {
+              "code": "4.19",
+              "name": "Transition matrices and Markov chains",
               "hlOnly": true
             }
           ]
@@ -2078,18 +2324,93 @@
           "name": "Calculus",
           "subtopics": [
             {
-              "code": "AI.5.3",
-              "name": "Differentiation",
+              "code": "5.1",
+              "name": "Concept of a limit; the derivative as gradient and rate of change",
               "hlOnly": false
             },
             {
-              "code": "AI.5.5",
-              "name": "Integration",
+              "code": "5.2",
+              "name": "Increasing and decreasing functions",
               "hlOnly": false
             },
             {
-              "code": "AI.5.14",
-              "name": "Differential equations",
+              "code": "5.3",
+              "name": "Differentiation of polynomial functions",
+              "hlOnly": false
+            },
+            {
+              "code": "5.4",
+              "name": "Tangents and normals",
+              "hlOnly": false
+            },
+            {
+              "code": "5.5",
+              "name": "Introduction to integration; definite integrals and area",
+              "hlOnly": false
+            },
+            {
+              "code": "5.6",
+              "name": "Stationary points; local maxima and minima",
+              "hlOnly": false
+            },
+            {
+              "code": "5.7",
+              "name": "Optimisation problems",
+              "hlOnly": false
+            },
+            {
+              "code": "5.8",
+              "name": "Approximating areas using the trapezoidal rule",
+              "hlOnly": false
+            },
+            {
+              "code": "5.9",
+              "name": "Derivatives of standard functions; chain, product and quotient rules; related rates",
+              "hlOnly": true
+            },
+            {
+              "code": "5.10",
+              "name": "Second derivative; concavity; points of inflexion",
+              "hlOnly": true
+            },
+            {
+              "code": "5.11",
+              "name": "Definite and indefinite integration, including substitution",
+              "hlOnly": true
+            },
+            {
+              "code": "5.12",
+              "name": "Areas and volumes of revolution",
+              "hlOnly": true
+            },
+            {
+              "code": "5.13",
+              "name": "Kinematics",
+              "hlOnly": true
+            },
+            {
+              "code": "5.14",
+              "name": "Differential equations: modelling and separation of variables",
+              "hlOnly": true
+            },
+            {
+              "code": "5.15",
+              "name": "Slope fields",
+              "hlOnly": true
+            },
+            {
+              "code": "5.16",
+              "name": "Euler's method",
+              "hlOnly": true
+            },
+            {
+              "code": "5.17",
+              "name": "Phase portraits of coupled differential equations",
+              "hlOnly": true
+            },
+            {
+              "code": "5.18",
+              "name": "Second-order differential equations via coupled systems",
               "hlOnly": true
             }
           ]
