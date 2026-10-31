@@ -22,6 +22,20 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     return NextResponse.redirect(home);
   }
 
+  // Link prefetches (hover/viewport) only ever fetch the static loading
+  // shell for dynamic routes like ours — the real, personalized content
+  // streams in via a separate non-prefetch request when the user actually
+  // navigates, which still runs this proxy and gets verified normally. So
+  // there's no point paying for getClaims() on a prefetch. They still have
+  // to come through here rather than be skipped by the matcher: when they
+  // bypassed the proxy, the client router cached the bypassed responses and
+  // signed-in navigation broke (blank practice pages, the signed-out home
+  // after clicking the logo) until a full reload.
+  if (request.headers.get("next-router-prefetch")) {
+    requestHeaders.delete("x-verified-user-id");
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
   let pendingCookies: { name: string; value: string; options: CookieOptions }[] =
     [];
 
@@ -119,16 +133,14 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
 
 // Vercel checks `has`/`missing` while routing, before invoking anything, so
 // requests that fail them never start this function. Each run of the proxy
-// was costing CPU even when it immediately returned. It's only invoked for:
-//  - requests carrying the Supabase auth cookie (one entry for the plain name,
-//    one for the chunked `.0` name used when the session is large). Logged-out
-//    visitors and bots, including the static signed-out `/`, skip it.
-//  - non-prefetches. Prefetches only fetch the loading shell for our dynamic
-//    routes; the real navigation still comes through here.
+// was costing CPU even when it immediately returned. It's only invoked for
+// requests carrying the Supabase auth cookie (one entry for the plain name,
+// one for the chunked `.0` name used when the session is large). Logged-out
+// visitors and bots, including the static signed-out `/`, skip it. Don't add
+// a `missing` prefetch condition: see the prefetch early return above.
 // Skipped requests don't get a client-sent x-verified-user-id stripped, so
 // getCurrentUserId() (app/lib/get-current-user.ts) only trusts that header
-// under these same conditions — keep the cookie names and the prefetch header
-// in sync with it. The calendar feed authenticates by its own URL token, and
+// when the auth cookie is present — keep the cookie names in sync with it. The calendar feed authenticates by its own URL token, and
 // sitemap/robots/static files don't touch the session at all.
 export const config = {
   matcher: [
@@ -136,13 +148,11 @@ export const config = {
       source:
         "/((?!_next/static|_next/image|api/calendar|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest|woff|woff2|ttf|otf|pdf|map)$).*)",
       has: [{ type: "cookie", key: "sb-gmfqdkbghbxdlxffwfca-auth-token" }],
-      missing: [{ type: "header", key: "next-router-prefetch" }],
     },
     {
       source:
         "/((?!_next/static|_next/image|api/calendar|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest|woff|woff2|ttf|otf|pdf|map)$).*)",
       has: [{ type: "cookie", key: "sb-gmfqdkbghbxdlxffwfca-auth-token.0" }],
-      missing: [{ type: "header", key: "next-router-prefetch" }],
     },
   ],
 };
