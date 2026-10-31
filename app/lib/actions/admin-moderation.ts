@@ -20,6 +20,9 @@ const NOT_AUTHORIZED = { success: false, error: "Not authorized" } as const;
 function refreshPublic() {
   revalidatePath("/resources");
   revalidatePath("/articles");
+  // The detail pages are cached too; moderation is rare, so drop them all.
+  revalidatePath("/resources/[slug]", "page");
+  revalidatePath("/articles/[slug]", "page");
   revalidateTag("resources", "max");
   revalidatePath("/admin/content");
 }

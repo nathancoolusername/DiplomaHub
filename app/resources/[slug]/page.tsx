@@ -2,26 +2,39 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { cache } from "react";
-import { getResourceDetail as fetchResourceDetail } from "@/app/lib/actions/resources";
-import { getComments } from "@/app/lib/actions/comments";
-import { getCurrentUserId } from "@/app/lib/get-current-user";
-import { isAdmin } from "@/app/lib/admin";
+import { getPublishedResource, getPublicComments } from "@/app/lib/public-content";
 import { Calendar, FileText, BadgeCheck, Pencil } from "lucide-react";
-import Comments from "@/components/detailed-articles/comments";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { SubjectTags, ResourceTypeTag } from "@/components/pills";
 import { DownloadButton } from "@/components/resources/DownloadButton";
 import { DeleteResourceButton } from "@/components/resources/DeleteResourceButton";
-import { LikeButton } from "@/components/likeButton";
-import { SaveButton } from "@/components/saveButton";
+import {
+  OwnerOnly,
+  ViewerComments,
+  ViewerLikeButton,
+  ViewerProvider,
+  ViewerSaveButton,
+} from "@/components/detail/ViewerActions";
 import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
 import { JsonLd } from "@/components/JsonLd";
 
+// Rendered once and served from the cache to everyone, rebuilt at most hourly
+// and straight away when the resource is edited, deleted or commented on
+// (revalidatePath in the actions). Nothing here may depend on the visitor:
+// liked/saved, owner controls and the comment box are handled in the browser
+// by components/detail/ViewerActions.tsx. Download and like counts can lag by
+// up to the hour.
+export const revalidate = 3600;
+
+// Empty = no resources built at deploy time; each is built on its first visit.
+export async function generateStaticParams() {
+  return [];
+}
+
 // generateMetadata and the page both need this resource — React's cache()
-// dedupes them into one fetch per request instead of running every query
-// (and auth check) twice.
-const getResourceDetail = cache(fetchResourceDetail);
+// dedupes them into one fetch per render.
+const getResourceDetail = cache(getPublishedResource);
 
 const months = [
   "Jan",
@@ -44,10 +57,10 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const result = await getResourceDetail(slug);
-  if (!result.success) return {};
+  const resource = await getResourceDetail(slug);
+  if (!resource) return {};
 
-  const { title, description } = result.data;
+  const { title, description } = resource;
   return {
     title,
     description: description || `${title} — a resource shared on DiplomaHub.`,
@@ -62,21 +75,10 @@ export default async function resourcePage({
 }) {
   const { slug } = await params;
 
-  const [result, currentUserId] = await Promise.all([
-    getResourceDetail(slug),
-    getCurrentUserId(),
-  ]);
+  const resource = await getResourceDetail(slug);
+  if (!resource) notFound();
 
-  if (!result.success) {
-    notFound();
-  }
-  const resource = result.data;
-
-  const commentsResult = await getComments({ resource_id: resource.id });
-  const comments = commentsResult.success ? commentsResult.data : [];
-
-  const isOwner =
-    currentUserId === resource.author_id || isAdmin(currentUserId);
+  const comments = await getPublicComments({ resource_id: resource.id });
 
   const createdAt = new Date(resource.created_at);
   const month = months[createdAt.getMonth()];
@@ -121,7 +123,7 @@ export default async function resourcePage({
   };
 
   return (
-    <>
+    <ViewerProvider target={{ resource_id: resource.id }} authorId={resource.author_id}>
       <JsonLd data={resourceJsonLd} />
       <div className="flex flex-col px-md md:px-10 xl:px-50 py-10  gap-gutter bg-surface-container-low">
         <Breadcrumb
@@ -210,18 +212,16 @@ export default async function resourcePage({
                         kind="link"
                       />
                     )}
-                    <LikeButton
+                    <ViewerLikeButton
                       target={{ resource_id: resource.id }}
-                      initiallyLiked={resource.isLiked ?? false}
                       initialCount={resource.like_count}
                       size={30}
                       className="text-on-surface-variant transition hover:text-like hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-transparent border-b-1 flex flex-row items-center"
                       activeColor="var(--color-like)"
                     />
                     <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row  items-center ">
-                      <SaveButton
+                      <ViewerSaveButton
                         target={{ resource_id: resource.id }}
-                        initiallySaved={resource.isSaved ?? false}
                         size={36}
                         className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
                       />
@@ -230,27 +230,23 @@ export default async function resourcePage({
                         className="rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
                       />
                     </div>
-                    {isOwner && (
+                    <OwnerOnly>
                       <Link href={`/resources/${resource.id}/edit`}>
                         <div className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer">
                           <Pencil size={30} />
                         </div>
                       </Link>
-                    )}
-                    {isOwner && (
                       <DeleteResourceButton resourceId={resource.id} />
-                    )}
+                    </OwnerOnly>
                   </div>
                 </div>
               </div>
             </div>
 
-            <Comments
+            <ViewerComments
               target={{ resource_id: resource.id }}
               initialItems={comments}
               path={`/resources/${resource.id}`}
-              isLoggedIn={!!currentUserId}
-              currentUserId={currentUserId ?? null}
             />
           </div>
 
@@ -303,6 +299,6 @@ export default async function resourcePage({
           </div>
         </div>
       </div>
-    </>
+    </ViewerProvider>
   );
 }

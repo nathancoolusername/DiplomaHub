@@ -1,5 +1,5 @@
 // lib/get-current-user.ts
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createClient } from "@/app/lib/supabase/server";
 import { cache } from "react";
 import type { UserProfile } from "@/app/lib/types";
@@ -9,8 +9,21 @@ import type { UserProfile } from "@/app/lib/types";
 // header — reading it here is free (no network call), unlike getCurrentUser()
 // below. Use this whenever only the id (or just "is someone logged in?") is
 // needed, which covers nearly every call site in the app.
+//
+// proxy.ts only runs (and overwrites the header) when a Supabase auth cookie
+// is present and the request isn't a prefetch — its matcher skips everything
+// else so logged-out visitors, bots and prefetches cost no proxy invocation.
+// On those skipped requests nothing strips a client-sent header, so it's only
+// trusted under the exact same conditions as the matcher. Keep the two in sync.
+const AUTH_COOKIES = [
+  "sb-gmfqdkbghbxdlxffwfca-auth-token",
+  "sb-gmfqdkbghbxdlxffwfca-auth-token.0",
+];
+
 export const getCurrentUserId = cache(async (): Promise<string | null> => {
-  const headersList = await headers();
+  const [headersList, cookieStore] = await Promise.all([headers(), cookies()]);
+  if (headersList.has("next-router-prefetch")) return null;
+  if (!AUTH_COOKIES.some((name) => cookieStore.has(name))) return null;
   return headersList.get("x-verified-user-id");
 });
 
