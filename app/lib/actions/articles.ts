@@ -72,50 +72,17 @@ function validateArticleContent(formData: FormData) {
   };
 }
 
-export async function getArticle(slug: string): Promise<ActionResult<Article>> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-  const { data, error } = await supabase
-    .from("articles")
-    .select("*, author:public_profiles(display_name, is_pro, ib_year, avatar_url)")
-    .eq("slug", slug)
-    .eq("published", true)
-    .single();
-
-  if (error) return { success: false, error: error.message };
-
-  const admin = createAdminClient();
-  admin.rpc("increment_view_count", { target_article_id: data.id }).then();
-
-  const article = {
-    ...data,
-    author: Array.isArray(data.author) ? data.author[0] : data.author,
-  };
-
-  if (!user) {
-    return { success: true, data: { ...article, isLiked: false, isSaved: false } };
-  }
-
-  const [{ data: like }, { data: save }] = await Promise.all([
-    supabase
-      .from("likes")
-      .select("id")
-      .match({ user_id: user.id, article_id: data.id })
-      .maybeSingle(),
-    supabase
-      .from("saved_items")
-      .select("id")
-      .match({ user_id: user.id, article_id: data.id })
-      .maybeSingle(),
-  ]);
-
-  return {
-    success: true,
-    data: { ...article, isLiked: !!like, isSaved: !!save },
-  };
+// Called by ArticleViewCounter once per page view: the article page is
+// cached and shared, so it can't count views while rendering any more.
+// increment_view_count also gives the author a point, so it stays
+// service-role only and is only reachable through this action.
+export async function recordArticleView(articleId: string): Promise<void> {
+  if (typeof articleId !== "string" || !UUID_RE.test(articleId)) return;
+  await createAdminClient().rpc("increment_view_count", {
+    target_article_id: articleId,
+  });
 }
 
 export type ArticleSort = "newest" | "oldest" | "most_liked" | "most_viewed";
@@ -285,6 +252,7 @@ export async function deleteArticle(
     return { success: false, error: "You can only delete your own articles" };
 
   revalidatePath("/articles");
+  revalidatePath("/articles/[slug]", "page");
   return { success: true, data: null };
 }
 

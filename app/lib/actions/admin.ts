@@ -590,6 +590,7 @@ export async function setResourcePublished(
   if (error) return { success: false, error: error.message };
   revalidatePath("/admin/content");
   revalidatePath("/resources");
+  revalidatePath(`/resources/${resourceId}`);
   revalidateTag("resources", "max");
   return { success: true, data: null };
 }
@@ -609,6 +610,7 @@ export async function setArticlePublished(
   if (error) return { success: false, error: error.message };
   revalidatePath("/admin/content");
   revalidatePath("/articles");
+  revalidatePath("/articles/[slug]", "page");
   return { success: true, data: null };
 }
 

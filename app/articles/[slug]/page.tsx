@@ -3,28 +3,40 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { cache } from "react";
-import { getArticle as fetchArticle } from "@/app/lib/actions/articles";
+import { getPublishedArticle, getPublicComments } from "@/app/lib/public-content";
 import { stripHtml } from "@/app/lib/stripHtml";
-import { getComments } from "@/app/lib/actions/comments";
-import { getCurrentUserId } from "@/app/lib/get-current-user";
-import { isAdmin } from "@/app/lib/admin";
 import { Calendar, Eye, Pencil } from "lucide-react";
-import Comments from "@/components/detailed-articles/comments";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { DiplomaProBadge } from "@/components/DiplomaProBadge";
 import { DeleteArticleButton } from "@/components/articles/DeleteArticleButton";
 import { estimateReadTime } from "@/app/lib/readTime";
-import { LikeButton } from "@/components/likeButton";
-import { SaveButton } from "@/components/saveButton";
+import {
+  ArticleViewCounter,
+  OwnerOnly,
+  ViewerComments,
+  ViewerLikeButton,
+  ViewerProvider,
+  ViewerSaveButton,
+} from "@/components/detail/ViewerActions";
 import { ShareButton } from "@/components/shareButton";
 import { Avatar } from "@/components/avatar";
 import { JsonLd } from "@/components/JsonLd";
 
+// Rendered once and served from the cache to everyone, rebuilt at most hourly
+// and straight away when the article is edited, deleted or commented on
+// (revalidatePath in the actions). Nothing here may depend on the visitor:
+// liked/saved, owner controls, the comment box and the view count are all
+// handled in the browser by components/detail/ViewerActions.tsx.
+export const revalidate = 3600;
+
+// Empty = no articles built at deploy time; each is built on its first visit.
+export async function generateStaticParams() {
+  return [];
+}
+
 // generateMetadata and the page both need this article — React's cache()
-// dedupes them into one fetch per request. Without it every query ran
-// twice, and getArticle's increment_view_count fired twice, doubling each
-// article's view count.
-const getArticle = cache(fetchArticle);
+// dedupes them into one fetch per render.
+const getArticle = cache(getPublishedArticle);
 
 const months = [
   "Jan",
@@ -47,10 +59,10 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const result = await getArticle(slug);
-  if (!result.success) return {};
+  const article = await getArticle(slug);
+  if (!article) return {};
 
-  const { title, content } = result.data;
+  const { title, content } = article;
   return {
     title,
     description: stripHtml(content).slice(0, 160),
@@ -64,19 +76,10 @@ export default async function ArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [result, currentUserId] = await Promise.all([
-    getArticle(slug),
-    getCurrentUserId(),
-  ]);
+  const article = await getArticle(slug);
+  if (!article) notFound();
 
-  if (!result.success) notFound();
-  const article = result.data;
-
-  const commentsResult = await getComments({ article_id: article.id });
-  const comments = commentsResult.success ? commentsResult.data : [];
-
-  const isOwner =
-    currentUserId === article.author_id || isAdmin(currentUserId);
+  const comments = await getPublicComments({ article_id: article.id });
 
   const createdAt = new Date(article.created_at);
   const month = months[createdAt.getMonth()];
@@ -108,8 +111,9 @@ export default async function ArticlePage({
   };
 
   return (
-    <>
+    <ViewerProvider target={{ article_id: article.id }} authorId={article.author_id}>
       <JsonLd data={articleJsonLd} />
+      <ArticleViewCounter articleId={article.id} />
       <div className="flex flex-col px-md md:px-10 xl:px-100 py-10  gap-gutter bg-surface-container-lowest">
         <Breadcrumb
           parentLabel="articles"
@@ -168,9 +172,8 @@ export default async function ArticlePage({
 
         <div className=" pt-md flex flex-row flex-wrap gap-y-sm">
           <div className="flex flex-row items-center">
-            <LikeButton
+            <ViewerLikeButton
               target={{ article_id: article.id }}
-              initiallyLiked={article.isLiked ?? false}
               initialCount={article.like_count}
               size={30}
               className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer hover:border-outline-variant border-transparent border-b-1 flex flex-row items-center"
@@ -183,9 +186,8 @@ export default async function ArticlePage({
             </p>
           </div>
           <div className="ml-auto text-on-surface-variant rounded-xl flex flex-row gap-md items-center">
-            <SaveButton
+            <ViewerSaveButton
               target={{ article_id: article.id }}
-              initiallySaved={article.isSaved ?? false}
               size={36}
               className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
             />
@@ -193,25 +195,23 @@ export default async function ArticlePage({
               size={36}
               className="rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
             />
-            {isOwner && (
+            <OwnerOnly>
               <Link href={`/articles/${article.slug}/edit`}>
                 <div className="text-on-surface-variant transition hover:text-primary hover:bg-surface-container p-sm rounded-xl cursor-pointer">
                   <Pencil size={30} />
                 </div>
               </Link>
-            )}
-            {isOwner && <DeleteArticleButton articleId={article.id} />}
+              <DeleteArticleButton articleId={article.id} />
+            </OwnerOnly>
           </div>
         </div>
 
-        <Comments
+        <ViewerComments
           target={{ article_id: article.id }}
           initialItems={comments}
           path={`/articles/${article.slug}`}
-          isLoggedIn={!!currentUserId}
-          currentUserId={currentUserId ?? null}
         />
       </div>
-    </>
+    </ViewerProvider>
   );
 }

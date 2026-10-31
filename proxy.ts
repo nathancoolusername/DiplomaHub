@@ -22,33 +22,6 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     return NextResponse.redirect(home);
   }
 
-  // Link prefetches (hover/viewport) only ever fetch the static loading
-  // shell for dynamic routes like ours — the real, personalized content
-  // streams in via a separate non-prefetch request when the user actually
-  // navigates, which still runs this proxy and gets verified normally. So
-  // there's no point paying supabase.auth.getUser()'s network round trip
-  // to Supabase's Auth server for a prefetch: it can't affect what the
-  // user ends up seeing, and skipping it here was the single biggest
-  // source of "site feels slow while logged in" — every hovered/visible
-  // link was firing an Auth-server round trip per request.
-  if (request.headers.get("next-router-prefetch")) {
-    requestHeaders.delete("x-verified-user-id");
-    return NextResponse.next({ request: { headers: requestHeaders } });
-  }
-
-  // Logged-out visitors and bots carry no Supabase auth cookie, so there's
-  // no session to verify — skip building a client and calling getClaims()
-  // entirely. The header still has to be stripped here (not just left
-  // unset) so a client can't send its own x-verified-user-id and have
-  // getCurrentUserId() trust it downstream.
-  const hasAuthCookie = request.cookies
-    .getAll()
-    .some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
-  if (!hasAuthCookie) {
-    requestHeaders.delete("x-verified-user-id");
-    return NextResponse.next({ request: { headers: requestHeaders } });
-  }
-
   let pendingCookies: { name: string; value: string; options: CookieOptions }[] =
     [];
 
@@ -144,15 +117,32 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   return response;
 }
 
-// Only excludes paths whose server code never reads x-verified-user-id —
-// skipping this proxy anywhere getCurrentUserId() is used would let a
-// client-supplied header through unstripped. That's also why prefetches
-// are handled by the early return above rather than excluded here: their
-// responses render pages that do call getCurrentUserId(). The calendar
-// feed authenticates by its own URL token, and sitemap/robots/static
-// files don't touch the session at all.
+// Vercel checks `has`/`missing` while routing, before invoking anything, so
+// requests that fail them never start this function. Each run of the proxy
+// was costing CPU even when it immediately returned. It's only invoked for:
+//  - requests carrying the Supabase auth cookie (one entry for the plain name,
+//    one for the chunked `.0` name used when the session is large). Logged-out
+//    visitors and bots, including the static signed-out `/`, skip it.
+//  - non-prefetches. Prefetches only fetch the loading shell for our dynamic
+//    routes; the real navigation still comes through here.
+// Skipped requests don't get a client-sent x-verified-user-id stripped, so
+// getCurrentUserId() (app/lib/get-current-user.ts) only trusts that header
+// under these same conditions — keep the cookie names and the prefetch header
+// in sync with it. The calendar feed authenticates by its own URL token, and
+// sitemap/robots/static files don't touch the session at all.
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|api/calendar|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest|woff|woff2|ttf|otf|pdf|map)$).*)",
+    {
+      source:
+        "/((?!_next/static|_next/image|api/calendar|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest|woff|woff2|ttf|otf|pdf|map)$).*)",
+      has: [{ type: "cookie", key: "sb-gmfqdkbghbxdlxffwfca-auth-token" }],
+      missing: [{ type: "header", key: "next-router-prefetch" }],
+    },
+    {
+      source:
+        "/((?!_next/static|_next/image|api/calendar|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest|woff|woff2|ttf|otf|pdf|map)$).*)",
+      has: [{ type: "cookie", key: "sb-gmfqdkbghbxdlxffwfca-auth-token.0" }],
+      missing: [{ type: "header", key: "next-router-prefetch" }],
+    },
   ],
 };
