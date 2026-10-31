@@ -11,10 +11,11 @@ import type { UserProfile } from "@/app/lib/types";
 // needed, which covers nearly every call site in the app.
 //
 // proxy.ts only runs (and overwrites the header) when a Supabase auth cookie
-// is present and the request isn't a prefetch — its matcher skips everything
-// else so logged-out visitors, bots and prefetches cost no proxy invocation.
-// On those skipped requests nothing strips a client-sent header, so it's only
-// trusted under the exact same conditions as the matcher. Keep the two in sync.
+// is present — its matcher skips everything else so logged-out visitors and
+// bots cost no proxy invocation. On those skipped requests nothing strips a
+// client-sent header, so it's only trusted when the cookie is there too. Keep
+// the cookie names in sync with the matcher. (Prefetches do run the proxy,
+// which strips the header for them; the check below is belt and braces.)
 const AUTH_COOKIES = [
   "sb-gmfqdkbghbxdlxffwfca-auth-token",
   "sb-gmfqdkbghbxdlxffwfca-auth-token.0",
