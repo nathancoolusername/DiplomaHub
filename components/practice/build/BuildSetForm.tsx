@@ -147,6 +147,12 @@ export function BuildSetForm({
       });
       return;
     }
+    // Saved (or shared) from these exact settings: play that set, not a fresh
+    // pick, so you get the same questions as anyone you shared the code with.
+    if (savedFor?.key === settingsKey) {
+      router.push(links.play(savedFor.setId));
+      return;
+    }
     if (!cut && writtenRemaining !== null && preview && preview.writtenInSet > writtenRemaining) {
       setDialog("limit");
       return;
