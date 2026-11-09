@@ -6,7 +6,7 @@ export const SUBJECTS = [
   "Psychology", "Geography", "History", "Computer Science", "ESS", "English", "TOK",
 ] as const;
 export type Subject = (typeof SUBJECTS)[number];
-/** A group may also mix subjects (e.g. "___ cycle": Krebs, Business, Carbon…). */
+/** A group may also mix subjects (a "___ X" group whose words come from different subjects). */
 export const GROUP_SUBJECTS = [...SUBJECTS, "Mixed"] as const;
 export type GroupSubject = (typeof GROUP_SUBJECTS)[number];
 
