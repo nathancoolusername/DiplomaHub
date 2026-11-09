@@ -2,6 +2,7 @@
 import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { ResendConfirmationButton } from "@/components/profile/ReconfirmButton";
+import { HideToggle } from "@/components/leaderboard/HideToggle";
 import {
   getCurrentUserProfile,
   getCurrentUser,
@@ -34,6 +35,17 @@ export default async function ProfilePage() {
       )}
 
       <ProfileForm profile={profile} email={profile.email} />
+
+      <section className="flex flex-col gap-sm rounded-lg border border-outline-variant bg-surface-container-lowest p-md">
+        <div>
+          <h2 className="font-serif font-semibold text-headline-sm text-on-surface">Leaderboards</h2>
+          <p className="text-body-md text-on-surface-variant">
+            Hide your name from every leaderboard (practice, contribution and Forty-Five). You still see your own scores and stats.
+          </p>
+        </div>
+        <HideToggle hidden={!!profile.hide_from_leaderboard} />
+      </section>
+
     </div>
   );
 }

@@ -17,6 +17,14 @@ export type Announcement = {
 
 export const ANNOUNCEMENTS: Announcement[] = [
   {
+    id: "news-forty-five",
+    title: "New: Forty-Five, the daily puzzle",
+    body: "16 words from across the IB hide 4 groups of 4. One free puzzle a day at 00:00 UTC, with a daily leaderboard. Can you score 45?",
+    href: "/forty-five",
+    cta: "Play today's puzzle",
+    until: "2027-01-31",
+  },
+  {
     id: "news-chemistry",
     title: "Chemistry is here",
     body: "Chemistry questions are now in Practice, for Paper 1A, Paper 1B and Paper 2, SL and HL.",
