@@ -48,9 +48,14 @@ export async function signUp(
   redirect("/profile/edit");
 }
 
+// Returns where to go instead of redirecting: the browser then does a full
+// page load there. A server-action redirect renders the target inside this
+// same request, which went through proxy.ts before the session cookie
+// existed, so "/" came back as the cached signed-out homepage (and stayed in
+// the client router cache) until a refresh.
 export async function signIn(
   formData: FormData,
-): Promise<ActionResult<null> | void> {
+): Promise<ActionResult<{ next: string }>> {
   const rateLimit = await checkRateLimit("auth", await getClientIp());
   if (!rateLimit.allowed) return { success: false, error: rateLimit.error };
 
@@ -63,7 +68,7 @@ export async function signIn(
 
   if (error) return { success: false, error: error.message };
   const safeNext = isSafeNext(formData.get("next") as string | null);
-  redirect(safeNext ?? "/");
+  return { success: true, data: { next: safeNext ?? "/" } };
 }
 
 export async function signInWithGoogle(formData: FormData) {

@@ -5,5 +5,7 @@
 export function isSafeNext(next: string | null | undefined): string | null {
   if (!next) return null;
   if (!next.startsWith("/") || next.startsWith("//")) return null;
+  // Browsers read "\" as "/" (so "/\evil.com" is "//evil.com"); no control characters either.
+  if (/[\\\u0000-\u001f]/.test(next)) return null;
   return next;
 }
