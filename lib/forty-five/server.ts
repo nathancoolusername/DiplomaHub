@@ -4,7 +4,7 @@ import { cache } from "react";
 import { createAdminClient } from "@/app/lib/supabase/admin";
 import { gameDay, nextResetAt } from "./dates.ts";
 import { statsFrom } from "./stats.ts";
-import { apply, evaluate, shuffledWords, type GameState, type Group, type GuessRecord } from "./engine.ts";
+import { apply, evaluate, replay, shuffledWords, type GameState, type Group, type GuessRecord } from "./engine.ts";
 import type { AllTimeRow, BoardRow, GuessResponse, MyStats, PlayView, TodayPuzzle } from "./types.ts";
 import { guestGuess, toPublic, view } from "./view.ts";
 
@@ -223,3 +223,75 @@ export async function getMyStats(userId: string): Promise<MyStats> {
   return statsFrom(games, gameDay());
 }
 
+
+// ── Likes and guest finishes (migration 36) ──────────────────────────────
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const isGuestId = (x: unknown): x is string => typeof x === "string" && UUID.test(x);
+
+/** Counts a finished guest game for insights. The first finish per browser per puzzle wins; errors never reach the player. */
+export async function recordGuestFinish(puzzleId: string, guestId: string, play: PlayView): Promise<void> {
+  if (!play.finished || play.score == null) return;
+  const { error } = await admin()
+    .from("forty_five_guest_finishes")
+    .upsert(
+      { puzzle_id: puzzleId, guest_id: guestId, score: play.score, mistakes: play.mistakes, groups_found: play.solved.length, guesses: play.guesses },
+      { onConflict: "puzzle_id,guest_id", ignoreDuplicates: true },
+    );
+  if (error) console.error("forty-five guest finish", error.message);
+}
+
+export type Reaction = "like" | "dislike" | null;
+type Who = { userId: string } | { guestId: string; log: string[][] };
+
+/**
+ * 👍 / 👎 on today's puzzle, or null to take it back. Only after finishing it:
+ * a signed-in play with finished_at, or a guest whose guess log replays to a
+ * finished game (which also records their finish, if the guess route didn't).
+ */
+export async function setReaction(who: Who, puzzleId: string, reaction: Reaction): Promise<"ok" | "no_puzzle" | "not_finished"> {
+  const p = await getTodayPuzzle();
+  if (!p || p.id !== puzzleId) return "no_puzzle";
+  const sb = admin();
+  if ("userId" in who) {
+    const finished = await sb.from("forty_five_plays").select("id").eq("user_id", who.userId).eq("puzzle_id", p.id).not("finished_at", "is", null).maybeSingle();
+    if (finished.error) throw new Error(finished.error.message);
+    if (!finished.data) return "not_finished";
+  } else {
+    const state = replay(p.groups, who.log);
+    if (!state.finished) return "not_finished";
+    await recordGuestFinish(p.id, who.guestId, view(p.groups, state, null));
+  }
+
+  const key = "userId" in who ? { user_id: who.userId } : { guest_id: who.guestId };
+  if (reaction === null) {
+    const del = await sb.from("forty_five_reactions").delete().eq("puzzle_id", p.id).match(key);
+    if (del.error) throw new Error(del.error.message);
+    return "ok";
+  }
+  const liked = reaction === "like";
+  const up = await sb.from("forty_five_reactions").update({ liked, updated_at: new Date().toISOString() }).eq("puzzle_id", p.id).match(key).select("id");
+  if (up.error) throw new Error(up.error.message);
+  if (!up.data?.length) {
+    const ins = await sb.from("forty_five_reactions").insert({ puzzle_id: p.id, ...key, liked });
+    // 23505: a double click inserted first; that row already says the same thing.
+    if (ins.error && ins.error.code !== "23505") throw new Error(ins.error.message);
+  }
+  return "ok";
+}
+
+/** A signed-in player's 👍 / 👎 on today's puzzle (guests remember theirs in the browser). */
+export async function getMyReaction(userId: string): Promise<Reaction> {
+  const p = await getTodayPuzzle();
+  if (!p) return null;
+  const { data } = await admin().from("forty_five_reactions").select("liked").eq("puzzle_id", p.id).eq("user_id", userId).maybeSingle();
+  return data ? (data.liked ? "like" : "dislike") : null;
+}
+
+/** How many players liked today's puzzle (0 until migration 36 runs). */
+export async function getTodayLikes(): Promise<number> {
+  const p = await getTodayPuzzle();
+  if (!p) return 0;
+  const { count, error } = await admin().from("forty_five_reactions").select("id", { count: "exact", head: true }).eq("puzzle_id", p.id).eq("liked", true);
+  return error ? 0 : (count ?? 0);
+}

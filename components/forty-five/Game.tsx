@@ -2,23 +2,41 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, Copy, Shuffle, Trophy, X } from "lucide-react";
+import { Check, Copy, Shuffle, ThumbsDown, ThumbsUp, Trophy, X } from "lucide-react";
 import { FORTY_FIVE } from "@/lib/forty-five/config";
 import { TIERS, type Tier } from "@/lib/forty-five/tiers";
 import type { BoardRow, GuessResponse, MyStats, PlayView, PublicGroup, TodayPuzzle } from "@/lib/forty-five/types";
 import type { GuessRecord } from "@/lib/forty-five/engine";
 import { formatTime } from "@/lib/forty-five/dates";
 
+type Reaction = "like" | "dislike" | null;
+
 type Summary = {
   board: { total: number; rows: BoardRow[] };
   standing: { rank: number | null; hidden: boolean } | null;
   stats: MyStats | null;
+  reaction?: Reaction;
+  likes?: number;
 };
 
 type GuestSave = { log: string[][]; play: PlayView; startedAt: number; finishedAt: number | null };
 
 const EMPTY: PlayView = { guesses: [], mistakes: 0, solved: [], finished: false, won: false, score: null, seconds: null, reveal: null };
 const norm = (w: string) => w.trim().toLowerCase();
+
+/** A random id this browser keeps, so a guest's finish and 👍/👎 count once (insights only; never shown). */
+function guestId(): string | undefined {
+  try {
+    let id = localStorage.getItem("forty-five:guest-id");
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem("forty-five:guest-id", id);
+    }
+    return id;
+  } catch {
+    return undefined;
+  }
+}
 
 /** Phone tile font: long single words shrink a little so they fit a quarter of the screen. */
 function tileFont(word: string): string {
@@ -139,7 +157,7 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
     }
     const body = signedIn
       ? { puzzleId: puzzle.puzzleId, words: selected, expected: play.guesses.length }
-      : { puzzleId: puzzle.puzzleId, words: selected, log: save?.log ?? play.guesses.map((g) => g.words) };
+      : { puzzleId: puzzle.puzzleId, words: selected, log: save?.log ?? play.guesses.map((g) => g.words), guestId: guestId() };
     try {
       const res = await fetch(`${api}/guess`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const r = (await res.json()) as GuessResponse;
@@ -268,7 +286,7 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
         {toast && <span className="inline-block rounded-full bg-on-surface text-surface px-md py-0.5 text-label-md font-semibold">{toast}</span>}
       </div>
 
-      {play.finished && <EndScreen number={puzzle.number} play={play} seconds={seconds} signedIn={signedIn} nextResetAt={puzzle.nextResetAt} api={api} />}
+      {play.finished && <EndScreen puzzleId={puzzle.puzzleId} number={puzzle.number} play={play} seconds={seconds} signedIn={signedIn} nextResetAt={puzzle.nextResetAt} api={api} />}
     </div>
   );
 }
@@ -305,7 +323,7 @@ function Countdown({ to }: { to: string }) {
   return <span className="tabular-nums">{`${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`}</span>;
 }
 
-function EndScreen({ number, play, seconds, signedIn, nextResetAt, api }: { number: number; play: PlayView; seconds: number | null; signedIn: boolean; nextResetAt: string; api: string }) {
+function EndScreen({ puzzleId, number, play, seconds, signedIn, nextResetAt, api }: { puzzleId: string; number: number; play: PlayView; seconds: number | null; signedIn: boolean; nextResetAt: string; api: string }) {
   const [copied, setCopied] = useState(false);
   const [summary, setSummary] = useState<Summary | null>(null);
 
@@ -350,6 +368,7 @@ function EndScreen({ number, play, seconds, signedIn, nextResetAt, api }: { numb
           <Copy size={16} aria-hidden="true" /> {copied ? "Copied!" : "Share result"}
         </button>
       </div>
+      <LikeButtons puzzleId={puzzleId} signedIn={signedIn} api={api} fromServer={summary ? (summary.reaction ?? null) : undefined} likes={summary?.likes} />
       <p className="text-center text-body-md text-on-surface-variant">
         Next puzzle in <Countdown to={nextResetAt} />
       </p>
@@ -402,6 +421,94 @@ function EndScreen({ number, play, seconds, signedIn, nextResetAt, api }: { numb
         {signedIn && summary?.standing?.hidden && <p className="text-label-sm text-on-surface-variant">You&apos;re hidden from leaderboards (change it on the leaderboard page).</p>}
       </div>
     </section>
+  );
+}
+
+function guestLog(puzzleId: string): string[][] {
+  try {
+    return (JSON.parse(localStorage.getItem(`forty-five:${puzzleId}`) ?? "null") as GuestSave | null)?.log ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/** 👍 / 👎 on today's puzzle. Signed in: the server remembers; guests: this browser does. Tap again to take it back. */
+function LikeButtons({ puzzleId, signedIn, api, fromServer, likes }: { puzzleId: string; signedIn: boolean; api: string; fromServer: Reaction | undefined; likes: number | undefined }) {
+  const key = `forty-five:reaction:${puzzleId}`;
+  const [mine, setMine] = useState<Reaction>(null);
+  // The summary's count already includes the player's saved like; adjust it as they change their mind.
+  const [saved, setSaved] = useState<Reaction | undefined>(undefined);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (signedIn) {
+      if (fromServer !== undefined) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from the summary fetch
+        setMine(fromServer);
+        setSaved(fromServer);
+      }
+      return;
+    }
+    try {
+      const s = localStorage.getItem(key);
+      const r: Reaction = s === "like" || s === "dislike" ? s : null;
+      setMine(r);
+      setSaved(r);
+    } catch {}
+  }, [signedIn, fromServer, key]);
+
+  const choose = async (r: "like" | "dislike") => {
+    const before = mine;
+    const next: Reaction = mine === r ? null : r;
+    setMine(next);
+    setFailed(false);
+    try {
+      const res = await fetch(`${api}/react`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ puzzleId, reaction: next, ...(signedIn ? {} : { guestId: guestId(), log: guestLog(puzzleId) }) }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      if (!signedIn) {
+        try {
+          if (next) localStorage.setItem(key, next);
+          else localStorage.removeItem(key);
+        } catch {}
+      }
+    } catch {
+      setMine(before);
+      setFailed(true);
+    }
+  };
+
+  const btn = (r: "like" | "dislike", on: boolean) =>
+    `inline-flex items-center gap-xs rounded-full border px-md py-xs text-label-md font-semibold cursor-pointer transition-colors ${
+      on ? (r === "like" ? "bg-ff-1 text-on-ff-1 border-transparent" : "bg-ff-4 text-on-ff-4 border-transparent") : "border-outline-variant text-on-surface hover:bg-surface-container"
+    }`;
+
+  return (
+    <div className="flex flex-col items-center gap-xs">
+      <p className="text-body-md font-semibold text-on-surface" id="ff-like-q">
+        {mine === "like" ? "Glad you liked it!" : mine === "dislike" ? "Thanks, we'll use that." : "Did you like today's puzzle?"}
+      </p>
+      <div className="flex gap-sm" role="group" aria-labelledby="ff-like-q">
+        <button type="button" onClick={() => choose("like")} aria-pressed={mine === "like"} className={btn("like", mine === "like")}>
+          <ThumbsUp size={16} aria-hidden="true" /> Liked it
+        </button>
+        <button type="button" onClick={() => choose("dislike")} aria-pressed={mine === "dislike"} className={btn("dislike", mine === "dislike")}>
+          <ThumbsDown size={16} aria-hidden="true" /> Not for me
+        </button>
+      </div>
+      {likes !== undefined && saved !== undefined && (() => {
+        const total = Math.max(0, likes - (saved === "like" ? 1 : 0) + (mine === "like" ? 1 : 0));
+        return (
+          <p className="text-label-md text-on-surface-variant tabular-nums">
+            {total === 0 ? "Be the first to like today's puzzle." : `${total.toLocaleString()} ${total === 1 ? "player likes" : "players like"} today's puzzle`}
+          </p>
+        );
+      })()}
+      {failed && <p className="text-label-sm text-on-surface-variant">Couldn&apos;t save that. Try again.</p>}
+    </div>
   );
 }
 
