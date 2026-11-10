@@ -15,6 +15,8 @@ export type PlayView = {
   won: boolean;
   score: number | null;
   seconds: number | null;
+  /** When the clock started (database time; signed in only), for the live timer. */
+  startedAt?: string | null;
   /** Every group, only when finished. */
   reveal: PublicGroup[] | null;
 };

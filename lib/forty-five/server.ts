@@ -59,19 +59,43 @@ const secondsOf = (row: PlayRow) => (row.finished_at ? Math.max(0, Math.round((D
 
 const PLAY_COLS = "id, guess_count, guesses, mistakes, groups_found, score, started_at, finished_at";
 
-/** Opens today's puzzle for a signed-in student: the first call starts the clock, later ones change nothing. */
-export async function startPlay(userId: string): Promise<{ puzzle: TodayPuzzle; play: PlayView } | null> {
+export type StartResult = {
+  puzzle: TodayPuzzle;
+  /** Null when peeking at a puzzle the student hasn't started. */
+  play: PlayView | null;
+  /** Has played Forty-Five before (another puzzle), so the intro can be short. */
+  returning: boolean;
+  /** Database-ish "now" for the live timer, so a wrong device clock doesn't skew it. */
+  serverNow: string;
+};
+
+/**
+ * Today's puzzle for a signed-in student. `begin` false only peeks (the page
+ * shows the intro first); `begin` true starts the clock on the first call,
+ * and later calls change nothing.
+ */
+export async function startPlay(userId: string, begin: boolean): Promise<StartResult | null> {
   const p = await getTodayPuzzle();
   if (!p) return null;
   const sb = admin();
-  const ins = await sb
-    .from("forty_five_plays")
-    .upsert({ user_id: userId, puzzle_id: p.id, counts_for_leaderboard: true }, { onConflict: "user_id,puzzle_id", ignoreDuplicates: true });
-  if (ins.error) throw new Error(ins.error.message);
-  const { data, error } = await sb.from("forty_five_plays").select(PLAY_COLS).eq("user_id", userId).eq("puzzle_id", p.id).single();
+  if (begin) {
+    const ins = await sb
+      .from("forty_five_plays")
+      .upsert({ user_id: userId, puzzle_id: p.id, counts_for_leaderboard: true }, { onConflict: "user_id,puzzle_id", ignoreDuplicates: true });
+    if (ins.error) throw new Error(ins.error.message);
+  }
+  const [{ data, error }, others] = await Promise.all([
+    sb.from("forty_five_plays").select(PLAY_COLS).eq("user_id", userId).eq("puzzle_id", p.id).maybeSingle(),
+    sb.from("forty_five_plays").select("id", { count: "exact", head: true }).eq("user_id", userId).neq("puzzle_id", p.id),
+  ]);
   if (error) throw new Error(error.message);
-  const row = data as PlayRow;
-  return { puzzle: publicPuzzle(p), play: view(p.groups, stateOf(row), secondsOf(row)) };
+  const row = data as PlayRow | null;
+  return {
+    puzzle: publicPuzzle(p),
+    play: row ? view(p.groups, stateOf(row), secondsOf(row), row.started_at) : null,
+    returning: (others.count ?? 0) > 0,
+    serverNow: new Date().toISOString(),
+  };
 }
 
 /** A signed-in guess. `expected` is how many guesses the browser thinks are recorded (double-submits and other tabs lose). */
@@ -84,7 +108,7 @@ export async function guessSigned(userId: string, puzzleId: string, words: strin
   if (!data) return { ok: false, reason: "stale" }; // never started: the page calls start first
   const row = data as PlayRow;
   const state = stateOf(row);
-  const current = view(p.groups, state, secondsOf(row));
+  const current = view(p.groups, state, secondsOf(row), row.started_at);
   if (row.finished_at) return { ok: false, reason: "finished", play: current };
   if (row.guess_count !== expected) return { ok: false, reason: "stale", play: current };
 
@@ -109,7 +133,7 @@ export async function guessSigned(userId: string, puzzleId: string, words: strin
   if (up.error) throw new Error(up.error.message);
   if (!up.data) return { ok: false, reason: "stale", play: current };
   const saved = up.data as PlayRow;
-  return { ok: true, result: ev.result, ...(ev.group ? { group: toPublic(ev.group) } : {}), play: view(p.groups, next, secondsOf(saved)) };
+  return { ok: true, result: ev.result, ...(ev.group ? { group: toPublic(ev.group) } : {}), play: view(p.groups, next, secondsOf(saved), saved.started_at) };
 }
 
 /** A guest guess. Guests keep their own log in localStorage and send it each time; nothing is stored. */
