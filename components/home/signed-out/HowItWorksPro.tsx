@@ -45,7 +45,7 @@ export default function HowItWorksPro() {
         <h2 id="how-heading" className="font-serif font-bold text-headline-lg text-on-surface text-center">
           How it works
         </h2>
-        <ol className="grid md:grid-cols-3 gap-lg">
+        <ol className="grid lg:grid-cols-3 gap-lg">
           <Step
             n={1}
             icon={<ListChecks size={18} />}

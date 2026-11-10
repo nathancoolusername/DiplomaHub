@@ -23,7 +23,7 @@ export default function About() {
         <h1 className="text-display-lg font-serif font-bold">
           Empowering every IB student through shared wisdom.
         </h1>
-        <p className="text-headline-md text-on-surface-variant text-center w-full md:w-300">
+        <p className="text-headline-md text-on-surface-variant text-center w-full max-w-300">
           DiplomaHub is the home for the next generation of global thinkers.
           We&apos;ve built a space where students and educators walk together,
           transforming the lifelong IB learner journey into a collaborative
@@ -142,7 +142,7 @@ export default function About() {
         <h2 className="text-display-lg font-serif font-bold text-on-primary">
           Ready to start your journey?
         </h2>
-        <p className="text-headline-md text-on-primary text-center w-full md:w-300">
+        <p className="text-headline-md text-on-primary text-center w-full max-w-300">
           Join other students and teachers who are redefining academic
           excellence through collaboration..
         </p>
