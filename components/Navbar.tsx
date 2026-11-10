@@ -56,6 +56,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
                   </Link>
                 );
               })}
+              <FortyFiveLink active={pathname === "/forty-five"} />
             </nav>
           </div>
 
@@ -96,6 +97,15 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
                 </Link>
               );
             })}
+            <Link
+              href="/forty-five"
+              onClick={() => setMenuOpen(false)}
+              className={`px-lg py-md text-body-md font-semibold transition-colors flex items-center gap-sm ${
+                pathname === "/forty-five" ? "text-primary bg-surface-container-low" : "text-on-surface hover:text-primary hover:bg-surface-container-low"
+              }`}
+            >
+              <FortyFiveMark /> Forty-Five <span className="text-label-sm font-normal text-on-surface-variant">daily puzzle</span>
+            </Link>
             <div className="px-lg py-md flex items-center justify-between gap-md border-t border-outline-variant">
               <span className="text-body-md text-on-surface-variant">Theme</span>
               <ThemeSwitcher />
@@ -104,5 +114,32 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
         )}
       </header>
     </>
+  );
+}
+
+/** Four tier-coloured squares: the Forty-Five mark. */
+function FortyFiveMark() {
+  return (
+    <span aria-hidden="true" className="grid grid-cols-2 gap-[2px] shrink-0">
+      <span className="h-[6px] w-[6px] rounded-[1px] bg-ff-1" />
+      <span className="h-[6px] w-[6px] rounded-[1px] bg-ff-2" />
+      <span className="h-[6px] w-[6px] rounded-[1px] bg-ff-3" />
+      <span className="h-[6px] w-[6px] rounded-[1px] bg-ff-4" />
+    </span>
+  );
+}
+
+/** Highlighted link to the daily puzzle (desktop bar). */
+function FortyFiveLink({ active }: { active: boolean }) {
+  return (
+    <Link
+      href="/forty-five"
+      className={`-my-1 hidden lg:inline-flex items-center gap-xs whitespace-nowrap rounded-full border px-sm py-1 text-body-md font-semibold transition-colors ${
+        active ? "border-primary bg-primary-fixed text-primary" : "border-outline-variant text-on-surface hover:border-primary hover:text-primary"
+      }`}
+    >
+      <FortyFiveMark />
+      Forty-Five
+    </Link>
   );
 }

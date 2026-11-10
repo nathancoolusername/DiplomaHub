@@ -9,4 +9,5 @@ export async function setLeaderboardHiddenAction(hidden: boolean): Promise<void>
   revalidatePath("/leaderboard");
   revalidatePath("/practice");
   revalidatePath("/");
+  revalidatePath("/profile/edit");
 }

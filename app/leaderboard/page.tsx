@@ -5,10 +5,11 @@ import { getContributionBoard, getLeaderboard, getMyContribution, getMyStanding 
 import { getCurrentUserId } from "@/app/lib/get-current-user";
 import { Avatar } from "@/components/avatar";
 import { HideToggle } from "@/components/leaderboard/HideToggle";
+import { FortyFiveBoard } from "@/components/leaderboard/FortyFiveBoard";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
-  description: "Who's practising most on DiplomaHub this week and of all time, and who has shared the most with the community.",
+  description: "Who's practising most on DiplomaHub this week and of all time, who has shared the most, and today's Forty-Five puzzle scores.",
   alternates: { canonical: "/leaderboard" },
 };
 
@@ -18,11 +19,12 @@ type Props = { searchParams: Promise<{ period?: string; page?: string }> };
 
 const MEDALS = ["bg-[#f5c542] text-[#3d2e00]", "bg-[#c9d1dc] text-[#25303d]", "bg-[#d99a5b] text-[#3a2105]"];
 
-type Board = LeaderboardPeriod | "contribution";
+type Board = LeaderboardPeriod | "contribution" | "forty-five" | "forty-five-all";
 const TABS: { id: Board; label: string }[] = [
   { id: "week", label: "This week" },
   { id: "all", label: "All time" },
   { id: "contribution", label: "Contribution" },
+  { id: "forty-five", label: "Forty-Five" },
 ];
 
 // Practice leaderboard: this week (resets Monday 00:00 UTC) or all time; and
@@ -30,8 +32,18 @@ const TABS: { id: Board; label: string }[] = [
 // students also see their own standing and can hide themselves (from all three).
 export default async function Leaderboard({ searchParams }: Props) {
   const sp = await searchParams;
-  const tab: Board = sp.period === "all" ? "all" : sp.period === "contribution" ? "contribution" : "week";
+  const tab: Board =
+    sp.period === "all" || sp.period === "contribution" || sp.period === "forty-five" || sp.period === "forty-five-all" ? sp.period : "week";
   if (tab === "contribution") return <ContributionBoard page={Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1)} />;
+  if (tab === "forty-five" || tab === "forty-five-all")
+    return (
+      <FortyFiveBoard
+        view={tab === "forty-five" ? "daily" : "alltime"}
+        page={Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1)}
+        tabs={<BoardTabs current="forty-five" />}
+        href={(v, n) => boardHref(v === "daily" ? "forty-five" : "forty-five-all", n)}
+      />
+    );
   const period: LeaderboardPeriod = tab;
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
   const signedIn = !!(await getCurrentUserId());
@@ -123,6 +135,7 @@ function boardHref(b: Board, n = 1): string {
 }
 
 function BoardTabs({ current }: { current: Board }) {
+  // "forty-five-all" is a sub-view of the Forty-Five tab.
   return (
     <nav aria-label="Leaderboard" className="inline-flex gap-0.5 rounded-xl bg-surface-container p-0.5">
       {TABS.map((t) => (

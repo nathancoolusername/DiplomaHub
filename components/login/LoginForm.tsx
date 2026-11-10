@@ -28,10 +28,14 @@ export default function LoginForm({ next }: { next?: string | null }) {
     setError(null);
     if (next) formData.set("next", next);
     const result = await signIn(formData);
-    if (result && !result.success) {
+    if (!result.success) {
       setError(result.error);
       setLoading(false);
+      return;
     }
+    // Full page load, not router.push: the proxy must see the new session
+    // cookie, and the router cache still holds the signed-out pages.
+    window.location.assign(result.data.next);
   }
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {

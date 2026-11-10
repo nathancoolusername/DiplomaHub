@@ -8,6 +8,7 @@ import HowItWorksPro from "./signed-out/HowItWorksPro";
 import MeetBro from "./signed-out/MeetBro";
 import LeaderboardTeaser from "./signed-out/LeaderboardTeaser";
 import FreeVsPro from "./signed-out/FreeVsPro";
+import FortyFiveTeaser from "./signed-out/FortyFiveTeaser";
 import ProFinalCta from "./signed-out/ProFinalCta";
 
 // Practice-first homepage for signed-out visitors. Everything here is the
@@ -20,6 +21,7 @@ export default async function SignedOutHome() {
   return (
     <div className="flex flex-col">
       <ProHero />
+      <FortyFiveTeaser />
       <TryQuestion samples={getSampleQuestions()} />
       <HowItWorksPro />
       <LeaderboardTeaser />

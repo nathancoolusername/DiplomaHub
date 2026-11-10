@@ -111,4 +111,6 @@ export type UserProfile = {
   created_at: string;
   hub_onboarded_at: string | null;
   exam_session_id: string | null;
+  /** Migration 15; read with select("*"). */
+  hide_from_leaderboard?: boolean;
 };
