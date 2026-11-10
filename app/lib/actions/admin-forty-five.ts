@@ -233,3 +233,170 @@ export async function unscheduleFortyFive(id: string): Promise<ActionResult<null
   revalidatePath("/admin/forty-five");
   return { success: true, data: null };
 }
+
+// ── Insights (migrations 35–36) ──────────────────────────────────────────
+
+type Tier = 1 | 2 | 3 | 4;
+
+export type FortyFivePuzzleInsight = {
+  slug: string;
+  number: number;
+  date: string;
+  /** Signed-in players who opened it, and how many of them finished. */
+  opened: number;
+  finishedSigned: number;
+  finishedGuest: number;
+  winRate: number | null;
+  flawlessRate: number | null;
+  averageScore: number | null;
+  /** Median minutes:seconds of signed-in finishes (guest times aren't recorded). */
+  medianSeconds: number | null;
+  likes: number;
+  dislikes: number;
+  /** Share of finishers who solved each group, easiest tier first. */
+  groups: { difficulty: Tier; label: string; solveRate: number | null }[];
+  oneAways: number;
+};
+
+export type FortyFiveInsights = {
+  today: string;
+  puzzles: FortyFivePuzzleInsight[]; // newest first
+  totals: {
+    finishes: number;
+    finishesSigned: number;
+    finishesGuest: number;
+    signedPlayers: number;
+    returningPlayers: number;
+    likes: number;
+    dislikes: number;
+    averageScore: number | null;
+    winRate: number | null;
+  };
+  scoreDistribution: { score: number; count: number }[];
+  /** Per puzzle day, oldest first, for the chart. */
+  series: { date: string; signed: number; guest: number }[];
+  /** False until migration 36 runs: likes and guests read as zero. */
+  feedbackReady: boolean;
+};
+
+type Finish = { puzzle_id: string; score: number; mistakes: number; groups_found: number; guesses: { result: string; difficulty?: number }[] };
+
+/** Reads every row (PostgREST caps a request at 1,000). */
+async function all<T>(page: (from: number, to: number) => PromiseLike<{ data: unknown; error: { message: string; code?: string } | null }>): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await page(from, from + 999);
+    if (error) throw Object.assign(new Error(error.message), { code: error.code });
+    const rows = (data ?? []) as T[];
+    out.push(...rows);
+    if (rows.length < 1000) return out;
+  }
+}
+
+const avg = (xs: number[]) => (xs.length ? Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 10) / 10 : null);
+const rate = (part: number, whole: number) => (whole ? part / whole : null);
+function median(xs: number[]): number | null {
+  if (!xs.length) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
+}
+
+export async function getFortyFiveInsights(): Promise<ActionResult<FortyFiveInsights>> {
+  const admin = await requireAdmin();
+  if (!admin) return { success: false, error: "Not authorised" };
+  const today = utcToday();
+  try {
+    type P = { id: string; slug: string; number: number; scheduled_for: string; forty_five_groups: { difficulty: Tier; label: string }[] };
+    type Play = Finish & { user_id: string; started_at: string; finished_at: string | null; counts_for_leaderboard: boolean };
+    const [puzzles, plays] = await Promise.all([
+      all<P>((a, b) =>
+        admin.from("forty_five_puzzles").select("id, slug, number, scheduled_for, forty_five_groups (difficulty, label)").eq("mode", "daily").not("scheduled_for", "is", null).lte("scheduled_for", today).order("scheduled_for").range(a, b),
+      ),
+      all<Play>((a, b) => admin.from("forty_five_plays").select("puzzle_id, user_id, started_at, finished_at, score, mistakes, groups_found, guesses, counts_for_leaderboard").order("id").range(a, b)),
+    ]);
+    // Migration 36 tables: missing (42P01 / PGRST205) means not run yet, so count nothing.
+    let feedbackReady = true;
+    const optional = async <T,>(f: () => Promise<T[]>): Promise<T[]> => {
+      try {
+        return await f();
+      } catch (e) {
+        const code = (e as { code?: string }).code;
+        if (code === "PGRST205" || code === "42P01") {
+          feedbackReady = false;
+          return [];
+        }
+        throw e;
+      }
+    };
+    const [guests, reactions] = await Promise.all([
+      optional(() => all<Finish>((a, b) => admin.from("forty_five_guest_finishes").select("puzzle_id, score, mistakes, groups_found, guesses").order("id").range(a, b))),
+      optional(() => all<{ puzzle_id: string; liked: boolean }>((a, b) => admin.from("forty_five_reactions").select("puzzle_id, liked").order("id").range(a, b))),
+    ]);
+
+    const by = <T extends { puzzle_id: string }>(rows: T[]) => {
+      const m = new Map<string, T[]>();
+      for (const r of rows) m.set(r.puzzle_id, [...(m.get(r.puzzle_id) ?? []), r]);
+      return m;
+    };
+    const playsBy = by(plays);
+    const guestsBy = by(guests);
+    const reactionsBy = by(reactions);
+
+    const insights: FortyFivePuzzleInsight[] = puzzles.map((p) => {
+      const opened = playsBy.get(p.id) ?? [];
+      const signed = opened.filter((r) => r.finished_at && r.score != null);
+      const guest = guestsBy.get(p.id) ?? [];
+      const finishes: Finish[] = [...signed, ...guest];
+      const rs = reactionsBy.get(p.id) ?? [];
+      const solvedBy = (d: number) => finishes.filter((f) => f.guesses.some((g) => g.result === "correct" && g.difficulty === d)).length;
+      return {
+        slug: p.slug,
+        number: p.number,
+        date: p.scheduled_for,
+        opened: opened.length,
+        finishedSigned: signed.length,
+        finishedGuest: guest.length,
+        winRate: rate(finishes.filter((f) => f.groups_found === 4).length, finishes.length),
+        flawlessRate: rate(finishes.filter((f) => f.groups_found === 4 && f.mistakes === 0).length, finishes.length),
+        averageScore: avg(finishes.map((f) => f.score)),
+        medianSeconds: median(signed.map((r) => Math.max(0, Math.round((Date.parse(r.finished_at!) - Date.parse(r.started_at)) / 1000)))),
+        likes: rs.filter((r) => r.liked).length,
+        dislikes: rs.filter((r) => !r.liked).length,
+        groups: [...p.forty_five_groups].sort((a, b) => a.difficulty - b.difficulty).map((g) => ({ difficulty: g.difficulty, label: g.label, solveRate: rate(solvedBy(g.difficulty), finishes.length) })),
+        oneAways: finishes.reduce((n, f) => n + f.guesses.filter((g) => g.result === "one_away").length, 0),
+      };
+    });
+
+    const live = new Set(puzzles.map((p) => p.id));
+    const allFinishes: Finish[] = [...plays.filter((r) => r.finished_at && r.score != null && live.has(r.puzzle_id)), ...guests.filter((g) => live.has(g.puzzle_id))];
+    const perUser = new Map<string, number>();
+    for (const r of plays) if (r.finished_at && r.counts_for_leaderboard) perUser.set(r.user_id, (perUser.get(r.user_id) ?? 0) + 1);
+    const dist = new Map<number, number>();
+    for (const f of allFinishes) dist.set(f.score, (dist.get(f.score) ?? 0) + 1);
+
+    return {
+      success: true,
+      data: {
+        today,
+        feedbackReady,
+        puzzles: [...insights].reverse(),
+        totals: {
+          finishes: allFinishes.length,
+          finishesSigned: insights.reduce((n, p) => n + p.finishedSigned, 0),
+          finishesGuest: insights.reduce((n, p) => n + p.finishedGuest, 0),
+          signedPlayers: new Set(plays.map((r) => r.user_id)).size,
+          returningPlayers: [...perUser.values()].filter((n) => n >= 2).length,
+          likes: reactions.filter((r) => r.liked).length,
+          dislikes: reactions.filter((r) => !r.liked).length,
+          averageScore: avg(allFinishes.map((f) => f.score)),
+          winRate: rate(allFinishes.filter((f) => f.groups_found === 4).length, allFinishes.length),
+        },
+        scoreDistribution: [...dist.entries()].map(([score, count]) => ({ score, count })).sort((a, b) => b.score - a.score),
+        series: insights.map((p) => ({ date: p.date, signed: p.finishedSigned, guest: p.finishedGuest })),
+      },
+    };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
+  }
+}

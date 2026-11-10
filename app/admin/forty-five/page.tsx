@@ -1,5 +1,6 @@
 import { getFortyFiveAdminData } from "@/app/lib/actions/admin-forty-five";
 import { FortyFiveReview, ScheduleButton } from "@/components/admin/FortyFiveReview";
+import { FortyFiveTabs } from "@/components/admin/FortyFiveTabs";
 import { PageHeader, StatCard, StatGrid, StatsError } from "@/components/admin/ui";
 
 // Admin → Forty-Five: review the puzzle bank (migration 34) and fill the calendar.
@@ -8,7 +9,7 @@ export default async function AdminFortyFivePage() {
   if (!result.success) {
     return (
       <>
-        <PageHeader title="Forty-Five" />
+        <PageHeader title="Forty-Five" right={<FortyFiveTabs current="puzzles" />} />
         <StatsError error={result.error} />
       </>
     );
@@ -21,7 +22,12 @@ export default async function AdminFortyFivePage() {
       <PageHeader
         title="Forty-Five"
         description="Approve, reject or fix puzzles, then schedule: approved daily puzzles fill the next free days in order (2026-11-10 is #1). Played puzzles are locked."
-        right={<ScheduleButton ready={counts.readyToSchedule} />}
+        right={
+          <div className="flex flex-wrap items-center gap-sm">
+            <FortyFiveTabs current="puzzles" />
+            <ScheduleButton ready={counts.readyToSchedule} />
+          </div>
+        }
       />
       <StatGrid>
         <StatCard accent label="Days scheduled ahead" value={daysLeft} hint={scheduledUntil ? `Until ${scheduledUntil}` : "Nothing scheduled"} />
