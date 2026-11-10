@@ -32,14 +32,14 @@ export default async function ResourcesPage({
           <h1 className="text-display-lg font-serif font-bold">
             Resources Vault
           </h1>
-          <p className="text-on-surface-variant text-body-lg w-full md:w-170">
+          <p className="text-on-surface-variant text-body-lg w-full max-w-170">
             Practical IB materials, exemplars, revision guides, and much more
             curated for the rigorous academic journey.
           </p>
         </div>
-        <Link href={"/resources/upload"}>
+        <Link href={"/resources/upload"} className="shrink-0 self-start md:self-center">
           <Button className="h-12 self-center text-body-lg">
-            <div className="flex flex-row items-center gap-sm text-label-md font-sans">
+            <div className="flex flex-row items-center gap-sm whitespace-nowrap text-label-md font-sans">
               <Upload />
               Upload Resource
             </div>

@@ -35,10 +35,10 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
       {/* Outside the header: its backdrop blur would pin a fixed child to the header. */}
       <NewsToast />
       <header className="sticky top-0 z-50 bg-surface glass border-b border-outline-variant">
-        <div className="max-w-[2000px] mx-lg px-lg h-16 flex items-center justify-between">
-          <div className="flex items-center gap-xl">
+        <div className="max-w-[2000px] mx-lg lg:mx-0 xl:mx-lg px-lg h-16 flex items-center justify-between">
+          <div className="flex items-center gap-lg xl:gap-xl">
             <Logo />
-            <nav className="hidden md:flex gap-lg">
+            <nav className="hidden lg:flex gap-md xl:gap-lg">
               {navLinks.map((link) => {
                 const isActive = link.href === "/" ? pathname === "/" : pathname === link.href || pathname.startsWith(`${link.href}/`);
                 return (
@@ -63,13 +63,13 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
           <div className="relative flex items-center gap-sm sm:gap-md">
             <MidnightTip />
             {/* On phones the theme picker lives in the menu, away from the logo. */}
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
               <ThemeSwitcher />
             </div>
             {authSlot}
             <button
               onClick={() => setMenuOpen((open) => !open)}
-              className="md:hidden p-sm -mr-sm text-on-surface-variant hover:text-primary cursor-pointer"
+              className="lg:hidden p-sm -mr-sm text-on-surface-variant hover:text-primary cursor-pointer"
               aria-label="Toggle menu"
             >
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -78,7 +78,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
         </div>
 
         {menuOpen && (
-          <nav className="md:hidden flex flex-col border-t border-outline-variant bg-surface">
+          <nav className="lg:hidden flex flex-col border-t border-outline-variant bg-surface">
             {navLinks.map((link) => {
               const isActive = link.href === "/" ? pathname === "/" : pathname === link.href || pathname.startsWith(`${link.href}/`);
               return (
@@ -134,12 +134,15 @@ function FortyFiveLink({ active }: { active: boolean }) {
   return (
     <Link
       href="/forty-five"
+      aria-label="Forty-Five"
+      title="Forty-Five: daily puzzle"
       className={`-my-1 hidden lg:inline-flex items-center gap-xs whitespace-nowrap rounded-full border px-sm py-1 text-body-md font-semibold transition-colors ${
         active ? "border-primary bg-primary-fixed text-primary" : "border-outline-variant text-on-surface hover:border-primary hover:text-primary"
       }`}
     >
       <FortyFiveMark />
-      Forty-Five
+      {/* Mark only on small laptops / iPad landscape, where the full label overflows the bar. */}
+      <span className="hidden xl:inline">Forty-Five</span>
     </Link>
   );
 }

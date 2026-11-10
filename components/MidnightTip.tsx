@@ -77,7 +77,7 @@ export function MidnightTip() {
       </div>
       <p className="text-label-md opacity-90">
         Deep navy, frosted cards and ice-blue accents. Free for now. You can switch back any time from the theme picker
-        <span className="md:hidden"> in the menu</span>.
+        <span className="lg:hidden"> in the menu</span>.
       </p>
       <div className="flex justify-end gap-xs">
         <button type="button" onClick={dismiss} className="rounded-lg px-md py-xs text-label-md font-semibold opacity-90 hover:opacity-100 cursor-pointer">
