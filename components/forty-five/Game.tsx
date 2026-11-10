@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, Copy, Shuffle, ThumbsDown, ThumbsUp, Trophy, X } from "lucide-react";
+import { Check, Copy, Play, Shuffle, ThumbsDown, ThumbsUp, Timer, Trophy, X } from "lucide-react";
 import { FORTY_FIVE } from "@/lib/forty-five/config";
 import { TIERS, type Tier } from "@/lib/forty-five/tiers";
 import type { BoardRow, GuessResponse, MyStats, PlayView, PublicGroup, TodayPuzzle } from "@/lib/forty-five/types";
@@ -20,6 +20,16 @@ type Summary = {
 };
 
 type GuestSave = { log: string[][]; play: PlayView; startedAt: number; finishedAt: number | null };
+
+/** Set once a browser has started any Forty-Five, so the intro can be short next time. */
+const SEEN_KEY = "forty-five:seen";
+const seenBefore = () => {
+  try {
+    return localStorage.getItem(SEEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
 
 const EMPTY: PlayView = { guesses: [], mistakes: 0, solved: [], finished: false, won: false, score: null, seconds: null, reveal: null };
 const norm = (w: string) => w.trim().toLowerCase();
@@ -92,6 +102,11 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
   const [guestTimes, setGuestTimes] = useState<{ startedAt: number; finishedAt: number | null } | null>(null);
   const [fresh, setFresh] = useState<number | null>(null); // difficulty just solved, to animate
   const [loadError, setLoadError] = useState<string | null>(null);
+  /** Shown before the clock starts: the full explainer the first time, a one-liner after. */
+  const [intro, setIntro] = useState<{ returning: boolean } | null>(null);
+  const [starting, setStarting] = useState(false);
+  /** Server time minus device time (signed in), so the live timer matches the recorded one. */
+  const [clockOffset, setClockOffset] = useState(0);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const flash = useCallback((msg: string) => {
@@ -100,18 +115,21 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
     toastTimer.current = setTimeout(() => setToast(null), 2200);
   }, []);
 
-  // Load: signed in → the server play (first open starts the clock); guest → localStorage.
+  // Load without starting the clock: signed in → peek at the server play; guest → localStorage.
+  // A game already under way resumes; otherwise the intro waits for Start.
   useEffect(() => {
     let cancelled = false;
     if (signedIn) {
-      fetch(`${api}/start`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+      fetch(`${api}/start`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ begin: false }) })
         .then(async (r) => {
           if (cancelled) return;
           if (r.status === 401) return setLoadError("Your session has ended. Log in again to play.");
           if (!r.ok) return setLoadError("Couldn't load your game. Refresh to try again.");
-          const data = (await r.json()) as { play: PlayView; puzzle: TodayPuzzle };
+          const data = (await r.json()) as { play: PlayView | null; puzzle: TodayPuzzle; returning: boolean; serverNow: string };
           if (data.puzzle.puzzleId !== puzzle.puzzleId) return setLoadError("A new puzzle is out. Refresh to play it.");
-          setPlay(data.play);
+          setClockOffset(Date.parse(data.serverNow) - Date.now());
+          if (data.play) setPlay(data.play);
+          else setIntro({ returning: data.returning || seenBefore() });
           setReady(true);
         })
         .catch(() => !cancelled && setLoadError("Couldn't reach DiplomaHub. Check your connection and refresh."));
@@ -120,15 +138,13 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
       try {
         save = JSON.parse(localStorage.getItem(storageKey) ?? "null");
       } catch {}
-      const s = save ?? { log: [], play: EMPTY, startedAt: Date.now(), finishedAt: null };
-      if (!save) {
-        try {
-          localStorage.setItem(storageKey, JSON.stringify(s));
-        } catch {}
+      if (save) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring saved state on mount
+        setPlay(save.play);
+        setGuestTimes({ startedAt: save.startedAt, finishedAt: save.finishedAt });
+      } else {
+        setIntro({ returning: seenBefore() });
       }
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring saved state on mount
-      setPlay(s.play);
-      setGuestTimes({ startedAt: s.startedAt, finishedAt: s.finishedAt });
       setReady(true);
     }
     return () => {
@@ -141,8 +157,40 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
   const unsolved: PublicGroup[] = play.finished ? (play.reveal ?? []).filter((g) => !play.solved.some((s) => s.difficulty === g.difficulty)) : [];
   const seconds = signedIn ? play.seconds : guestTimes?.finishedAt ? Math.round((guestTimes.finishedAt - guestTimes.startedAt) / 1000) : null;
 
+  /** Start pressed: the clock starts now (signed in: on the server). */
+  const begin = async () => {
+    if (starting) return;
+    try {
+      localStorage.setItem(SEEN_KEY, "1");
+    } catch {}
+    if (!signedIn) {
+      const s: GuestSave = { log: [], play: EMPTY, startedAt: Date.now(), finishedAt: null };
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(s));
+      } catch {}
+      setGuestTimes({ startedAt: s.startedAt, finishedAt: null });
+      setIntro(null);
+      return;
+    }
+    setStarting(true);
+    try {
+      const r = await fetch(`${api}/start`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ begin: true }) });
+      if (r.status === 401) return setLoadError("Your session has ended. Log in again to play.");
+      if (!r.ok) return flash("Couldn't start. Try again.");
+      const data = (await r.json()) as { play: PlayView | null; serverNow: string };
+      if (!data.play) return flash("Couldn't start. Try again.");
+      setClockOffset(Date.parse(data.serverNow) - Date.now());
+      setPlay(data.play);
+      setIntro(null);
+    } catch {
+      flash("Couldn't reach DiplomaHub. Check your connection.");
+    } finally {
+      setStarting(false);
+    }
+  };
+
   const toggle = (w: string) => {
-    if (play.finished || !ready) return;
+    if (play.finished || !ready || intro) return;
     setSelected((s) => (s.includes(w) ? s.filter((x) => x !== w) : s.length < 4 ? [...s, w] : s));
   };
 
@@ -219,68 +267,76 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
   }
 
   const lives = FORTY_FIVE.maxMistakes - play.mistakes;
+  const startMs = signedIn ? (play.startedAt ? Date.parse(play.startedAt) : null) : (guestTimes?.startedAt ?? null);
 
   return (
     <div className="flex flex-col gap-md">
-      <div className="flex items-center justify-between gap-md text-body-md">
-        <p className="tabular-nums">
-          <span className="font-serif font-bold text-headline-md text-on-surface">{liveScore(play)}</span>
-          <span className="text-on-surface-variant"> / {FORTY_FIVE.startScore}</span>
-        </p>
-        <p className="flex items-center gap-xs text-on-surface-variant" aria-label={`${lives} wrong guesses left`}>
-          <span className="text-label-md">Lives</span>
-          {Array.from({ length: FORTY_FIVE.maxMistakes }, (_, i) => (
-            <span key={i} aria-hidden="true" className={`h-3 w-3 rounded-[3px] rotate-45 ${i < lives ? "bg-primary" : "bg-outline-variant"}`} />
-          ))}
-        </p>
-      </div>
+      {/* Room for the first-time card on phones, where it's taller than the board. */}
+      <div className={`relative ${intro && !intro.returning ? "min-h-[600px] sm:min-h-0" : ""}`}>
+        {intro && ready && <Intro number={puzzle.number} returning={intro.returning} signedIn={signedIn} starting={starting} onStart={begin} />}
+        <div className={`flex flex-col gap-md transition-[filter] ${intro || !ready ? "blur-sm pointer-events-none select-none" : ""}`} aria-hidden={intro ? true : undefined} inert={intro ? true : undefined}>
+          <div className="flex items-center justify-between gap-md text-body-md">
+            <p className="tabular-nums">
+              <span className="font-serif font-bold text-headline-md text-on-surface">{liveScore(play)}</span>
+              <span className="text-on-surface-variant"> / {FORTY_FIVE.startScore}</span>
+            </p>
+            <Clock startMs={intro ? null : startMs} offset={signedIn ? clockOffset : 0} finalSeconds={play.finished ? seconds : null} />
+            <p className="flex items-center gap-xs text-on-surface-variant" aria-label={`${lives} wrong guesses left`}>
+              <span className="text-label-md">Lives</span>
+              {Array.from({ length: FORTY_FIVE.maxMistakes }, (_, i) => (
+                <span key={i} aria-hidden="true" className={`h-3 w-3 rounded-[3px] rotate-45 ${i < lives ? "bg-primary" : "bg-outline-variant"}`} />
+              ))}
+            </p>
+          </div>
 
-      <div className="flex flex-col gap-xs" aria-live="polite">
-        {play.solved.map((g) => (
-          <SolvedRow key={g.difficulty} group={g} animate={fresh === g.difficulty} />
-        ))}
-        {unsolved.map((g) => (
-          <SolvedRow key={g.difficulty} group={g} animate missed />
-        ))}
-      </div>
+          <div className="flex flex-col gap-xs" aria-live="polite">
+            {play.solved.map((g) => (
+              <SolvedRow key={g.difficulty} group={g} animate={fresh === g.difficulty} />
+            ))}
+            {unsolved.map((g) => (
+              <SolvedRow key={g.difficulty} group={g} animate missed />
+            ))}
+          </div>
 
-      {!play.finished && (
-        <>
-          <div className={`grid grid-cols-4 gap-1.5 sm:gap-sm ${shake ? "ff-shake" : ""}`} role="group" aria-label="Words">
-            {remaining.map((w) => {
-              const on = selected.includes(w);
-              return (
-                <button
-                  key={w}
-                  type="button"
-                  onClick={() => toggle(w)}
-                  aria-pressed={on}
-                  disabled={!ready}
-                  style={{ "--tile-fs": tileFont(w) } as React.CSSProperties}
-                  className={`min-h-20 sm:min-h-24 rounded-xl px-1.5 py-sm text-(length:--tile-fs) sm:text-body-lg font-bold leading-snug break-words transition-colors cursor-pointer select-none disabled:opacity-60 ${
-                    on ? "bg-primary text-on-primary scale-[0.97]" : "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
-                  }`}
-                  lang="en"
-                  aria-label={w}
-                >
-                  {softHyphens(w)}
+          {!play.finished && (
+            <>
+              <div className={`grid grid-cols-4 gap-1.5 sm:gap-sm ${shake ? "ff-shake" : ""}`} role="group" aria-label="Words">
+                {remaining.map((w) => {
+                  const on = selected.includes(w);
+                  return (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => toggle(w)}
+                      aria-pressed={on}
+                      disabled={!ready}
+                      style={{ "--tile-fs": tileFont(w) } as React.CSSProperties}
+                      className={`min-h-20 sm:min-h-24 rounded-xl px-1.5 py-sm text-(length:--tile-fs) sm:text-body-lg font-bold leading-snug break-words transition-colors cursor-pointer select-none disabled:opacity-60 ${
+                        on ? "bg-primary text-on-primary scale-[0.97]" : "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
+                      }`}
+                      lang="en"
+                      aria-label={w}
+                    >
+                      {softHyphens(w)}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-sm">
+                <button type="button" onClick={() => setOrder((o) => shuffle(o))} disabled={!ready} className="inline-flex items-center gap-xs rounded-full border border-outline-variant px-md py-sm text-label-md font-semibold text-on-surface cursor-pointer disabled:opacity-50">
+                  <Shuffle size={16} aria-hidden="true" /> Shuffle
                 </button>
-              );
-            })}
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-sm">
-            <button type="button" onClick={() => setOrder((o) => shuffle(o))} disabled={!ready} className="inline-flex items-center gap-xs rounded-full border border-outline-variant px-md py-sm text-label-md font-semibold text-on-surface cursor-pointer disabled:opacity-50">
-              <Shuffle size={16} aria-hidden="true" /> Shuffle
-            </button>
-            <button type="button" onClick={() => setSelected([])} disabled={!selected.length} className="inline-flex items-center gap-xs rounded-full border border-outline-variant px-md py-sm text-label-md font-semibold text-on-surface cursor-pointer disabled:opacity-50">
-              <X size={16} aria-hidden="true" /> Clear
-            </button>
-            <button type="button" onClick={submit} disabled={selected.length !== 4 || busy || !ready} className="inline-flex items-center gap-xs rounded-full bg-primary text-on-primary px-lg py-sm text-label-md font-semibold cursor-pointer disabled:opacity-50">
-              <Check size={16} aria-hidden="true" /> {busy ? "Checking…" : "Check"}
-            </button>
-          </div>
-        </>
-      )}
+                <button type="button" onClick={() => setSelected([])} disabled={!selected.length} className="inline-flex items-center gap-xs rounded-full border border-outline-variant px-md py-sm text-label-md font-semibold text-on-surface cursor-pointer disabled:opacity-50">
+                  <X size={16} aria-hidden="true" /> Clear
+                </button>
+                <button type="button" onClick={submit} disabled={selected.length !== 4 || busy || !ready} className="inline-flex items-center gap-xs rounded-full bg-primary text-on-primary px-lg py-sm text-label-md font-semibold cursor-pointer disabled:opacity-50">
+                  <Check size={16} aria-hidden="true" /> {busy ? "Checking…" : "Check"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       <div aria-live="assertive" className="h-6 text-center">
         {toast && <span className="inline-block rounded-full bg-on-surface text-surface px-md py-0.5 text-label-md font-semibold">{toast}</span>}
@@ -288,6 +344,65 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
 
       {play.finished && <EndScreen puzzleId={puzzle.puzzleId} number={puzzle.number} play={play} seconds={seconds} signedIn={signedIn} nextResetAt={puzzle.nextResetAt} api={api} />}
     </div>
+  );
+}
+
+/** The card over the blurred board before the clock starts. */
+function Intro({ number, returning, signedIn, starting, onStart }: { number: number; returning: boolean; signedIn: boolean; starting: boolean; onStart: () => void }) {
+  return (
+    <div className="absolute inset-0 z-10 flex items-center justify-center p-sm">
+      <div role="dialog" aria-modal="false" aria-labelledby="ff-intro-title" className="w-full max-w-[440px] rounded-2xl border border-outline-variant bg-surface-container-lowest p-lg shadow-lg flex flex-col gap-md ff-solve">
+        <div className="text-center flex flex-col gap-xs">
+          <p className="text-label-md font-semibold text-primary uppercase tracking-wide">{returning ? "Ready?" : "First time? Here's how it works"}</p>
+          <h2 id="ff-intro-title" className="font-serif font-bold text-headline-md text-on-surface">
+            {returning ? `Today's Forty-Five #${number}` : "Find the four hidden groups"}
+          </h2>
+        </div>
+        {returning ? (
+          <p className="text-center text-body-md text-on-surface-variant">Sixteen new words are waiting. The clock starts when you press Start.</p>
+        ) : (
+          <ul className="flex flex-col gap-xs text-body-md text-on-surface-variant list-disc pl-lg">
+            <li>Sixteen IB words hide four groups of four. Pick four that share a link and press Check.</li>
+            <li>
+              You start on {FORTY_FIVE.startScore} points. A wrong guess costs {FORTY_FIVE.mistakePenalty} points and one of your {FORTY_FIVE.maxMistakes} lives. Three right out of four shows “One away…”.
+            </li>
+            <li>
+              <span className="font-semibold text-on-surface">It&apos;s timed.</span> The clock starts when you press Start and stops when you finish.{" "}
+              {signedIn ? "On the leaderboard, equal scores are ranked by time." : "Your time shows on your result."}
+            </li>
+            <li>One puzzle a day, the same for everyone. A new one arrives at 00:00 UTC.</li>
+          </ul>
+        )}
+        <button
+          type="button"
+          onClick={onStart}
+          disabled={starting}
+          autoFocus
+          className="self-center inline-flex items-center gap-xs rounded-full bg-primary text-on-primary px-xl py-sm text-label-lg font-semibold cursor-pointer disabled:opacity-60"
+        >
+          <Play size={16} aria-hidden="true" /> {starting ? "Starting…" : returning ? "Start" : "Start puzzle"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Live elapsed time while playing; the recorded time once finished. */
+function Clock({ startMs, offset, finalSeconds }: { startMs: number | null; offset: number; finalSeconds: number | null }) {
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    if (finalSeconds != null || startMs == null) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- client clock only after mount (no hydration mismatch)
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [startMs, finalSeconds]);
+  const secs = finalSeconds ?? (startMs != null && now != null ? Math.max(0, Math.floor((now + offset - startMs) / 1000)) : 0);
+  return (
+    <p className="flex items-center gap-xs text-on-surface-variant tabular-nums" aria-label={`Time ${formatTime(secs)}`}>
+      <Timer size={16} aria-hidden="true" />
+      <span className="font-semibold text-on-surface">{formatTime(secs)}</span>
+    </p>
   );
 }
 

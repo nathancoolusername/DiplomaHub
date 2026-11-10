@@ -6,7 +6,7 @@ import type { GuessResponse, PlayView, PublicGroup } from "./types.ts";
 
 export const toPublic = (g: Group): PublicGroup => ({ difficulty: g.difficulty, label: g.label, words: g.words, explanation: g.explanation });
 
-export function view(groups: Group[], s: GameState, seconds: number | null): PlayView {
+export function view(groups: Group[], s: GameState, seconds: number | null, startedAt: string | null = null): PlayView {
   const byTier = new Map(groups.map((g) => [g.difficulty as number, g]));
   return {
     guesses: s.guesses,
@@ -16,6 +16,7 @@ export function view(groups: Group[], s: GameState, seconds: number | null): Pla
     won: s.won,
     score: s.score,
     seconds,
+    startedAt,
     reveal: s.finished ? groups.map(toPublic) : null,
   };
 }
