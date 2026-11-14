@@ -21,7 +21,7 @@ export default function Impressum() {
 
       <div className="flex flex-col gap-xs">
         <h2 className="font-bold text-headline-md">Vertreten durch</h2>
-        <p className="text-body-md">Andy Nathan Pieume Tchiyep</p>
+        <p className="text-body-md">Leonelle Pieume</p>
       </div>
 
       <div className="flex flex-col gap-xs">
