@@ -25,6 +25,7 @@ type Props = {
 };
 
 const PAGE_SIZE = 6;
+const FILTERS_KEY = "dh-resources-filters";
 
 const options = ["Newest", "Oldest", "Most Liked", "Most Downloaded"];
 const SORT_MAP: Record<string, ResourceSort> = {
@@ -73,6 +74,40 @@ export default function ResourceGrid({ initialItems, initialTotalCount, initialS
     setYear(select);
     setNum(1);
   };
+
+  // Back from a resource brings the search, filters and page back: they're
+  // kept for this tab in sessionStorage (a ?subject= link starts fresh).
+  // Storage is only readable after hydration, so restoring sets state here.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  // Saving starts only once the saved filters are back, so the defaults
+  // never overwrite them first.
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    setRestored(true);
+    if (initialSubject) return;
+    try {
+      const v = JSON.parse(sessionStorage.getItem(FILTERS_KEY) ?? "null");
+      if (!v) return;
+      if (typeof v.type === "string") setType(v.type);
+      if (typeof v.year === "string") setYear(v.year);
+      if (typeof v.selected === "string" && v.selected in SORT_MAP) setSelected(v.selected);
+      if (typeof v.active === "string") setActive(v.active);
+      if (typeof v.search === "string") setSearch(v.search);
+      if (typeof v.num === "number" && v.num >= 1) setNum(v.num);
+    } catch {
+      // storage off: start fresh
+    }
+  }, [initialSubject]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      sessionStorage.setItem(FILTERS_KEY, JSON.stringify({ type, year, selected, active, search, num }));
+    } catch {
+      // not remembered; fine
+    }
+  }, [restored, type, year, selected, active, search, num]);
 
   const isFirstRender = useRef(true);
 
