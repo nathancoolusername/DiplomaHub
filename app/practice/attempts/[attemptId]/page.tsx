@@ -10,11 +10,8 @@ export default async function AttemptPage({ params }: { params: Promise<{ attemp
   if (!result) notFound();
 
   if (result.attempt.status === "in_progress") redirect(links.play(result.set.id));
-  if (result.attempt.status === "marking") return <MarkingStep result={result} />;
+  if (result.attempt.status === "marking") return <MarkingStep result={result} isPro={viewer.isPro} />;
   // Points this set earned and the new weekly rank; skipped quietly if the leaderboard isn't set up.
-  const [points, standing] = await Promise.all([
-    getAttemptPoints(attemptId).catch(() => null),
-    getMyStanding("week").catch(() => null),
-  ]);
+  const [points, standing] = await Promise.all([getAttemptPoints(attemptId).catch(() => null), getMyStanding("week").catch(() => null)]);
   return <ResultsView result={result} isPro={viewer.isPro} points={points} standing={standing} />;
 }

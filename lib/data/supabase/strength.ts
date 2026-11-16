@@ -4,7 +4,7 @@ import { cache } from "react";
 import type { StrengthMap, SubjectId, SubtopicStrength, UserSubject } from "@/lib/data/types";
 import { averageScore, levelFor } from "@/lib/practice/strength";
 import { topicTree } from "@/lib/catalog";
-import { check, db, requireUserId } from "./client";
+import { check, db, requireUserId, rpc } from "./client";
 import { getUserSubjects } from "./viewer";
 
 type Record_ = { score: number | null; answeredCount: number };
@@ -58,4 +58,46 @@ export async function getStrengthMaps(): Promise<StrengthMap[]> {
 
 export async function getStrengthMap(subjectId: SubjectId): Promise<StrengthMap | null> {
   return (await getStrengthMaps()).find((m) => m.subject.id === subjectId) ?? null;
+}
+
+export type WeakTopic = {
+  subjectId: SubjectId;
+  topicCode: string;
+  topicName: string | null;
+  subtopicCode: string;
+  subtopicName: string;
+  /** topic_strength score, 0–1 (what the strength map shows). */
+  score: number;
+  answeredCount: number;
+  /** Questions logged in practice_activity in the last 60 days. */
+  recentQuestions: number;
+  /** Marks earned / possible over those, 0–1; null when none. */
+  recentAccuracy: number | null;
+  lastPractisedAt: string | null;
+};
+
+/**
+ * The signed-in student's weakest subtopics, up to `perSubject` per subject
+ * they take, weakest first. Only subtopics with enough answers to show a
+ * level on the strength map count. For DiplomaBro.
+ */
+export async function getWeakestTopics(perSubject = 3): Promise<Map<SubjectId, WeakTopic[]>> {
+  const rows = await rpc<Array<Record<string, unknown>>>("my_weakest_topics", { p_per_subject: perSubject });
+  const out = new Map<SubjectId, WeakTopic[]>();
+  for (const r of rows ?? []) {
+    const t: WeakTopic = {
+      subjectId: r.subject_id as SubjectId,
+      topicCode: r.topic_code as string,
+      topicName: (r.topic_name as string | null) ?? null,
+      subtopicCode: r.subtopic_code as string,
+      subtopicName: r.subtopic_name as string,
+      score: Number(r.score),
+      answeredCount: r.answered_count as number,
+      recentQuestions: (r.recent_questions as number) ?? 0,
+      recentAccuracy: r.recent_accuracy === null || r.recent_accuracy === undefined ? null : Number(r.recent_accuracy),
+      lastPractisedAt: (r.last_practised_at as string | null) ?? null,
+    };
+    out.set(t.subjectId, [...(out.get(t.subjectId) ?? []), t]);
+  }
+  return out;
 }

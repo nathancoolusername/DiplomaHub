@@ -25,6 +25,14 @@ export const ANNOUNCEMENTS: Announcement[] = [
     until: "2027-01-31",
   },
   {
+    id: "news-codes",
+    title: "Share with one code",
+    body: "Send a friend a practice set, a Hub deadline or your whole revision plan with a short code. Share with 3 students and get a week of Pro.",
+    href: "/codes",
+    cta: "Open Codes",
+    until: "2027-01-31",
+  },
+  {
     id: "news-chemistry",
     title: "Chemistry is here",
     body: "Chemistry questions are now in Practice, for Paper 1A, Paper 1B and Paper 2, SL and HL.",

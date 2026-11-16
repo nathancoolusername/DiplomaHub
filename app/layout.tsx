@@ -7,9 +7,11 @@ import { NavigationProgress } from "@/components/NavigationProgress";
 import { AuthNav } from "@/components/NavAuth";
 import Footer from "@/components/Footer";
 import ScrollTopBtn from "@/components/scrollTop";
+import { GlobalBro } from "@/components/shared/bro/GlobalBro";
 import { JsonLd } from "@/components/JsonLd";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { APPEARANCE_SCRIPT } from "@/lib/appearance";
 
 const description =
   "Plan your whole IB Diploma with the Hub — a personal calendar for deadlines and study blocks — plus a library of student-made resources for every subject.";
@@ -76,6 +78,10 @@ export default function RootLayout({
       className={`${inter.variable} ${merriweather.variable} h-1/1`}
       suppressHydrationWarning
     >
+      <head>
+        {/* The accent colour and background, before the page paints (lib/appearance.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: APPEARANCE_SCRIPT }} />
+      </head>
       <body>
         <JsonLd data={websiteJsonLd} />
         <ThemeProvider>
@@ -88,6 +94,8 @@ export default function RootLayout({
             <main>{children}</main>
             <Footer />
             <ScrollTopBtn />
+            {/* Pro students: the Bro button on every page (pages with their own take over). */}
+            <GlobalBro />
           </div>
         </ThemeProvider>
         <Analytics />

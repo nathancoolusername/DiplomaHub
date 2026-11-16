@@ -1,8 +1,8 @@
 // The single list of DiplomaPro feature keys and limits. Server checks
 // (consume_quota), the UsageBanner and Pro badges all read from here.
 //
-// PLACEHOLDER NUMBERS: the free written-question limit and the Pro caps
-// are still open questions in the build spec (pending API cost data).
+// Practice from the question bank is free with no limit (it costs nothing to
+// run); the Pro caps are PLACEHOLDER NUMBERS until there's API cost data.
 
 export type FeatureKey =
   | "written_questions"
@@ -17,7 +17,8 @@ export type FeatureKey =
   | "photo_marking"
   | "generate_more"
   | "scheduling"
-  | "midnight_theme";
+  | "midnight_theme"
+  | "backgrounds";
 
 type Access = { allowed: false } | { allowed: true; limit: number | null; period: "week" | "month" | null };
 
@@ -31,7 +32,7 @@ const unlimited: Access = { allowed: true, limit: null, period: null };
 const no: Access = { allowed: false };
 
 export const FEATURES: Record<FeatureKey, FeaturePlan> = {
-  written_questions: { label: "Written questions", free: { allowed: true, limit: 20, period: "week" }, pro: unlimited },
+  written_questions: { label: "Written questions", free: unlimited, pro: unlimited },
   mcq: { label: "Multiple choice", free: unlimited, pro: unlimited },
   rule_suggestions: { label: "Suggestions", free: unlimited, pro: unlimited },
   bro_suggestions: { label: "Bro suggestions", free: no, pro: unlimited },
@@ -44,6 +45,7 @@ export const FEATURES: Record<FeatureKey, FeaturePlan> = {
   generate_more: { label: "Generate more", free: no, pro: { allowed: true, limit: 5, period: "month" } },
   scheduling: { label: "Scheduling", free: no, pro: unlimited },
   midnight_theme: { label: "Midnight theme", free: no, pro: unlimited },
+  backgrounds: { label: "Backgrounds", free: no, pro: unlimited },
 };
 
 /**
@@ -55,14 +57,37 @@ export const FEATURES: Record<FeatureKey, FeaturePlan> = {
  */
 export const PRO_COMING_SOON = process.env.NEXT_PUBLIC_PRO_COMING_SOON !== "false";
 
-/** Free for now: Midnight, and no weekly written-question cap (usage is still counted). */
-const FREE_WHILE_COMING_SOON: FeatureKey[] = ["midnight_theme", "written_questions"];
+/**
+ * Free for now: Midnight. On launch day (the flag above set to false) it
+ * becomes Pro only: the picker locks it and ThemePreferenceSync moves anyone
+ * without Pro to Dark. Run supabase/launch/midnight_pro.sql the same day.
+ */
+const FREE_WHILE_COMING_SOON: FeatureKey[] = ["midnight_theme", "backgrounds"];
 
 /** Capped features worth showing in the UsageBanner, in display order. */
 export const BANNER_FEATURES: Record<"free" | "pro", FeatureKey[]> = {
-  free: PRO_COMING_SOON ? [] : ["written_questions"],
+  free: [],
   pro: ["essay_review", "photo_marking", "bro_explain", "generate_more"],
 };
+
+/**
+ * Daily caps, counted per UTC day in usage_counters by dp_consume_usage()
+ * (migration 31; lib/data/supabase/usage.ts → consumeUsage). null means no
+ * cap (still counted). PLACEHOLDER NUMBERS until there's API cost data.
+ */
+export type UsageMetric = "bro_message" | "opus_escalation" | "generated_question";
+
+export const DAILY_CAPS: Record<UsageMetric, { free: number | null; pro: number | null }> = {
+  bro_message: { free: 10, pro: 150 },
+  opus_escalation: { free: 0, pro: 10 },
+  generated_question: { free: 3, pro: 40 },
+};
+
+/** The day's cap for this student. The admin's unlimited plan has none. */
+export function dailyCap(metric: UsageMetric, plan: { isPro: boolean; unlimited?: boolean }): number | null {
+  if (plan.unlimited) return null;
+  return plan.isPro ? DAILY_CAPS[metric].pro : DAILY_CAPS[metric].free;
+}
 
 export function access(feature: FeatureKey, isPro: boolean): Access {
   if (PRO_COMING_SOON && FREE_WHILE_COMING_SOON.includes(feature)) return unlimited;

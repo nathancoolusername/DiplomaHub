@@ -27,7 +27,7 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="flex flex-col items-center py-20 px-md bg-surface-container-low min-h-full">
+    <div className="flex flex-col items-center py-20 px-md dh-page-bg bg-surface-container-low min-h-full">
       <div className="bg-surface-container-lowest border-1 border-outline-variant rounded-xl p-margin w-full max-w-150 flex flex-col gap-margin">
         <h1 className="text-display-lg font-serif font-bold">
           Submit Feedback

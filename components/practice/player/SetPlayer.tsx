@@ -11,7 +11,7 @@ import { links } from "@/lib/practice/links";
 import { discardAttemptAction, finishAttemptAction, revealMarkschemeAction, saveAnswerAction } from "@/app/practice/actions";
 import { MathMarkdown } from "@/components/shared/MathMarkdown";
 import { QuestionFigures } from "@/components/shared/QuestionFigures";
-import { useBroOverride } from "@/components/shared/bro/bro-visibility";
+import { openBro, useBroOverride, useBroQuestion } from "@/components/shared/bro/bro-visibility";
 import { McqAnswer } from "./McqAnswer";
 import { Navigator, type DotState } from "./Navigator";
 import { PlayerTimer } from "./PlayerTimer";
@@ -129,6 +129,8 @@ export function SetPlayer({
   useBroOverride(timed, BOTTOM_BAR_PX);
 
   const question = questions[index];
+  // Bro (Pro) helps with the question on screen; timed sets hide Bro, so nothing is attached then.
+  useBroQuestion(!timed && isPro && question ? { attemptId: attempt.id, questionId: question.id, label: `Question ${index + 1}` } : null);
   const answer = answers[question.id];
   const scheme = schemes[question.id] ?? null;
 
@@ -185,6 +187,16 @@ export function SetPlayer({
       return send(qid);
     },
     [send],
+  );
+
+  /** "Have Bro check my answer" / "review my essay": save it first, so Bro reads what's on screen, then open Bro on this question. */
+  const canAskBro = !timed && isPro;
+  const askBro = useCallback(
+    async (qid: string, label: string, prompt: string) => {
+      await saveNow(qid);
+      openBro({ question: { attemptId: attempt.id, questionId: qid, label }, prompt });
+    },
+    [saveNow, attempt.id],
   );
 
   const flushAll = useCallback(async () => {
@@ -531,7 +543,14 @@ export function SetPlayer({
               )}
             </div>
           ) : question.type === "extended" ? (
-            <EssayAnswer key={question.id} question={question} answer={answer} isPro={isPro} onChange={(patch) => update(question.id, patch)} />
+            <EssayAnswer
+              key={question.id}
+              question={question}
+              answer={answer}
+              isPro={isPro}
+              onChange={(patch) => update(question.id, patch)}
+              onAskBro={canAskBro ? (p) => void askBro(question.id, `Question ${index + 1}`, p) : undefined}
+            />
           ) : (
             <ShortAnswer
               key={question.id}
@@ -546,6 +565,7 @@ export function SetPlayer({
                 if (patch.onPaper !== undefined) setPaperForRest(patch.onPaper);
               }}
               onReveal={() => void reveal(question.id)}
+              onAskBro={canAskBro ? (p) => void askBro(question.id, `Question ${index + 1}`, p) : undefined}
             />
           )}
         </article>

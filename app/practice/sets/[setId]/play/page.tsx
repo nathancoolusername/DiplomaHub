@@ -1,11 +1,14 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { links } from "@/lib/practice/links";
 import { getDismissedHints, getInstantMcqKeys, getSet, getSetQuestions, getSubject, getTopicTree, getViewer, revealMarkscheme, startOrResumeAttempt } from "@/lib/data";
 import { BOOKLET_TIP_ID, bookletFor } from "@/lib/booklets";
 import { examPaceSeconds } from "@/lib/practice/pace";
 import { SetPlayer } from "@/components/practice/player/SetPlayer";
 
-export default async function PlayPage({ params }: { params: Promise<{ setId: string }> }) {
-  const { setId } = await params;
+export default async function PlayPage({ params, searchParams }: { params: Promise<{ setId: string }>; searchParams: Promise<{ paper?: string }> }) {
+  const [{ setId }, { paper }] = await Promise.all([params, searchParams]);
+  // Older links to a printed paper (?paper=1) go to marking it.
+  if (paper === "1") redirect(links.markPaper(setId));
   // If the tips can't be read, the booklet tip stays hidden rather than risk repeating.
   const [viewer, set, dismissed] = await Promise.all([getViewer(), getSet(setId), getDismissedHints().catch(() => [BOOKLET_TIP_ID])]);
   if (!set) notFound();

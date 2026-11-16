@@ -7,19 +7,28 @@ import { MidnightPreviewButton } from "@/components/shared/MidnightPreview";
 // limits. Exact numbers are still being decided, so caps are described,
 // not counted.
 
-const ROWS: { key: FeatureKey; label: string }[] = [
-  { key: "mcq", label: "Multiple-choice practice" },
-  { key: "written_questions", label: "Written questions, marked by markscheme" },
-  { key: "rule_suggestions", label: "Strength maps and suggestions" },
-  { key: "bro_explain", label: "Bro explanations" },
-  { key: "short_answer_review", label: "Bro checks your working" },
-  { key: "essay_review", label: "Essay feedback" },
-  { key: "photo_marking", label: "Grade your own work from a photo" },
-  { key: "scheduling", label: "Study plans and study blocks added to your calendar" },
+// Rows with a key read from lib/plans.ts; "both" rows are free features
+// without a plan entry; "soon" rows are planned for DiplomaPro after launch.
+type Row = { label: string } & ({ key: FeatureKey; soon?: boolean } | { both: true });
+
+const ROWS: Row[] = [
+  { key: "written_questions", label: "Unlimited practice, marked point by point" },
+  { both: true, label: "Print sets as PDFs, then mark your paper on screen" },
+  { key: "rule_suggestions", label: "Strength maps, suggestions and Progress" },
+  { both: true, label: "Share codes and accent colours" },
+  { key: "bro_chat", label: "DiplomaBro on every page" },
+  { key: "bro_explain", label: "Help on the question on screen, from its markscheme" },
+  { key: "bro_auto_fill", label: "Practice sets built for you by Bro" },
+  { key: "scheduling", label: "Study plans and sets scheduled on your calendar" },
+  { key: "bro_suggestions", label: "Bro's brief: what to do first, every day" },
   { key: "midnight_theme", label: "Midnight theme" },
+  { key: "backgrounds", label: "Backgrounds (Dawn, Aurora, Dusk)" },
+  { key: "essay_review", label: "Essay and IA feedback", soon: true },
+  { key: "photo_marking", label: "Grade work from a photo", soon: true },
 ];
 
-function Cell({ allowed, limited }: { allowed: boolean; limited: boolean }) {
+function Cell({ allowed, limited, soon = false }: { allowed: boolean; limited: boolean; soon?: boolean }) {
+  if (soon) return <span className="text-label-md text-on-surface-variant">Soon</span>;
   if (!allowed) return <Minus size={18} className="mx-auto text-outline" aria-label="Not included" />;
   if (limited) return <span className="text-label-md text-on-surface-variant">Weekly limit</span>;
   return <Check size={18} className="mx-auto text-secondary" aria-label="Included" />;
@@ -33,7 +42,7 @@ export default function FreeVsPro() {
           <h2 id="plans-heading" className="font-serif font-bold text-headline-lg text-on-surface">
             Free, or DiplomaPro
           </h2>
-          <p className="text-body-lg text-on-surface-variant">The Hub and the resource library are always free. DiplomaPro is coming soon.</p>
+          <p className="text-body-lg text-on-surface-variant">Practice, the Hub and the resource library are free. DiplomaPro adds DiplomaBro{PRO_COMING_SOON ? ", and it's coming soon" : ""}.</p>
         </header>
         <div className="rounded-2xl bg-surface-container-lowest border border-outline-variant overflow-hidden">
           <table className="w-full text-body-md">
@@ -51,11 +60,14 @@ export default function FreeVsPro() {
               </tr>
             </thead>
             <tbody>
-              {ROWS.map(({ key, label }) => {
-                const free = access(key, false);
-                const pro = access(key, true);
+              {ROWS.map((row) => {
+                const { label } = row;
+                const key = "key" in row ? row.key : null;
+                const free = key ? access(key, false) : ({ allowed: true, limit: null } as const);
+                const pro = key ? access(key, true) : ({ allowed: true, limit: null } as const);
+                const soon = "soon" in row && !!row.soon;
                 return (
-                  <tr key={key} className="border-t border-outline-variant">
+                  <tr key={label} className="border-t border-outline-variant">
                     <th scope="row" className="px-lg py-sm text-left font-normal text-on-surface">
                       <span className="inline-flex flex-wrap items-center gap-x-sm gap-y-xs">
                         {label}
@@ -70,7 +82,7 @@ export default function FreeVsPro() {
                       <Cell allowed={free.allowed} limited={free.allowed && free.limit !== null} />
                     </td>
                     <td className="px-md py-sm text-center">
-                      <Cell allowed={pro.allowed} limited={false} />
+                      <Cell allowed={pro.allowed} limited={false} soon={soon} />
                     </td>
                   </tr>
                 );

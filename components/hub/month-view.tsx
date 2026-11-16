@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarToolbar } from "./calendar/calendar-toolbar";
 import type { CustomSubject, HubItem } from "./mock-data";
 import { getSubject } from "./mock-data";
 import { getSubjectColor } from "./subject-colors";
@@ -10,11 +11,14 @@ export default function MonthView({
   items,
   onSelectDay,
   customSubjects = [],
+  toolbar,
 }: {
   anchorDate: Date;
   items: HubItem[];
   onSelectDay: (date: Date) => void;
   customSubjects?: CustomSubject[];
+  /** The calendar's own Week / Month and ‹ Today › controls. */
+  toolbar?: { onPrev: () => void; onNext: () => void; onToday: () => void; onChangeView: (v: "week" | "month") => void };
 }) {
   const year = anchorDate.getFullYear();
   const month = anchorDate.getMonth();
@@ -34,6 +38,13 @@ export default function MonthView({
 
   return (
     <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+      {toolbar && (
+        <CalendarToolbar
+          view="month"
+          {...toolbar}
+          label={anchorDate.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+        />
+      )}
       <div className="grid grid-cols-7 bg-surface-container-low border-b border-outline-variant">
         {weekdayLabels.map((label) => (
           <div key={label} className="py-sm text-center text-[11px] font-semibold text-outline">

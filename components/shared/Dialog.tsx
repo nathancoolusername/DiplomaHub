@@ -37,9 +37,9 @@ export function Dialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`relative w-full ${width} max-h-[90vh] flex flex-col rounded-2xl bg-surface-raised glass border border-outline-variant shadow-xl`}
+        className={`relative w-full ${width} max-h-[90dvh] flex flex-col rounded-2xl bg-surface-raised glass border border-outline-variant shadow-xl`}
       >
-        <header className="flex items-center justify-between gap-md px-lg pt-lg pb-sm">
+        <header className="shrink-0 flex items-center justify-between gap-md px-lg pt-lg pb-sm">
           <h2 id={titleId} className="font-serif font-bold text-headline-md text-on-surface">
             {title}
           </h2>
@@ -47,8 +47,10 @@ export function Dialog({
             <X size={20} />
           </button>
         </header>
-        <div className="px-lg pb-lg overflow-y-auto">{children}</div>
-        {footer && <footer className="px-lg py-md border-t border-outline-variant flex justify-end gap-sm">{footer}</footer>}
+        {/* min-h-0: without it a flex child won't shrink below its content, so a long dialog grew past
+            the screen, hid its bottom buttons (Delete set) and never scrolled. */}
+        <div className="px-lg pb-lg overflow-y-auto overscroll-contain min-h-0 flex-1">{children}</div>
+        {footer && <footer className="shrink-0 px-lg py-md border-t border-outline-variant flex justify-end gap-sm">{footer}</footer>}
       </div>
     </div>
   );

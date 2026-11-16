@@ -1,14 +1,19 @@
 "use client";
 
+import { MarksDebrief } from "./MarksDebrief";
+import { AskBroButton } from "@/components/shared/bro/AskBroButton";
+import { McqReview } from "./McqReview";
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { ArrowDown, ArrowRight, ArrowUp, Bookmark, Check, Copy, RotateCcw, Share2, Trophy } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, Bookmark, CalendarPlus, Check, FileDown, RotateCcw, Trophy } from "lucide-react";
 import { Spinner } from "@/components/spinner";
 import type { AttemptResult, LeaderboardStanding, StrengthChange } from "@/lib/data/types";
 import { links } from "@/lib/practice/links";
 import { formatMinutes } from "@/lib/practice/pace";
 import { STRENGTH_LABELS } from "@/lib/practice/strength";
-import { redoWrongAction, saveSetAction, shareSetAction } from "@/app/practice/actions";
+import { redoWrongAction, saveSetAction, scheduleRedoAction } from "@/app/practice/actions";
+import { ScheduleDialog, suggestMinutes } from "@/components/practice/build/ScheduleDialog";
+import { ShareButton } from "@/components/codes/ShareButton";
 import { MathMarkdown } from "@/components/shared/MathMarkdown";
 import { QuestionFigures } from "@/components/shared/QuestionFigures";
 import { StrengthTile } from "@/components/shared/strength/StrengthTile";
@@ -34,6 +39,7 @@ function ChangeTile({ change }: { change: StrengthChange }) {
 
 export function ResultsView({
   result,
+  isPro,
   points = null,
   standing = null,
 }: {
@@ -48,15 +54,32 @@ export function ResultsView({
   const wrongCount = items.filter((i) => (i.answer.marksAwarded ?? 0) < i.question.totalMarks).length;
   const [open, setOpen] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const [code, setCode] = useState<string | null>(set.shareCode);
-  const [copied, setCopied] = useState(false);
   const [busy, start] = useTransition();
-  const [doing, setDoing] = useState<"redo" | "save" | "share" | null>(null);
+  const [doing, setDoing] = useState<"redo" | "save" | null>(null);
   // Which button is working; its spinner shows while `busy` (Redo keeps it until the redirect lands).
-  const run = (what: "redo" | "save" | "share", fn: () => Promise<void>) => {
+  const run = (what: "redo" | "save", fn: () => Promise<void>) => {
     setDoing(what);
     start(fn);
   };
+  // Schedule a redo (Pro): the ones they lost marks on, or the whole set.
+  const [scheduling, setScheduling] = useState(false);
+  const [redoWhich, setRedoWhich] = useState<"wrong" | "all">(wrongCount > 0 ? "wrong" : "all");
+  const [scheduleBusy, startSchedule] = useTransition();
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [scheduled, setScheduled] = useState<string | null>(null);
+  const wrongMarks = items.filter((i) => (i.answer.marksAwarded ?? 0) < i.question.totalMarks).reduce((n, i) => n + i.question.totalMarks, 0);
+  const scheduleRedo = (slot: { title: string; startAt: string; endAt: string }) =>
+    startSchedule(async () => {
+      setScheduleError(null);
+      try {
+        const r = await scheduleRedoAction(result.attempt.id, redoWhich, slot);
+        const when = new Date(slot.startAt).toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+        setScheduled(`“${r.title}” is on your Hub for ${when}.`);
+        setScheduling(false);
+      } catch (e) {
+        setScheduleError(e instanceof Error ? e.message : "Couldn't schedule it");
+      }
+    });
 
   return (
     <div className="max-w-[1000px] mx-auto px-md py-xl flex flex-col gap-lg">
@@ -99,7 +122,7 @@ export function ResultsView({
         </ul>
       </section>
 
-      {/* TODO(phase 7): Bro debrief for Pro (what to do next, with a Schedule button). */}
+      <MarksDebrief result={result} isPro={isPro} />
 
       {/* Questions */}
       <section className="rounded-2xl bg-surface-container-lowest border border-outline-variant overflow-hidden">
@@ -134,6 +157,9 @@ export function ResultsView({
                 </div>
                 {isOpen && (
                   <div className="px-lg pb-lg pl-[4.25rem] flex flex-col gap-sm text-body-md text-on-surface">
+                    <div className="self-start">
+                      <AskBroButton attemptId={result.attempt.id} questionId={question.id} label={`Question ${i + 1}`} isPro={isPro} />
+                    </div>
                     {question.stemMd && <MathMarkdown>{question.stemMd}</MathMarkdown>}
                     <QuestionFigures figures={question.figures} />
                     {question.type === "extended" ? (
@@ -172,10 +198,14 @@ export function ResultsView({
                     ) : question.type === "mcq" ? (
                       <>
                         <MathMarkdown>{question.parts[0].textMd}</MathMarkdown>
-                        <p className="text-label-md text-on-surface-variant">
-                          Your answer: <span className="font-semibold text-on-surface">{answer.selectedOption ?? "none"}</span> · Correct:{" "}
-                          <span className="font-semibold text-on-surface">{markscheme.correctOption}</span>
-                        </p>
+                        {question.options ? (
+                          <McqReview options={question.options} selected={answer.selectedOption} correct={markscheme.correctOption} />
+                        ) : (
+                          <p className="text-label-md text-on-surface-variant">
+                            Your answer: <span className="font-semibold text-on-surface">{answer.selectedOption ?? "none"}</span> · Correct:{" "}
+                            <span className="font-semibold text-on-surface">{markscheme.correctOption}</span>
+                          </p>
+                        )}
                       </>
                     ) : (
                       markscheme.parts.map((p) => (
@@ -219,33 +249,75 @@ export function ResultsView({
           {saved ? <Check size={14} aria-hidden="true" /> : busy && doing === "save" ? <Spinner size={14} /> : <Bookmark size={14} aria-hidden="true" />}{" "}
           {saved ? "Saved to My sets" : busy && doing === "save" ? "Saving…" : "Save"}
         </button>
-        <span className="inline-flex items-center gap-xs">
+        {isPro && (
           <button
             type="button"
-            disabled={busy && doing === "share"}
-            onClick={() => run("share", async () => setCode(await shareSetAction(set.id)))}
-            className="inline-flex items-center gap-xs rounded-lg border border-outline-variant px-md py-sm text-label-md font-semibold text-on-surface hover:border-primary disabled:opacity-70 cursor-pointer"
+            onClick={() => {
+              setScheduled(null);
+              setScheduleError(null);
+              setScheduling(true);
+            }}
+            className="inline-flex items-center gap-xs rounded-lg border border-outline-variant px-md py-sm text-label-md font-semibold text-on-surface hover:border-primary cursor-pointer"
           >
-            {busy && doing === "share" ? <Spinner size={14} /> : <Share2 size={14} aria-hidden="true" />} Share
+            <CalendarPlus size={14} aria-hidden="true" /> Schedule a redo
           </button>
-          {code && (
-            <button
-              type="button"
-              onClick={() => {
-                void navigator.clipboard?.writeText(code);
-                setCopied(true);
-              }}
-              className="inline-flex items-center gap-xs rounded-lg bg-surface-container px-sm py-sm font-mono text-label-md font-bold tracking-widest text-on-surface cursor-pointer"
-              title="Copy code"
-            >
-              {code} {copied ? <Check size={14} aria-label="Copied" /> : <Copy size={14} aria-label="Copy" />}
-            </button>
-          )}
-        </span>
+        )}
+        <ShareButton type="practice_set" targetId={set.id} title={set.title} />
+        <a
+          href={`${links.pdf(set.id)}?print=1`}
+          target="_blank"
+          rel="noopener"
+          className="inline-flex items-center gap-xs rounded-lg border border-outline-variant px-md py-sm text-label-md font-semibold text-on-surface hover:border-primary"
+        >
+          <FileDown size={14} aria-hidden="true" /> PDF
+        </a>
         <Link href={links.subject(set.subjectId)} className="ml-auto text-label-md font-semibold text-primary hover:underline">
           Back to {result.subject.shortName}
         </Link>
+        {scheduled && (
+          <p className="basis-full rounded-lg bg-secondary-container text-on-secondary-container px-md py-sm text-label-md" role="status">
+            {scheduled}{" "}
+            <Link href={links.hub()} className="font-semibold underline">
+              Open the Hub
+            </Link>
+          </p>
+        )}
+        {/* Right after finishing is when a set is most worth passing on. */}
+        <p className="basis-full text-label-md text-on-surface-variant">
+          Revising this with friends? <span className="font-semibold text-on-surface">Share</span> gives them a code for their own copy of this set.
+        </p>
       </section>
+
+      {scheduling && (
+        <ScheduleDialog
+          heading="Schedule a redo"
+          daysAhead={3}
+          defaultTitle={`Redo: ${set.title}`.slice(0, 200)}
+          suggestedMinutes={suggestMinutes(redoWhich === "wrong" ? wrongMarks : marksPossible)}
+          busy={scheduleBusy}
+          error={scheduleError}
+          onClose={() => setScheduling(false)}
+          onSchedule={scheduleRedo}
+        >
+          {wrongCount > 0 && (
+            <fieldset className="flex flex-col gap-xs">
+              <legend className="mb-xs text-label-md font-semibold text-on-surface">Redo</legend>
+              {(
+                [
+                  ["wrong", `The ${wrongCount === 1 ? "one" : wrongCount} I lost marks on`],
+                  ["all", `The whole set (${items.length} questions)`],
+                ] as const
+              ).map(([value, label]) => (
+                <label key={value} className="flex items-center gap-sm text-body-md text-on-surface cursor-pointer">
+                  <input type="radio" name="redo-which" checked={redoWhich === value} onChange={() => setRedoWhich(value)} className="accent-primary" />
+                  {label}
+                </label>
+              ))}
+              <p className="text-label-sm text-on-surface-variant">Three days on is a good gap: long enough to test what stuck.</p>
+            </fieldset>
+          )}
+        </ScheduleDialog>
+      )}
     </div>
   );
 }

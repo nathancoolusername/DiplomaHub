@@ -81,13 +81,15 @@ export async function getNextTimedItem(): Promise<CalendarItem | null> {
  */
 export async function scheduleSet(
   setId: string,
-  slot: { title: string; subjectId: string; startAt: string; endAt: string },
+  /** subjectId: the set's own when left out. */
+  slot: { title: string; subjectId?: string; startAt: string; endAt: string },
 ): Promise<string> {
   const uid = await requireUserId();
   const sb = await db();
-  const own = await sb.from("practice_sets").select("id").eq("id", setId).eq("owner_id", uid).maybeSingle();
+  const own = await sb.from("practice_sets").select("id, subject_id").eq("id", setId).eq("owner_id", uid).maybeSingle();
   check(own.error);
   if (!own.data) throw new Error("Set not found");
+  const subjectId = slot.subjectId ?? (own.data.subject_id as string);
   const id = `itm-${crypto.randomUUID().slice(0, 8)}`;
   const { error } = await sb.from("hub_items").insert({
     id,
@@ -95,7 +97,7 @@ export async function scheduleSet(
     title: slot.title,
     type: "study_block",
     // The Hub's own id for the subject, so its chips, colours and filters match.
-    subject_id: toHubSubjectId(slot.subjectId),
+    subject_id: toHubSubjectId(subjectId),
     start_at: slot.startAt,
     end_at: slot.endAt,
     all_day: false,
@@ -118,4 +120,39 @@ export async function completeScheduledSet(setId: string): Promise<void> {
     .eq("set_id", setId)
     .eq("status", "todo");
   check(error);
+}
+
+/** Adds Hub items from a card Bro proposed (after the student tapped "Add to Hub"). Returns the new ids. */
+export async function addHubItems(
+  items: { title: string; kind: "test" | "mock" | "deadline" | "study"; subjectId: string | null; start: string; end: string; allDay: boolean; practiceSetId?: string | null }[],
+): Promise<string[]> {
+  const uid = await requireUserId();
+  const sb = await db();
+  // Study sessions for practice sets link to them (set_id), only for the student's own sets.
+  const wanted = [...new Set(items.map((i) => i.practiceSetId).filter((id): id is string => typeof id === "string" && !!id))];
+  const own = new Set<string>();
+  if (wanted.length) {
+    const { data, error } = await sb.from("practice_sets").select("id").eq("owner_id", uid).in("id", wanted);
+    check(error);
+    for (const r of data ?? []) own.add(r.id as string);
+  }
+  const rows = items.map((i) => ({
+    id: `itm-${crypto.randomUUID().slice(0, 8)}`,
+    owner_id: uid,
+    title: i.title.slice(0, 200),
+    type: i.kind === "study" ? "study_block" : "task",
+    subject_id: i.subjectId ? toHubSubjectId(i.subjectId) : null,
+    start_at: i.start,
+    end_at: i.end,
+    all_day: i.allDay,
+    status: "todo",
+    // Tests and mocks get a countdown on Home, like the add dialog's default; the student can switch it off.
+    has_timer: i.kind === "test" || i.kind === "mock",
+    kind: i.kind,
+    notes: "Added by Bro",
+    set_id: i.practiceSetId && own.has(i.practiceSetId) ? i.practiceSetId : null,
+  }));
+  const { error } = await sb.from("hub_items").insert(rows);
+  check(error);
+  return rows.map((r) => r.id);
 }

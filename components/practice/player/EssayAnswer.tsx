@@ -21,17 +21,19 @@ export function EssayAnswer({
   answer,
   isPro,
   onChange,
+  onAskBro,
 }: {
   question: Question;
   answer: AttemptAnswer;
   isPro: boolean;
   onChange: (patch: Partial<AttemptAnswer>) => void;
+  /** Opens Bro on this essay with a request (saves it first). Absent in timed sets. */
+  onAskBro?: (prompt: string) => void;
 }) {
   const part = question.parts[0];
   const text = answer.partAnswers[part.label] ?? "";
   const plan = answer.partAnswers[PLAN_KEY] ?? "";
   const [planOpen, setPlanOpen] = useState(plan.length > 0);
-  const [broNote, setBroNote] = useState(false);
   const setText = (key: string, value: string) => onChange({ partAnswers: { ...answer.partAnswers, [key]: value } });
 
   return (
@@ -91,16 +93,23 @@ export function EssayAnswer({
         <span className="inline-flex items-center gap-xs text-label-md text-on-surface-variant">
           <Lock size={14} aria-hidden="true" /> Markbands appear when you finish
         </span>
+        {onAskBro && (
         <ProGate
           isPro={isPro}
           feature="Essay feedback"
-          onClick={() => setBroNote(true)}
+          onClick={() =>
+            onAskBro(
+              Object.values(answer.partAnswers).some((t) => t?.trim())
+                ? "Give me feedback on my essay so far against the IB criteria: what's working, what to improve first, and roughly which band it's in. Comments only, don't rewrite it."
+                : "I haven't started writing yet. Help me plan this essay: what the question is really asking and how I could structure it.",
+            )
+          }
           className="rounded-lg px-md py-xs text-label-md font-semibold text-on-surface-variant hover:text-primary"
         >
           Have Bro review my essay
         </ProGate>
+        )}
       </div>
-      {broNote && <p className="text-label-md text-on-surface-variant -mt-sm">Bro essay reviews arrive with DiplomaBro (phase 7).</p>}
     </div>
   );
 }

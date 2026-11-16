@@ -31,6 +31,9 @@ import TaskDetailsPanel from "./task-details-panel";
 import AddItemDialog from "./add-item-dialog";
 import CalendarSyncDialog from "./calendar-sync-dialog";
 import ImportDialog from "./import-dialog";
+import { ShareSetDialog } from "./share-set-dialog";
+import { SetsDialog } from "./sets-dialog";
+import { ImportSetDialog } from "./import-set-dialog";
 import { undoImportBatch } from "@/app/lib/actions/ics-import";
 import UpcomingDeadlinesCard from "./upcoming-deadlines-card";
 import OnboardingWizard from "./onboarding/onboarding-wizard";
@@ -127,6 +130,7 @@ export default function Hub({
   practiceBySubject = {},
   openAddOnLoad = false,
   planItemId = null,
+  shareSetHintPending = false,
 }: {
   firstName: string | null;
   userId: string | null;
@@ -149,6 +153,8 @@ export default function Hub({
   openAddOnLoad?: boolean;
   /** "/hub?plan=<id>" (a deadline's "Plan time"): open Add item as a study session for it. */
   planItemId?: string | null;
+  /** The one-time "Share a set" tip hasn't been dismissed yet (it shows once there are 5+ items). */
+  shareSetHintPending?: boolean;
 }) {
   const [items, dispatch] = useReducer(itemsReducer, initialItems);
   const [currentDate, setCurrentDate] = useState(() => new Date());
@@ -187,6 +193,10 @@ export default function Hub({
     window.history.replaceState(window.history.state, "", url);
   }, [openAddOnLoad, planItemId]);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [isShareSetOpen, setIsShareSetOpen] = useState(false);
+  const [isSetsOpen, setIsSetsOpen] = useState(false);
+  // "Make these a set?" for the import that just happened (kept after the toast goes).
+  const [importSet, setImportSet] = useState<{ batchId: string; count: number } | null>(null);
   const [importToast, setImportToast] = useState<{ batchId: string; count: number } | null>(null);
   const [undoingImport, setUndoingImport] = useState(false);
   // Every item mutation below applies an optimistic update first, then
@@ -767,6 +777,7 @@ export default function Hub({
     onStartFocus: startFocus,
     onEdit: openEditDialog,
     onDelete: handleDeleteItem,
+    canShare: !!userId,
     customSubjects,
   };
 
@@ -792,6 +803,9 @@ export default function Hub({
         session={session}
         onChangeSession={handleChangeSession}
         onImport={() => setIsImportDialogOpen(true)}
+        onShareSet={userId ? () => setIsShareSetOpen(true) : undefined}
+        onSets={userId ? () => setIsSetsOpen(true) : undefined}
+        shareSetHint={shareSetHintPending && items.length >= 5}
       />
 
       {proRows}
@@ -837,6 +851,7 @@ export default function Hub({
             setView("week");
           }}
           customSubjects={customSubjects}
+          toolbar={{ onPrev: goPrev, onNext: goNext, onToday: goToday, onChangeView: setView }}
         />
       ) : (
         <>
@@ -852,6 +867,10 @@ export default function Hub({
               onClose={closePanel}
               onMoveItem={handleMoveItem}
               onResizeItem={handleResizeItem}
+              onPrev={goPrev}
+              onNext={goNext}
+              onToday={goToday}
+              onChangeView={setView}
             />
           </div>
           <div className="md:hidden">
@@ -913,6 +932,14 @@ export default function Hub({
         <CalendarSyncDialog isGuest={!userId} onClose={() => setIsSyncDialogOpen(false)} />
       )}
 
+      {isShareSetOpen && userId && (
+        <ShareSetDialog items={items} customSubjects={customSubjects} onClose={() => setIsShareSetOpen(false)} />
+      )}
+
+      {isSetsOpen && userId && <SetsDialog items={items} customSubjects={customSubjects} onClose={() => setIsSetsOpen(false)} />}
+
+      {importSet && <ImportSetDialog batchId={importSet.batchId} count={importSet.count} onClose={() => setImportSet(null)} />}
+
       {isImportDialogOpen && (
         <ImportDialog
           isGuest={!userId}
@@ -940,6 +967,18 @@ export default function Hub({
           >
             {undoingImport ? "Undoing…" : "Undo"}
           </button>
+          {userId && importToast.count > 1 && (
+            <button
+              type="button"
+              onClick={() => {
+                setImportSet(importToast);
+                setImportToast(null);
+              }}
+              className="text-label-md font-bold text-primary hover:underline shrink-0 cursor-pointer"
+            >
+              Make a set
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setImportToast(null)}

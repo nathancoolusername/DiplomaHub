@@ -15,7 +15,7 @@ export default async function PracticeLayout({ children }: { children: React.Rea
   if (!(await getCurrentUserId())) redirect("/login?next=/practice");
   const [viewer, hints] = await Promise.all([getViewer(), getPendingHints()]);
   return (
-    <div className="bg-surface-container-low min-h-[calc(100vh-4rem)]">
+    <div className="dh-page-bg bg-surface-container-low min-h-[calc(100vh-4rem)]">
       {children}
       <BroButton isPro={viewer.isPro} hintPending={hints.includes("bro-button")} />
       <OnboardingGate />

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   updateAuthorTrustScore,
-  setUserPro,
   deleteUserAsAdmin,
   getUsersPage,
   type AdminUserRow,
@@ -125,9 +124,10 @@ function UserRow({
   onDelete: () => void;
 }) {
   const [score, setScore] = useState(user.author_trust_score);
-  const [isPro, setIsPro] = useState(user.is_pro);
+  const proUntil = user.pro_expires_at === "infinity" ? Infinity : user.pro_expires_at ? Date.parse(user.pro_expires_at) : 0;
+  // eslint-disable-next-line react-hooks/purity -- a render-time clock is fine for this label
+  const isPro = user.is_pro && proUntil > Date.now();
   const [savingScore, setSavingScore] = useState(false);
-  const [savingPro, setSavingPro] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [cleared, setCleared] = useState(false);
@@ -139,16 +139,6 @@ function UserRow({
     const result = await updateAuthorTrustScore(user.id, score);
     if (!result.success) setError(result.error);
     setSavingScore(false);
-  }
-
-  async function handleTogglePro() {
-    setSavingPro(true);
-    setError(null);
-    const nextIsPro = !isPro;
-    const result = await setUserPro(user.id, nextIsPro);
-    if (result.success) setIsPro(nextIsPro);
-    else setError(result.error);
-    setSavingPro(false);
   }
 
   async function handleClearProfile() {
@@ -223,17 +213,17 @@ function UserRow({
         {error && <p className="text-error text-label-sm mt-xs">{error}</p>}
       </td>
       <td className="p-md">
-        <button
-          onClick={handleTogglePro}
-          disabled={savingPro}
-          className={`px-md py-1 rounded-full text-label-md font-semibold cursor-pointer transition disabled:opacity-40 ${
+        <Link
+          href={`/admin/pro?user=${user.id}`}
+          title={isPro ? (proUntil === Infinity ? "Unlimited" : `Until ${new Date(proUntil).toLocaleDateString()}`) : "Give or end Pro on the Pro page"}
+          className={`inline-block px-md py-1 rounded-full text-label-md font-semibold transition hover:opacity-80 ${
             isPro
               ? "bg-primary-container text-on-primary"
               : "bg-surface-container text-on-surface-variant"
           }`}
         >
           {isPro ? "Pro" : "Free"}
-        </button>
+        </Link>
       </td>
       <td className="p-md text-on-surface-variant text-label-md">
         {new Date(user.created_at).toLocaleDateString()}

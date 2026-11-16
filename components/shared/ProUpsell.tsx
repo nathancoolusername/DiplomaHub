@@ -26,8 +26,8 @@ export function UpgradePopover({
   onClose,
   className = "",
   description = PRO_COMING_SOON
-    ? "DiplomaPro isn't open yet. Join the waitlist and we'll email you when it is."
-    : "Get Bro's feedback, explanations and study plans built around your tests.",
+    ? "DiplomaPro isn't open yet: Bro on every page, practice built for you and your weeks planned. Join the waitlist and we'll email you when it opens."
+    : "DiplomaBro on every page: help on the question in front of you, practice built for your weak spots, and your weeks planned around your tests.",
   extra,
 }: {
   feature: string;

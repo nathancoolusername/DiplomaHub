@@ -57,11 +57,15 @@ export function AuthNav() {
       }
       // Next to the profile: all-time practice points (the leaderboard's points).
       const [{ data: profile }, standing] = await Promise.all([
-        supabase.from("users").select("display_name, is_pro").eq("id", userId).single(),
+        supabase.from("users").select("display_name, is_pro, pro_expires_at").eq("id", userId).single(),
         supabase.rpc("my_leaderboard_standing", { p_period: "all" }),
       ]);
       const points = (standing.data as { points?: number } | null)?.points ?? 0;
-      const next = profile ? { id: userId, ...profile, points } : null;
+      // Your own badge shows while Pro is running (even if you hid it from others).
+      const proUntil = profile?.pro_expires_at === "infinity" ? Infinity : profile?.pro_expires_at ? Date.parse(profile.pro_expires_at) : 0;
+      const next = profile
+        ? { id: userId, display_name: profile.display_name, is_pro: !!profile.is_pro && proUntil > Date.now(), points }
+        : null;
       navCache = next ? { user: next, at: Date.now() } : null;
       if (!cancelled) setUser(next);
     })();

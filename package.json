@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
     "@sentry/nextjs": "^10.67.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.105.3",
@@ -43,11 +44,14 @@
     "@electric-sql/pglite": "^0.3.16",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/sanitize-html": "^2.16.1",
+    "embedded-postgres": "17.10.0-beta.17",
     "eslint": "^9",
     "eslint-config-next": "16.2.5",
+    "pg": "8.23.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

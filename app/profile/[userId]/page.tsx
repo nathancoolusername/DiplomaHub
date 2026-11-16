@@ -2,13 +2,14 @@ import { getCurrentUserId } from "@/app/lib/get-current-user";
 import { notFound } from "next/navigation";
 import { getPublicProfile } from "@/app/lib/actions/profile";
 import Image from "next/image";
-import { Medal, Calendar } from "lucide-react";
+import { Medal, Calendar, Ticket } from "lucide-react";
 import Link from "next/link";
 import ProfileInfo from "@/components/profile/ProfileInfo";
 import { getSavedItems } from "@/app/lib/actions/saved-items";
 import { initialsFor } from "@/app/lib/initials";
 import { ShareButton } from "@/components/shareButton";
 import { DiplomaProBadge } from "@/components/DiplomaProBadge";
+import { getPublicShareUses } from "@/lib/data";
 
 const months = [
   "January",
@@ -32,7 +33,7 @@ export default async function ProfilePage({
 }) {
   const { userId } = await params;
   const result = await getPublicProfile(userId);
-  const currentUserId = await getCurrentUserId();
+  const [currentUserId, shareUses] = await Promise.all([getCurrentUserId(), getPublicShareUses(userId).catch(() => null)]);
   const isOwnProfile = currentUserId === userId;
   if (!result.success) notFound();
   const {
@@ -94,6 +95,15 @@ export default async function ProfilePage({
                   Joined {final}
                 </p>
               </div>
+              {/* Credit for sharing: how often their set and Hub codes were used. */}
+              {!!shareUses && (
+                <Link href="/codes" className="flex flex-row gap-sm items-center hover:underline">
+                  <Ticket className="text-primary" />
+                  <p className="text-body-lg text-on-surface-variant font-bold">
+                    Shared codes used {shareUses} time{shareUses === 1 ? "" : "s"}
+                  </p>
+                </Link>
+              )}
             </div>
           </div>
           <div className="flex flex-row md:ml-auto gap-sm justify-center">

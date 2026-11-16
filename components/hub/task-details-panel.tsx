@@ -19,6 +19,7 @@ import {
 import type { Resource } from "@/app/lib/types";
 import type { TaskPracticeSuggestion } from "./calendar/week-calendar";
 import { BroAvatar } from "@/components/shared/BroAvatar";
+import { ShareButton } from "@/components/codes/ShareButton";
 import type { CustomSubject, HubItem } from "./mock-data";
 import { getSubject } from "./mock-data";
 import { getSubjectColor } from "./subject-colors";
@@ -53,6 +54,8 @@ export type TaskDetailsPanelProps = {
   onStartFocus: (itemId: string) => void;
   onEdit: (itemId: string) => void;
   onDelete: (itemId: string) => void;
+  /** Signed in only: guests' items live in this browser, so there's nothing to share. */
+  canShare?: boolean;
   customSubjects: CustomSubject[];
 };
 
@@ -154,6 +157,7 @@ function PanelContent({
   onStartFocus,
   onEdit,
   onDelete,
+  canShare,
   customSubjects,
 }: TaskDetailsPanelProps) {
   const subject = getSubject(item.subjectId, customSubjects);
@@ -190,6 +194,7 @@ function PanelContent({
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          {canShare && <ShareButton type="hub_item" targetId={item.id} title={item.title} variant="icon" />}
           <button
             type="button"
             onClick={() => onEdit(item.id)}

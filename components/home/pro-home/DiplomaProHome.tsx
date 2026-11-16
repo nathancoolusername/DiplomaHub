@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, Dumbbell } from "lucide-react";
 import type { HubItem } from "@/components/hub/mock-data";
-import { getExamSession, getGettingStarted, getMyStanding, getNextTimedItem, getPendingHints, getStrengthMaps, getSuggestions, getViewer } from "@/lib/data";
+import { getBroBrief, getExamSession, getGettingStarted, getMyStanding, getNextTimedItem, getPendingHints, getSharingStats, getStrengthMaps, getSuggestions, getViewer } from "@/lib/data";
 import { links } from "@/lib/practice/links";
 import { Greeting } from "@/components/shared/Greeting";
 import { Countdown } from "@/components/shared/Countdown";
@@ -14,6 +14,8 @@ import DashboardResources from "@/components/home/dashboard-resources";
 import { GettingStartedCard } from "./GettingStartedCard";
 import { RankCard } from "@/components/leaderboard/RankCard";
 import { MidnightPromo } from "./MidnightPromo";
+import { CodesCard } from "./CodesCard";
+import { HomeNudge } from "./HomeNudge";
 import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
 
 /**
@@ -36,6 +38,8 @@ export function loadDiplomaProHome() {
     getGettingStarted(),
     getPendingHints(),
     getMyStanding("week").catch(() => null), // null until the leaderboard migration runs
+    getSharingStats(), // null until migration 33 runs
+    getBroBrief().catch(() => null), // Pro: Bro's line under the greeting (cached)
   ]);
 }
 
@@ -48,21 +52,26 @@ export async function DiplomaProHome({
   hubSubjects: string[] | null;
   data: ReturnType<typeof loadDiplomaProHome>;
 }) {
-  const [viewer, session, nextItem, suggestions, maps, gettingStarted, hints, standing] = await data;
+  const [viewer, session, nextItem, suggestions, maps, gettingStarted, hints, standing, sharing, brief] = await data;
+  const moreSuggestions = suggestions[0]?.headline ? suggestions.slice(1) : suggestions;
 
   return (
-    <div className="bg-surface-container-low">
+    <div className="dh-page-bg bg-surface-container-low">
       <div className="max-w-[1200px] mx-auto px-md py-xl flex flex-col gap-xl">
-        {/* 1. Greeting + countdown */}
+        {/* 1. Greeting (with the top suggestion in a line) + countdown */}
         <header className="flex flex-col md:flex-row md:items-start md:justify-between gap-lg">
-          <Greeting firstName={viewer.firstName} />
+          <div className="min-w-0">
+            <Greeting firstName={viewer.firstName} />
+            <HomeNudge suggestion={suggestions[0]} broLine={brief?.nudge ?? null} />
+          </div>
           <Countdown nextItem={nextItem} session={session} />
         </header>
 
         {/* 2. Suggestions + the two ways in */}
         <section className="grid md:grid-cols-[1fr_auto] gap-md items-stretch" aria-label="Suggestions">
-          <div className={`grid gap-md items-stretch ${suggestionGridCols(suggestions.length)}`}>
-            {suggestions.map((s) => (
+          {/* The first suggestion is the line under the greeting; the cards are the next ones. */}
+          <div className={`grid gap-md items-stretch ${suggestionGridCols(moreSuggestions.length)}`}>
+            {moreSuggestions.map((s) => (
               <SuggestionCard key={s.id} suggestion={s} />
             ))}
           </div>
@@ -86,6 +95,8 @@ export async function DiplomaProHome({
         <GettingStartedCard progress={gettingStarted} />
 
         {standing && <RankCard standing={standing} />}
+
+        <CodesCard stats={sharing} />
 
         <MidnightPromo isPro={viewer.isPro} />
 

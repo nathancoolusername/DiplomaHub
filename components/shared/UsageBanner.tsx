@@ -12,17 +12,19 @@ function pill(item: UsageItem) {
 
 /** Pro: remaining caps per feature. Free: the free limits and an upgrade link. */
 export function UsageBanner({ usage, isPro }: { usage: UsageItem[]; isPro: boolean }) {
-  // Nothing is capped while DiplomaPro is coming soon: just point at the waitlist.
-  if (PRO_COMING_SOON && usage.length === 0) {
+  // Free students have nothing capped (practice is free): just point at Pro.
+  if (!isPro && usage.length === 0) {
     return (
       <div className="rounded-2xl px-lg py-md flex flex-wrap items-center gap-sm bg-surface-container-lowest border border-outline-variant text-on-surface">
         <span className="inline-flex items-center gap-xs font-serif font-bold mr-sm">
           <Sparkles size={16} aria-hidden="true" />
-          DiplomaPro is coming soon
+          {PRO_COMING_SOON ? "DiplomaPro is coming soon" : "Free plan"}
         </span>
-        <span className="text-body-md text-on-surface-variant">Practice is free for now.</span>
+        <span className="text-body-md text-on-surface-variant">
+          {PRO_COMING_SOON ? "Practice is free, and always will be. DiplomaBro is on its way." : "Practice from the question bank is free. Bro and the AI tools come with DiplomaPro."}
+        </span>
         <Link href={links.plans()} className="ml-auto text-label-md font-semibold text-primary hover:underline">
-          Join the waitlist
+          {PRO_COMING_SOON ? "Join the waitlist" : "Get DiplomaPro"}
         </Link>
       </div>
     );

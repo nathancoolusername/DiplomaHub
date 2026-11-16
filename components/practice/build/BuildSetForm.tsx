@@ -3,21 +3,22 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { unstable_rethrow, useRouter } from "next/navigation";
-import { Bookmark, BookmarkCheck, CalendarPlus, FolderOpen, KeyRound, Loader2, Play, Share2, Sparkles, WandSparkles } from "lucide-react";
+import { Bookmark, BookmarkCheck, CalendarPlus, FolderOpen, KeyRound, Loader2, Play, Share2, Sparkles, WandSparkles, FileDown } from "lucide-react";
 import type { BuildSettings, PaperCode, PracticeSet, PracticeType, SetPreview, StrengthMap, Subject, Suggestion } from "@/lib/data/types";
 import { links } from "@/lib/practice/links";
-import { goAction, previewSetAction, rebuildSetAction, renameSetAction, saveBuiltSetAction, scheduleSetAction, shareSetAction, unsaveSetAction } from "@/app/practice/actions";
+import { goAction, previewSetAction, rebuildSetAction, renameSetAction, saveBuiltSetAction, scheduleSetAction, unsaveSetAction } from "@/app/practice/actions";
 import { BroAvatar } from "@/components/shared/BroAvatar";
-import { Dialog } from "@/components/shared/Dialog";
 import { ProGate } from "@/components/shared/ProUpsell";
 import { Segmented } from "@/components/shared/Segmented";
 import { Switch } from "@/components/shared/Switch";
-import { EnterCodeDialog, MySetsDialog, ShareDialog } from "./SetDialogs";
+import { EnterCodeDialog, MySetsDialog } from "./SetDialogs";
+import { createShareCodeAction } from "@/app/codes/actions";
+import { ShareCodeDialog } from "@/components/codes/ShareCodeDialog";
 import { TopicPicker } from "./TopicPicker";
 import { ScheduleDialog, suggestMinutes } from "./ScheduleDialog";
 import { DeleteSetButton } from "@/components/practice/sets/DeleteSetButton";
 
-type DialogKind = "mysets" | "code" | "share" | "limit" | "schedule" | null;
+type DialogKind = "mysets" | "code" | "share" | "schedule" | null;
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -42,7 +43,6 @@ export function BuildSetForm({
   initialTopics,
   weakIds,
   isPro,
-  writtenRemaining,
   suggestion,
   savedSets,
   editing = null,
@@ -55,8 +55,6 @@ export function BuildSetForm({
   initialTopics: string[];
   weakIds: string[];
   isPro: boolean;
-  /** Free students' written questions left this week; null for Pro. */
-  writtenRemaining: number | null;
   suggestion: Suggestion | null;
   savedSets: PracticeSet[];
 }) {
@@ -113,7 +111,7 @@ export function BuildSetForm({
   // The set last saved from these exact settings, so Save then Share doesn't make two copies.
   const [savedFor, setSavedFor] = useState<{ key: string; setId: string; title: string } | null>(null);
   const settingsKey = JSON.stringify(s);
-  const [share, setShare] = useState<{ code: string; title: string } | null>(null);
+  const [share, setShare] = useState<{ code: string; title: string; useCount: number; setId?: string } | null>(null);
   const [note, setNote] = useState<string | null>(null);
   // Optional name; blank keeps the built-in title ("Maths AA · Calculus", etc.).
   const [name, setName] = useState(editing?.title ?? "");
@@ -133,7 +131,7 @@ export function BuildSetForm({
     setBaseline({ key: settingsKey, title: name.trim() || editing.title });
   };
 
-  const go = (cut = false) => {
+  const go = () => {
     setError(null);
     if (editing) {
       startGo(async () => {
@@ -153,13 +151,9 @@ export function BuildSetForm({
       router.push(links.play(savedFor.setId));
       return;
     }
-    if (!cut && writtenRemaining !== null && preview && preview.writtenInSet > writtenRemaining) {
-      setDialog("limit");
-      return;
-    }
     startGo(async () => {
       try {
-        await goAction(subject.id, practiceType, s, cut, name.trim() || null);
+        await goAction(subject.id, practiceType, s, name.trim() || null);
       } catch (e) {
         // goAction opens the player with redirect(), which throws; let Next handle it.
         unstable_rethrow(e);
@@ -189,25 +183,59 @@ export function BuildSetForm({
       }
     });
 
+  const codeFor = async (setId: string) => {
+    const r = await createShareCodeAction("practice_set", setId);
+    if (!r.ok) throw new Error(r.error);
+    return r;
+  };
   const doShare = () =>
     start(async () => {
       try {
         if (editing) {
           await saveChanges();
-          setShare({ code: await shareSetAction(editing.setId), title: name.trim() || editing.title });
+          setShare({ ...(await codeFor(editing.setId)), title: name.trim() || editing.title, setId: editing.setId });
           router.refresh();
           setDialog("share");
           return;
         }
         const r = savedFor?.key === settingsKey ? savedFor : await saveBuiltSetAction(subject.id, practiceType, s, name.trim() || null);
         setSavedFor({ key: settingsKey, setId: r.setId, title: r.title });
-        setShare({ code: await shareSetAction(r.setId), title: r.title });
+        setShare({ ...(await codeFor(r.setId)), title: r.title, setId: r.setId });
         router.refresh();
         setDialog("share");
       } catch (e) {
         setError(e instanceof Error ? e.message : "Couldn't share the set");
       }
     });
+
+  /**
+   * PDF: saves the set if it isn't yet (same as Share), then opens its paper.
+   * The tab opens on the click itself (browsers block it after a wait) and
+   * goes to the PDF once the set exists.
+   */
+  const doPdf = () => {
+    const tab = window.open("about:blank", "_blank");
+    start(async () => {
+      try {
+        let setId: string;
+        if (editing) {
+          await saveChanges();
+          setId = editing.setId;
+        } else {
+          const r = savedFor?.key === settingsKey ? savedFor : await saveBuiltSetAction(subject.id, practiceType, s, name.trim() || null);
+          setSavedFor({ key: settingsKey, setId: r.setId, title: r.title });
+          setId = r.setId;
+        }
+        const href = `${links.pdf(setId)}?print=1`;
+        if (tab) tab.location.href = href;
+        else window.location.href = href;
+        router.refresh();
+      } catch (e) {
+        tab?.close();
+        setError(e instanceof Error ? e.message : "Couldn't make the PDF");
+      }
+    });
+  };
 
   const saveEdits = () =>
     start(async () => {
@@ -544,6 +572,15 @@ export function BuildSetForm({
         <button type="button" onClick={doShare} disabled={busy || (empty && !editing) || (dirty && !!editing?.locked)} className={outlineBtn}>
           <Share2 size={14} aria-hidden="true" /> Share
         </button>
+        <button
+          type="button"
+          onClick={doPdf}
+          disabled={busy || (empty && !editing) || (dirty && !!editing?.locked)}
+          title="A printable DiplomaHub paper (saves the set)"
+          className={outlineBtn}
+        >
+          <FileDown size={14} aria-hidden="true" /> PDF
+        </button>
         <button type="button" onClick={() => setDialog("code")} className={outlineBtn}>
           <KeyRound size={14} aria-hidden="true" /> Enter a code
         </button>
@@ -581,9 +618,9 @@ export function BuildSetForm({
         )}
       </div>
 
-      {dialog === "mysets" && <MySetsDialog sets={savedSets} onClose={() => setDialog(null)} onEnterCode={() => setDialog("code")} />}
+      {dialog === "mysets" && <MySetsDialog sets={savedSets} isPro={isPro} onClose={() => setDialog(null)} onEnterCode={() => setDialog("code")} />}
       {dialog === "code" && <EnterCodeDialog onClose={() => setDialog(null)} />}
-      {dialog === "share" && share && <ShareDialog code={share.code} title={share.title} onClose={() => setDialog(null)} />}
+      {dialog === "share" && share && <ShareCodeDialog type="practice_set" code={share.code} title={share.title} useCount={share.useCount} setId={share.setId} onClose={() => setDialog(null)} />}
       {dialog === "schedule" && (
         <ScheduleDialog
           defaultTitle={name.trim() || (isSaved && savedFor ? savedFor.title : `${subject.shortName} practice`)}
@@ -593,38 +630,6 @@ export function BuildSetForm({
           onClose={() => setDialog(null)}
           onSchedule={schedule}
         />
-      )}
-      {dialog === "limit" && preview && writtenRemaining !== null && (
-        <Dialog
-          title="Weekly limit"
-          onClose={() => setDialog(null)}
-          width="max-w-110"
-          footer={
-            <>
-              <Link href={links.plans()} className="rounded-lg px-md py-sm text-label-md font-semibold text-primary hover:underline">
-                Get DiplomaPro
-              </Link>
-              <button
-                type="button"
-                disabled={writtenRemaining === 0 || going}
-                onClick={() => {
-                  setDialog(null);
-                  go(true);
-                }}
-                className="rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
-              >
-                Cut to {writtenRemaining}
-              </button>
-            </>
-          }
-        >
-          <p className="text-body-md text-on-surface">
-            {writtenRemaining === 0
-              ? `You've used this week's free written questions; this set has ${preview.writtenInSet}. MCQs are always unlimited.`
-              : `You have ${writtenRemaining} written ${writtenRemaining === 1 ? "question" : "questions"} left this week; this set has ${preview.writtenInSet}.`}
-          </p>
-          <p className="mt-sm text-label-md text-on-surface-variant">Saving and sharing still work.</p>
-        </Dialog>
       )}
     </div>
   );

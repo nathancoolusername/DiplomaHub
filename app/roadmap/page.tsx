@@ -142,7 +142,7 @@ export default async function Roadmap() {
     .slice(0, VISIBLE_COUNT);
 
   return (
-    <div className="flex flex-col px-md lg:px-[60px] py-margin bg-surface-container-low gap-gutter">
+    <div className="flex flex-col px-md lg:px-[60px] py-margin dh-page-bg bg-surface-container-low gap-gutter">
       <div className="pb-20 border-b-1 border-outline-variant flex flex-col gap-gutter">
         <h1 className="text-display-lg font-serif text-primary font-bold">
           Our Direction

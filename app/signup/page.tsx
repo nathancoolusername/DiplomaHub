@@ -1,12 +1,15 @@
 // app/signup/page.tsx
 "use client";
-import { useState, FormEvent } from "react";
+import { use, useState, FormEvent } from "react";
 import { signUp } from "../auth/actions";
 import { Eye } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Spinner } from "@/components/spinner";
+import { isSafeNext } from "@/app/lib/isSafeNext";
 
-export default function SignupPage() {
+export default function SignupPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  // Where to go after signing up (a shared code link keeps its code this way).
+  const next = isSafeNext(use(searchParams).next);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState("password");
@@ -51,6 +54,7 @@ export default function SignupPage() {
         <h1 className="text-headline-lg font-semibold font-serif">Sign up</h1>
 
         <form onSubmit={onSubmit} className="space-y-4">
+          {next && <input type="hidden" name="next" value={next} />}
           <div>
             <label className="block text-body-lg font-bold mb-1">
               Display name
@@ -133,7 +137,7 @@ export default function SignupPage() {
 
         <p className="text-sm text-center text-on-surface-variant">
           Already have an account?{" "}
-          <a href="/login" className="text-primary hover:underline">
+          <a href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="text-primary hover:underline">
             Log in
           </a>
         </p>

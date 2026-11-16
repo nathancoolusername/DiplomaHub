@@ -8,6 +8,7 @@ import type { PracticeSet, Question, SetSettings, Subject } from "@/lib/data/typ
 import { links } from "@/lib/practice/links";
 import { updateSetAction } from "@/app/practice/actions";
 import { MathMarkdown } from "@/components/shared/MathMarkdown";
+import { ShareButton } from "@/components/codes/ShareButton";
 import { Segmented } from "@/components/shared/Segmented";
 import { paperLabel } from "@/components/practice/player/question-format";
 import { useBroOverride } from "@/components/shared/bro/bro-visibility";
@@ -127,6 +128,9 @@ export function SetEditor({
           {set.saved ? " · in My sets" : ""}
           {set.shareCode ? ` · code ${set.shareCode}` : ""}
         </p>
+        <div>
+          <ShareButton type="practice_set" targetId={set.id} title={title.trim() || set.title} />
+        </div>
       </header>
 
       <section className="flex flex-col gap-md" aria-labelledby="set-settings">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { Dialog } from "@/components/shared/Dialog";
 
@@ -23,7 +23,16 @@ export function ScheduleDialog({
   error,
   onClose,
   onSchedule,
+  heading = "Schedule this set",
+  daysAhead = 1,
+  children,
 }: {
+  /** The dialog's title (Schedule a redo on the results page). */
+  heading?: string;
+  /** Default day: tomorrow, or a few days on for a redo (spaced practice). */
+  daysAhead?: number;
+  /** Extra choices shown above the title field. */
+  children?: ReactNode;
   defaultTitle: string;
   /** From the set's marks (about a minute a mark), rounded to a listed length. */
   suggestedMinutes: number;
@@ -33,7 +42,7 @@ export function ScheduleDialog({
   onSchedule: (slot: { title: string; startAt: string; endAt: string }) => void;
 }) {
   const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setDate(tomorrow.getDate() + daysAhead);
   const [title, setTitle] = useState(defaultTitle);
   const [date, setDate] = useState(toDateInput(tomorrow));
   const [time, setTime] = useState("17:00");
@@ -51,7 +60,7 @@ export function ScheduleDialog({
 
   return (
     <Dialog
-      title="Schedule this set"
+      title={heading}
       onClose={() => !busy && onClose()}
       width="max-w-110"
       footer={
@@ -74,6 +83,7 @@ export function ScheduleDialog({
         <p className="text-body-md text-on-surface-variant">
           It goes on your Hub as a study session with a Start button, and the set is saved to My sets.
         </p>
+        {children}
         <label className="flex flex-col gap-xs text-label-md font-semibold text-on-surface">
           Title
           <input type="text" value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} className={field} />

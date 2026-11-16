@@ -60,8 +60,9 @@ export default async function HubPage({ searchParams }: { searchParams: Promise<
         proRows={
           pro && (
             <>
-              <NextStepsRow suggestions={pro.nextSteps} />
-              <div className="grid md:grid-cols-2 gap-lg items-stretch">
+              {/* Keys: a server fragment passed to a client component arrives as an array of children. */}
+              <NextStepsRow key="next-steps" suggestions={pro.nextSteps} />
+              <div key="pick-up-and-brief" className="grid md:grid-cols-2 gap-lg items-stretch">
                 <PickUpCard sessions={pro.sessions} />
                 <BroBriefCard brief={pro.brief} isPro={pro.viewer.isPro} />
               </div>
@@ -72,6 +73,7 @@ export default async function HubPage({ searchParams }: { searchParams: Promise<
         practiceBySubject={pro?.practiceBySubject ?? {}}
         openAddOnLoad={openAddOnLoad}
         planItemId={typeof plan === "string" ? plan : null}
+        shareSetHintPending={pro?.hints.includes("share-set") ?? false}
       />
       {pro && <BroButton isPro={pro.viewer.isPro} hintPending={pro.hints.includes("bro-button")} />}
     </>

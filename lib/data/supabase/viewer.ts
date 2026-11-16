@@ -3,9 +3,9 @@ import "server-only";
 import { cache } from "react";
 import type { CalendarItemKind, ExamSession, GettingStarted, Level, Subject, SubjectId, UserSubject, Viewer } from "@/lib/data/types";
 import { allSubjects, subjectById } from "@/lib/catalog";
-import { PRO_COMING_SOON } from "@/lib/plans";
 import { check, db, requireUserId, rpc } from "./client";
 import { getNextTimedItem } from "./calendar";
+import { getProStatus } from "./pro";
 
 /** IB students take six subjects; extra classes are any number on top. */
 export const CORE_SUBJECT_COUNT = 6;
@@ -13,7 +13,6 @@ export const CORE_SUBJECT_COUNT = 6;
 type UserRow = {
   id: string;
   display_name: string | null;
-  is_pro: boolean | null;
   exam_session_id: string | null;
   diplomapro_onboarded_at: string | null;
   dismissed_hints: string[] | null;
@@ -26,7 +25,7 @@ const userRow = cache(async (): Promise<UserRow> => {
   const uid = await requireUserId();
   const { data, error } = await (await db())
     .from("users")
-    .select("id, display_name, is_pro, exam_session_id, diplomapro_onboarded_at, dismissed_hints, theme")
+    .select("id, display_name, exam_session_id, diplomapro_onboarded_at, dismissed_hints, theme")
     .eq("id", uid)
     .single();
   check(error);
@@ -34,14 +33,14 @@ const userRow = cache(async (): Promise<UserRow> => {
 });
 
 export const getViewer = cache(async (): Promise<Viewer> => {
-  const u = await userRow();
+  const [u, pro] = await Promise.all([userRow(), getProStatus()]);
   const name = (u.display_name ?? "").trim();
   return {
     id: u.id,
     displayName: name,
     firstName: name.split(/\s+/)[0] || "there",
-    // Nobody has Pro while it's coming soon (users.is_pro is left alone for launch day).
-    isPro: !!u.is_pro && !PRO_COMING_SOON,
+    // From entitlements (migration 30): beta testers have Pro even while it's "coming soon".
+    isPro: pro.isPro,
     examSessionId: u.exam_session_id,
   };
 });
@@ -49,6 +48,18 @@ export const getViewer = cache(async (): Promise<Viewer> => {
 /** The saved theme, or null if the student hasn't saved one yet. */
 export async function getThemePreference(): Promise<ThemePreference | null> {
   return (await userRow()).theme;
+}
+
+/** Saved accent and background, or null before migration 48 or when nothing is saved. */
+export async function getAppearancePreference(): Promise<{ accent: string | null; backdrop: string | null } | null> {
+  const uid = await requireUserId();
+  const { data, error } = await (await db()).from("users").select("accent, backdrop").eq("id", uid).maybeSingle();
+  if (error || !data) return null;
+  return { accent: (data as { accent: string | null }).accent, backdrop: (data as { backdrop: string | null }).backdrop };
+}
+
+export async function setAppearancePreference(accent: string, backdrop: string): Promise<void> {
+  await rpc("set_appearance", { p_accent: accent, p_backdrop: backdrop });
 }
 
 export async function setThemePreference(theme: ThemePreference): Promise<void> {
@@ -193,7 +204,7 @@ export async function completeOnboarding(a: OnboardingAnswers): Promise<void> {
   await rpc("complete_onboarding", { p: a });
 }
 
-export const HINT_IDS = ["strength-map", "bro-button", "midnight"] as const;
+export const HINT_IDS = ["strength-map", "bro-button", "midnight", "share-set"] as const;
 export type HintId = (typeof HINT_IDS)[number];
 
 /** Whether this student has dismissed a hint (regardless of setup). */

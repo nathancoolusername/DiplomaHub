@@ -2,7 +2,9 @@
 import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { ResendConfirmationButton } from "@/components/profile/ReconfirmButton";
+import { ProBadgeToggle } from "@/components/profile/ProBadgeToggle";
 import { HideToggle } from "@/components/leaderboard/HideToggle";
+import { getProStatus } from "@/lib/data";
 import {
   getCurrentUserProfile,
   getCurrentUser,
@@ -15,6 +17,10 @@ export default async function ProfilePage() {
   if (!profile) redirect("/login");
 
   const emailConfirmed = !!user.email_confirmed_at;
+  const pro = await getProStatus();
+  const proUntil = pro.expiresAt
+    ? `You have Pro until ${new Date(pro.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}.`
+    : "You have unlimited Pro.";
 
   return (
     <div className="space-y-6 bg-surface-container max-w-[600px] mx-auto px-md h-full py-20">
@@ -46,6 +52,7 @@ export default async function ProfilePage() {
         <HideToggle hidden={!!profile.hide_from_leaderboard} />
       </section>
 
+      {pro.isPro && <ProBadgeToggle hidden={pro.badgeHidden} until={proUntil} />}
     </div>
   );
 }

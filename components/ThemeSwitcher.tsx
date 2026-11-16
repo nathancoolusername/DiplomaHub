@@ -2,7 +2,8 @@
 
 import { useTheme } from "next-themes";
 import { useState, useSyncExternalStore } from "react";
-import { Monitor, Moon, Sparkles, Sun } from "lucide-react";
+import { Monitor, Moon, Palette, Sparkles, Sun } from "lucide-react";
+import { StylePicker } from "./shared/StylePicker";
 import { switchTheme } from "./shared/theme-transition";
 import { setThemeAction } from "@/app/actions/viewer";
 import { loadViewerPrefs, useIsPro } from "./shared/use-is-pro";
@@ -10,7 +11,8 @@ import { UpgradePopover } from "./shared/ProUpsell";
 import { MidnightPreviewButton } from "./shared/MidnightPreview";
 import { access } from "@/lib/plans";
 
-// Theme picker in the nav: System, Light, Dark and Midnight. Midnight is a
+// Theme picker in the nav: System, Light, Dark and Midnight, then the
+// palette button for accent colours and backgrounds (StylePicker). Midnight is a
 // DiplomaPro theme (lib/plans.ts "midnight_theme"): everyone sees it, but
 // for free users it opens the upsell with a 3-second preview instead.
 // While Pro is coming soon, access() makes it free for everyone.
@@ -34,6 +36,7 @@ export function ThemeSwitcher({ popoverAlign = "right" }: { popoverAlign?: "left
   const [pressed, setPressed] = useState<string | null>(null);
   const [upsell, setUpsell] = useState(false);
   const [previewing, setPreviewing] = useState(false);
+  const [styles, setStyles] = useState(false);
   const current = pressed ?? theme;
 
   const choose = (value: string) => {
@@ -77,7 +80,24 @@ export function ThemeSwitcher({ popoverAlign = "right" }: { popoverAlign?: "left
             </button>
           );
         })}
+        <span className="w-px h-4 bg-outline-variant mx-0.5" aria-hidden="true" />
+        <button
+          type="button"
+          onClick={() => {
+            setUpsell(false);
+            setStyles((v) => !v);
+          }}
+          aria-label="Colours and backgrounds"
+          aria-expanded={styles}
+          title="Colours and backgrounds"
+          className={`p-1.5 rounded-[50%] cursor-pointer transition-colors ${styles ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-primary"}`}
+        >
+          <Palette size={14} aria-hidden="true" />
+        </button>
       </div>
+      {styles && (
+        <StylePicker isPro={isPro} onClose={() => setStyles(false)} className={`absolute top-full mt-sm ${popoverAlign === "right" ? "right-0" : "left-0"}`} />
+      )}
       {upsell && (
         <UpgradePopover
           feature="Midnight"

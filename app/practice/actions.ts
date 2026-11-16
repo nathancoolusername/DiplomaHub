@@ -6,17 +6,20 @@ import type { AnswerDraft, AttemptAnswer, BuildSettings, Level, Markscheme, Prac
 import {
   addExtraClass,
   buildSet,
-  getUsage,
   getUserSubject,
   previewSet,
   redeemShareCode,
   confirmMarks,
   createRedoSet,
+  getAttemptResult,
+  getSetQuestions,
+  startOrResumeAttempt,
   finishAttempt,
   discardAttempt,
   completeScheduledSet,
   scheduleSet,
   getViewer,
+  requirePro,
   removeExtraClass,
   setSubjectLevel,
   requestSubject,
@@ -55,6 +58,47 @@ export async function finishAttemptAction(attemptId: string): Promise<never> {
   await completeScheduledSet(attempt.setId).catch(() => {});
   revalidatePath("/hub");
   redirect(links.attempt(attemptId));
+}
+
+/**
+ * A printed paper back on screen (its code, or Mark paper): the letters
+ * circled for the multiple-choice questions are saved, every blank written
+ * answer counts as "on paper", and the attempt is finished, so the student
+ * lands on the markscheme to tick their marks. An unfinished attempt of the
+ * set carries on: anything typed there stays.
+ */
+export async function markPaperAction(setId: string, mcq: Record<string, string>): Promise<{ href: string }> {
+  await getViewer();
+  const [questions, { attempt, answers }] = await Promise.all([getSetQuestions(setId), startOrResumeAttempt(setId)]);
+  const byId = new Map(answers.map((a) => [a.questionId, a]));
+  await Promise.all(
+    questions.map((q) => {
+      const a = byId.get(q.id);
+      if (a && a.marksAwarded !== null) return null; // already marked during the set
+      const draft: AnswerDraft = {
+        partAnswers: a?.partAnswers ?? {},
+        selectedOption: a?.selectedOption ?? null,
+        onPaper: a?.onPaper ?? false,
+        tickedPoints: a?.tickedPoints ?? {},
+        criterionMarks: a?.criterionMarks ?? {},
+        flagged: a?.flagged ?? false,
+        timeSpentS: a?.timeSpentS ?? 0,
+      };
+      if (q.type === "mcq") {
+        const pick = mcq[q.id];
+        if (!pick || !q.options?.some((o) => o.key === pick) || pick === draft.selectedOption) return null;
+        return saveAnswer(attempt.id, q.id, { ...draft, selectedOption: pick });
+      }
+      const typed = Object.values(draft.partAnswers).some((t) => t?.trim());
+      return typed || draft.onPaper ? null : saveAnswer(attempt.id, q.id, { ...draft, onPaper: true });
+    }),
+  );
+  await finishAttempt(attempt.id);
+  await completeScheduledSet(setId).catch(() => {});
+  revalidatePath("/hub");
+  revalidatePath("/practice", "layout");
+  // Returned, not redirect(): the page navigates, so its error handling only sees real failures.
+  return { href: links.attempt(attempt.id) };
 }
 
 /** Deletes an unfinished set from "Pick up where you left off" (Hub and Practice). */
@@ -182,33 +226,11 @@ export async function previewSetAction(subjectId: SubjectId, practiceType: Pract
   return previewSet(subjectId, practiceType, await subjectLevel(subjectId), settings);
 }
 
-/** Written questions a free student can still start this week (null = no limit). */
-async function writtenRemaining(): Promise<number | null> {
-  const viewer = await getViewer();
-  if (viewer.isPro) return null;
-  const item = (await getUsage()).find((u) => u.feature === "written_questions");
-  return item && item.limit !== null ? Math.max(0, item.limit - item.used) : null;
-}
-
-/**
- * Go: builds the set and opens the player. Free students over their weekly
- * written-question limit must pass `cutToRemaining` (the "cut the set" choice).
- */
-export async function goAction(
-  subjectId: SubjectId,
-  practiceType: PracticeType,
-  settings: BuildSettings,
-  cutToRemaining = false,
-  name: string | null = null,
-): Promise<never> {
+/** Go: builds the set and opens the player. Practice is free with no limit. */
+export async function goAction(subjectId: SubjectId, practiceType: PracticeType, settings: BuildSettings, name: string | null = null): Promise<never> {
+  await getViewer();
   const level = await subjectLevel(subjectId);
-  const remaining = await writtenRemaining();
-  if (remaining !== null && !cutToRemaining) {
-    const preview = await previewSet(subjectId, practiceType, level, settings);
-    if (preview.writtenInSet > remaining) throw new Error("Over the free written-question limit");
-  }
-  // TODO(billing): consume_quota("written_questions") per written question, atomically.
-  const set = await applyName(await buildSet(subjectId, practiceType, level, settings, { writtenCap: remaining, save: false }), name);
+  const set = await applyName(await buildSet(subjectId, practiceType, level, settings, { writtenCap: null, save: false }), name);
   redirect(links.play(set.id));
 }
 
@@ -235,8 +257,7 @@ export async function scheduleSetAction(
   setId: string | null = null,
   name: string | null = null,
 ): Promise<{ setId: string; title: string; itemId: string }> {
-  const viewer = await getViewer();
-  if (!viewer.isPro) throw new Error("Scheduling is part of DiplomaPro");
+  await requirePro("Scheduling is part of DiplomaPro");
   const start = new Date(slot.startAt);
   const end = new Date(slot.endAt);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) throw new Error("Pick a start and end time");
@@ -253,6 +274,49 @@ export async function scheduleSetAction(
   revalidatePath("/hub");
   revalidatePath("/");
   return { setId: set.setId, title, itemId };
+}
+
+/** Schedule (Pro) for a set already in My sets: a study session on the Hub that opens it. */
+/** A Hub slot from a Schedule dialog: real times, at most 8 hours, a title. */
+function checkSlot(slot: { title: string; startAt: string; endAt: string }) {
+  const start = new Date(slot.startAt);
+  const end = new Date(slot.endAt);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) throw new Error("Pick a start and end time");
+  if (end.getTime() - start.getTime() > 8 * 3600_000) throw new Error("A session can be at most 8 hours");
+  return { title: String(slot.title ?? "").trim().slice(0, 200) || "Practice set", startAt: start.toISOString(), endAt: end.toISOString() };
+}
+
+export async function scheduleSavedSetAction(setId: string, slot: { title: string; startAt: string; endAt: string }): Promise<{ title: string; itemId: string }> {
+  await requirePro("Scheduling is part of DiplomaPro");
+  if (typeof setId !== "string" || !setId) throw new Error("Set not found");
+  const clean = checkSlot(slot);
+  const itemId = await scheduleSet(setId, clean);
+  revalidatePath("/hub");
+  revalidatePath("/");
+  return { title: clean.title, itemId };
+}
+
+/**
+ * Schedule a redo from the results page (Pro): the questions they lost marks
+ * on (a new redo set) or the whole set again, saved to My sets and put on
+ * the Hub as a study session that opens it.
+ */
+export async function scheduleRedoAction(
+  attemptId: string,
+  which: "wrong" | "all",
+  slot: { title: string; startAt: string; endAt: string },
+): Promise<{ title: string; itemId: string; setId: string }> {
+  await requirePro("Scheduling is part of DiplomaPro");
+  const clean = checkSlot(slot);
+  const result = await getAttemptResult(attemptId);
+  if (!result || result.attempt.status !== "marked") throw new Error("Set not found");
+  const setId = which === "wrong" ? (await createRedoSet(attemptId)).id : result.set.id;
+  await saveSet(setId);
+  const itemId = await scheduleSet(setId, clean);
+  revalidatePath("/hub");
+  revalidatePath("/");
+  revalidatePath("/practice", "layout");
+  return { title: clean.title, itemId, setId };
 }
 
 export async function redeemCodeAction(code: string): Promise<{ ok: true; setId: string; title: string } | { ok: false; error: string }> {

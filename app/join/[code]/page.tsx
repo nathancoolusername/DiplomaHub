@@ -1,16 +1,16 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getCurrentUserId } from "@/app/lib/get-current-user";
+import { normalizeCode } from "@/lib/codes";
 
-export const metadata: Metadata = { title: "Join a set", robots: { index: false } };
+export const metadata: Metadata = { title: "Redeem a code", robots: { index: false } };
 
-// A shared set's link: /join/ABC234. Outside /practice on purpose, so a
-// signed-out visitor keeps the code through login (the Practice layout's own
-// redirect can't see query strings). Signed in, it opens Practice with the
-// code filled in; adding the set is still the student's click.
+// Old share links (/join/ABC234) for any kind of code: they open /codes with
+// the code filled in (/codes itself sends signed-out visitors through login
+// and back). Redeeming is still the student's click.
 export default async function JoinPage({ params }: { params: Promise<{ code: string }> }) {
   const code = decodeURIComponent((await params).code).trim().toUpperCase();
-  if (!/^[A-HJ-NP-Z2-9]{6}$/.test(code)) redirect("/practice");
-  if (!(await getCurrentUserId())) redirect(`/login?next=${encodeURIComponent(`/join/${code}`)}`);
-  redirect(`/practice?code=${code}`);
+  if (!/^[A-Z0-9]{5,16}$/.test(normalizeCode(code))) redirect("/codes");
+  if (!(await getCurrentUserId())) redirect(`/login?next=${encodeURIComponent(`/codes?c=${normalizeCode(code)}`)}`);
+  redirect(`/codes?c=${normalizeCode(code)}`);
 }

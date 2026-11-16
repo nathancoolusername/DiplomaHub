@@ -75,6 +75,12 @@ export default function ProfileDropdown({
           <Link href="/leaderboard" onClick={() => setIsOpen(false)} className="sm:hidden block px-md py-sm text-body-lg transition-colors hover:bg-surface-container text-primary font-serif">
             Leaderboard · {points} pts
           </Link>
+          <Link href="/codes" onClick={() => setIsOpen(false)} className="block px-md py-sm text-body-lg transition-colors hover:bg-surface-container text-primary font-serif">
+            Codes
+          </Link>
+          <Link href="/progress" onClick={() => setIsOpen(false)} className="block px-md py-sm text-body-lg transition-colors hover:bg-surface-container text-primary font-serif">
+            Progress
+          </Link>
           {isAdmin && (
             <Link href="/admin">
               <button
