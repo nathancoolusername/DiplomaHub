@@ -15,7 +15,7 @@ const ctaHref = "/login";
 export default function About() {
 
   return (
-    <div className="flex flex-col gap-[70px] bg-surface-container-low ">
+    <div className="flex flex-col gap-[70px] dh-page-bg bg-surface-container-low ">
       <div className="flex flex-col gap-margin justify-content-center items-center place-content-center min-h-[500px] md:h-[700px] px-md md:px-[60px] py-20">
         <p className="uppercase text-primary text-headline-md">
           Our community mission

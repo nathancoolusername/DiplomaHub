@@ -4,18 +4,19 @@ import { useEffect } from "react";
 import { DiplomaBroMark } from "./DiplomaBroIcon";
 import { ProBadge, UpgradePopover } from "../ProUpsell";
 import { BroBar } from "./BroBar";
+import { isNewChatShortcut, prefetchBroChat } from "./useBroChat";
 import { FirstTimeHint } from "../FirstTimeHint";
-import { BRO_BUTTON_ICON_ID, closeBro, toggleBro, useBroMounted, useBroPlacement } from "./bro-visibility";
+import { BRO_BUTTON_ICON_ID, closeBro, openBro, toggleBro, useBroMounted, useBroPlacement } from "./bro-visibility";
 
 /**
  * Fixed bottom-right on every signed-in page (in place of scroll-to-top). Click or Ctrl/Cmd+K opens the
  * command bar (Pro). Free users get a Pro badge and the upgrade popover.
  * Hidden during timed sets.
  */
-export function BroButton({ isPro, hintPending = false }: { isPro: boolean; hintPending?: boolean }) {
+export function BroButton({ isPro, hintPending = false, global = false }: { isPro: boolean; hintPending?: boolean; global?: boolean }) {
   // Open/closed lives in the shared store so "Talk to Bro" elsewhere can open it.
   const { hidden, bottomOffset, open, request } = useBroPlacement();
-  useBroMounted();
+  useBroMounted(global);
 
   useEffect(() => {
     if (hidden) return;
@@ -23,11 +24,15 @@ export function BroButton({ isPro, hintPending = false }: { isPro: boolean; hint
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         toggleBro();
+      } else if (isPro && !open && isNewChatShortcut(e)) {
+        // Ctrl/⌘ Shift O from anywhere: the bar opens on a new chat. (While it's open, the bar handles it.)
+        e.preventDefault();
+        openBro({ newChat: true });
       }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [hidden]);
+  }, [hidden, isPro, open]);
 
   if (hidden) return null;
 
@@ -49,6 +54,9 @@ export function BroButton({ isPro, hintPending = false }: { isPro: boolean; hint
             id={BRO_BUTTON_ICON_ID}
             type="button"
             onClick={toggleBro}
+            // Start loading the chat as the pointer arrives, so the bar opens with it already there.
+            onPointerEnter={isPro ? prefetchBroChat : undefined}
+            onFocus={isPro ? prefetchBroChat : undefined}
             aria-label={isPro ? "Ask Bro (Ctrl+K)" : "DiplomaBro (coming soon)"}
             aria-expanded={open}
             className={`relative w-14 h-14 rounded-[50%] shadow-lg cursor-pointer transition-[transform,opacity] duration-200 ease-out hover:scale-105 motion-reduce:transition-none ${

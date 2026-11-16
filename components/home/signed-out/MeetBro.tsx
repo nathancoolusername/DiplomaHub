@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { BroAvatar } from "@/components/shared/BroAvatar";
 
@@ -14,16 +15,18 @@ export default function MeetBro() {
             Meet DiplomaBro, your study partner
           </h2>
           <p className="text-body-lg text-on-surface-variant">
-            DiplomaBro reads your calendar and your strength map and tells you what to do first. Ask it to explain a question, check
-            your working, or plan your week around your tests. If you want, it builds the study plan and puts the study blocks in your
-            calendar for you.
+            Bro knows your subjects, your test dates and how your practice went, and it&apos;s on every page. Ask about the question in front of
+            you, or just say what&apos;s coming up: it builds the practice and puts the study sessions in your calendar.
           </p>
           <ul className="flex flex-col gap-xs text-body-md text-on-surface">
-            <li>· Explanations for any question you got wrong</li>
-            <li>· Feedback on your working and essays, never answers written for you</li>
-            <li>· A weekly brief and sets built around your next test</li>
-            <li>· Study plans built for you, with study blocks added to your calendar if you want them</li>
+            <li>· Help on the question on screen, from its markscheme: hints first, the answer when you ask</li>
+            <li>· Practice sets built from the topics you name or your weakest ones</li>
+            <li>· Study plans and whole revision timetables added to your calendar</li>
+            <li>· A daily brief on what to do first, and it remembers what you find hard</li>
           </ul>
+          <Link href="/pro" prefetch={false} className="self-start text-label-lg font-semibold text-primary hover:underline">
+            See everything in DiplomaPro →
+          </Link>
         </div>
 
         {/* Illustration of the Bro bar (static sample). */}

@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarSync, ChevronLeft, ChevronRight, Flag, Plus, Upload, UserRound } from "lucide-react";
+import { CalendarRange, CalendarSync, ChevronLeft, ChevronRight, Flag, Plus, Share2, Upload, UserRound } from "lucide-react";
 import SessionPicker from "./session-picker";
+import { CodesLink } from "@/components/codes/CodesLink";
+import { FirstTimeHint } from "@/components/shared/FirstTimeHint";
 import { getGreeting } from "./format";
 
 export default function HubHeader({
@@ -19,6 +21,9 @@ export default function HubHeader({
   onAddItem,
   onSyncCalendar,
   onImport,
+  onShareSet,
+  onSets,
+  shareSetHint = false,
   session,
   onChangeSession,
 }: {
@@ -35,6 +40,12 @@ export default function HubHeader({
   onAddItem: () => void;
   onSyncCalendar: () => void;
   onImport: () => void;
+  /** Signed in only: opens "Share a set". */
+  onShareSet?: () => void;
+  /** Signed in only: opens "Your sets" (Hub sets, migration 46). */
+  onSets?: () => void;
+  /** Show the one-time tip on "Share a set" (signed in, not dismissed, 5+ items). */
+  shareSetHint?: boolean;
   session: string;
   onChangeSession: (session: string) => void;
 }) {
@@ -45,10 +56,12 @@ export default function HubHeader({
       : currentDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
   return (
-    <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-md bg-surface-container-lowest p-lg rounded-xl border border-outline-variant">
-      <div className="flex flex-col gap-1">
+    <header className="flex flex-col 2xl:flex-row 2xl:items-center justify-between gap-md bg-surface-container-lowest p-lg rounded-xl border border-outline-variant">
+      {/* The greeting keeps its line (from sm up). The controls sit under it,
+          left-aligned, until the screen is wide enough for both side by side. */}
+      <div className="flex flex-col gap-1 min-w-0 2xl:shrink-0">
         <div className="flex items-center gap-sm flex-wrap">
-          <h1 className="text-headline-lg font-serif font-bold text-on-surface">
+          <h1 className="text-headline-lg font-serif font-bold text-on-surface sm:whitespace-nowrap">
             {getGreeting(now)}{firstName ? `, ${firstName}` : ""}
           </h1>
           {isGuest && (
@@ -75,96 +88,132 @@ export default function HubHeader({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-sm">
-        <div className="inline-flex p-1 rounded-lg bg-surface-container text-on-surface-variant text-label-md">
+      {/* Two rows: the calendar and Add item on the first; sharing, import/sync and feedback on the second. */}
+      <div className="flex flex-col gap-sm">
+        <div className="flex flex-wrap items-center gap-sm">
+          <div className="inline-flex p-1 rounded-lg bg-surface-container text-on-surface-variant text-label-md">
+            <button
+              type="button"
+              onClick={() => onChangeView("week")}
+              aria-pressed={view === "week"}
+              className={`px-sm py-1 rounded-md font-semibold transition-all cursor-pointer ${
+                view === "week" ? "bg-surface-container-lowest text-primary shadow-xs" : "hover:text-primary"
+              }`}
+            >
+              Week
+            </button>
+            <button
+              type="button"
+              onClick={() => onChangeView("month")}
+              aria-pressed={view === "month"}
+              className={`px-sm py-1 rounded-md font-semibold transition-all cursor-pointer ${
+                view === "month" ? "bg-surface-container-lowest text-primary shadow-xs" : "hover:text-primary"
+              }`}
+            >
+              Month
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1 bg-surface-container-low px-1 py-1 rounded-lg border border-outline-variant/50">
+            <button
+              type="button"
+              onClick={onPrev}
+              aria-label={view === "week" ? "Previous week" : "Previous month"}
+              className="w-7 h-7 flex items-center justify-center rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={onToday}
+              className="px-sm py-1 text-label-sm font-bold text-primary hover:bg-surface-container rounded transition-colors cursor-pointer"
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              onClick={onNext}
+              aria-label={view === "week" ? "Next week" : "Next month"}
+              className="w-7 h-7 flex items-center justify-center rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+            >
+              <ChevronRight size={18} />
+            </button>
+            <span className="ml-1 pl-sm border-l border-outline-variant/50 text-label-md text-on-surface font-medium whitespace-nowrap">
+              {rangeLabel}
+            </span>
+          </div>
+
           <button
             type="button"
-            onClick={() => onChangeView("week")}
-            aria-pressed={view === "week"}
-            className={`px-sm py-1 rounded-md font-semibold transition-all cursor-pointer ${
-              view === "week" ? "bg-surface-container-lowest text-primary shadow-xs" : "hover:text-primary"
-            }`}
+            onClick={onAddItem}
+            className="flex items-center gap-1.5 bg-primary hover:opacity-90 text-on-primary px-md py-2 rounded-lg text-label-md font-semibold shadow-sm transition-opacity cursor-pointer"
           >
-            Week
-          </button>
-          <button
-            type="button"
-            onClick={() => onChangeView("month")}
-            aria-pressed={view === "month"}
-            className={`px-sm py-1 rounded-md font-semibold transition-all cursor-pointer ${
-              view === "month" ? "bg-surface-container-lowest text-primary shadow-xs" : "hover:text-primary"
-            }`}
-          >
-            Month
+            <Plus size={18} />
+            Add item
           </button>
         </div>
 
-        <div className="flex items-center gap-1 bg-surface-container-low px-1 py-1 rounded-lg border border-outline-variant/50">
+        <div className="flex flex-wrap items-center gap-sm">
+          {!isGuest && onShareSet && (
+            <FirstTimeHint
+              id="share-set"
+              pending={shareSetHint}
+              placement="bottom-start"
+              text="Revising with friends? Share a date range of your Hub as one code: they get a copy, on your dates or starting the day they pick."
+            >
+              <button
+                type="button"
+                onClick={onShareSet}
+                className="flex items-center gap-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface-variant px-md py-2 rounded-lg text-label-md font-semibold transition-colors cursor-pointer"
+              >
+                <Share2 size={16} />
+                Share a set
+              </button>
+            </FirstTimeHint>
+          )}
+
+          {!isGuest && onSets && (
+            <button
+              type="button"
+              onClick={onSets}
+              className="flex items-center gap-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface-variant px-md py-2 rounded-lg text-label-md font-semibold transition-colors cursor-pointer"
+            >
+              <CalendarRange size={16} />
+              Sets
+            </button>
+          )}
+
+          {!isGuest && <CodesLink />}
+
           <button
             type="button"
-            onClick={onPrev}
-            aria-label={view === "week" ? "Previous week" : "Previous month"}
-            className="w-7 h-7 flex items-center justify-center rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+            onClick={onImport}
+            className="flex items-center gap-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface-variant px-md py-2 rounded-lg text-label-md font-semibold transition-colors cursor-pointer"
           >
-            <ChevronLeft size={18} />
+            <Upload size={18} />
+            Import
           </button>
+
           <button
             type="button"
-            onClick={onToday}
-            className="px-sm py-1 text-label-sm font-bold text-primary hover:bg-surface-container rounded transition-colors cursor-pointer"
+            onClick={onSyncCalendar}
+            className="flex items-center gap-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface-variant px-md py-2 rounded-lg text-label-md font-semibold transition-colors cursor-pointer"
           >
-            Today
+            <CalendarSync size={18} />
+            Sync to calendar
           </button>
-          <button
-            type="button"
-            onClick={onNext}
-            aria-label={view === "week" ? "Next week" : "Next month"}
-            className="w-7 h-7 flex items-center justify-center rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+
+          {/* The Hub is the newest, least-tested part of the app — a visible
+              way to report a problem, same link as Roadmap's "Submit
+              Feedback" button. */}
+          <Link
+            href="/feedback"
+            className="flex items-center gap-1.5 text-on-surface-variant hover:text-primary px-sm py-2 text-label-md font-medium transition-colors"
           >
-            <ChevronRight size={18} />
-          </button>
-          <span className="ml-1 pl-sm border-l border-outline-variant/50 text-label-md text-on-surface font-medium whitespace-nowrap">
-            {rangeLabel}
-          </span>
+            <Flag size={16} />
+            Feedback
+          </Link>
         </div>
-
-        <button
-          type="button"
-          onClick={onImport}
-          className="flex items-center gap-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface-variant px-md py-2 rounded-lg text-label-md font-semibold transition-colors cursor-pointer"
-        >
-          <Upload size={18} />
-          Import
-        </button>
-
-        <button
-          type="button"
-          onClick={onSyncCalendar}
-          className="flex items-center gap-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface-variant px-md py-2 rounded-lg text-label-md font-semibold transition-colors cursor-pointer"
-        >
-          <CalendarSync size={18} />
-          Sync to calendar
-        </button>
-
-        <button
-          type="button"
-          onClick={onAddItem}
-          className="flex items-center gap-1.5 bg-primary hover:opacity-90 text-on-primary px-md py-2 rounded-lg text-label-md font-semibold shadow-sm transition-opacity cursor-pointer"
-        >
-          <Plus size={18} />
-          Add item
-        </button>
-
-        {/* The Hub is the newest, least-tested part of the app — a visible
-            way to report a problem, same link as Roadmap's "Submit
-            Feedback" button. */}
-        <Link
-          href="/feedback"
-          className="flex items-center gap-1.5 text-on-surface-variant hover:text-primary px-sm py-2 text-label-md font-medium transition-colors"
-        >
-          <Flag size={16} />
-          Feedback
-        </Link>
       </div>
     </header>
   );

@@ -20,6 +20,9 @@ const navLinks = [
   { label: "Home", href: "/" },
   { label: "Hub", href: "/hub" },
   { label: "Practice", href: "/practice" },
+  { label: "Bro", href: "/bro" },
+  // Wide screens only in the top bar (it overflowed at 1024px); always in the phone menu and the profile menu.
+  { label: "Progress", href: "/progress", wide: true },
   { label: "Resources", href: "/resources" },
   { label: "Articles", href: "/articles" },
   { label: "Roadmap", href: "/roadmap" },
@@ -46,7 +49,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
                     key={link.href}
                     href={link.href}
                     prefetch={NO_PREFETCH.has(link.href) ? false : undefined}
-                    className={`text-body-md transition-colors ${
+                    className={`text-body-md transition-colors ${"wide" in link && link.wide ? "hidden xl:inline" : ""} ${
                       isActive
                         ? "text-primary font-bold border-b-2 border-primary pb-1"
                         : "text-on-surface-variant hover:text-primary"
@@ -105,6 +108,16 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
               }`}
             >
               <FortyFiveMark /> Forty-Five <span className="text-label-sm font-normal text-on-surface-variant">daily puzzle</span>
+            </Link>
+            {/* Phones only: the desktop bar has no room, and signed-in people also have it in the profile menu. */}
+            <Link
+              href="/codes"
+              onClick={() => setMenuOpen(false)}
+              className={`px-lg py-md text-body-md transition-colors ${
+                pathname === "/codes" ? "text-primary font-bold bg-surface-container-low" : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+              }`}
+            >
+              Codes
             </Link>
             <div className="px-lg py-md flex items-center justify-between gap-md border-t border-outline-variant">
               <span className="text-body-md text-on-surface-variant">Theme</span>

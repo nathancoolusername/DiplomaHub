@@ -236,6 +236,9 @@ export function OnboardingWizard({
                 <p className="text-body-lg text-on-surface-variant">
                   Start wherever you like: in Practice, pick any subject and build a set on the topics you want. Your strength map fills in as you go.
                 </p>
+                <p className="text-label-md text-on-surface-variant">
+                  Got a code from a friend? Enter it on the <span className="font-semibold text-on-surface">Codes</span> page, in the menu under your name.
+                </p>
                 {error && <p className="text-label-md text-error">{error}</p>}
               </>
             )}

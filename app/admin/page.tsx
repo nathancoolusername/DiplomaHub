@@ -60,10 +60,11 @@ export default async function AdminOverviewPage({ searchParams }: Props) {
         </>
       )}
 
-      <div className="grid sm:grid-cols-3 gap-md">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-md">
         {[
           { href: "/admin/hub", title: "Hub", text: "Setups, items and countdowns" },
           { href: "/admin/practice", title: "Practice", text: "Sets, attempts and subject requests" },
+          { href: "/admin/pro", title: "Pro", text: "Who has DiplomaPro, beta and entitlements" },
           { href: "/admin/waitlist", title: "Waitlist", text: "Sign-ups for DiplomaPro" },
         ].map((l) => (
           <Link

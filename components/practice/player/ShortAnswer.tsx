@@ -23,6 +23,7 @@ export function ShortAnswer({
   revealing,
   onChange,
   onReveal,
+  onAskBro,
 }: {
   question: Question;
   answer: AttemptAnswer;
@@ -32,9 +33,10 @@ export function ShortAnswer({
   revealing: boolean;
   onChange: (patch: Partial<AttemptAnswer>) => void;
   onReveal: () => void;
+  /** Opens Bro on this question with a request (saves the answer first). Absent in timed sets. */
+  onAskBro?: (prompt: string) => void;
 }) {
   const [showSolution, setShowSolution] = useState(false);
-  const [broNote, setBroNote] = useState(false);
   const single = question.parts.length === 1;
 
   const toggleTick = (label: string, i: number) => {
@@ -89,20 +91,23 @@ export function ShortAnswer({
           )
         )}
 
-        {!timed && (
+        {!timed && onAskBro && (
           <ProGate
             isPro={isPro}
             feature="Answer checking"
-            onClick={() => setBroNote(true)}
+            onClick={() =>
+              onAskBro(
+                Object.values(answer.partAnswers).some((t) => t?.trim())
+                  ? "Check my answer against the markscheme. Don't give me the full solution: tell me what's right, what's missing, and which marks I'd get."
+                  : "I haven't written anything yet. Give me a hint to get started.",
+              )
+            }
             className="rounded-lg px-md py-xs text-label-md font-semibold text-on-surface-variant hover:text-primary"
           >
             Have Bro check my answer
           </ProGate>
         )}
       </div>
-      {broNote && (
-        <p className="text-label-md text-on-surface-variant -mt-sm">Bro answer checks arrive with DiplomaBro (phase 7).</p>
-      )}
 
       {markscheme && (
         <section className="rounded-xl border border-outline-variant bg-surface-container-low p-md flex flex-col gap-md" aria-label="Markscheme">

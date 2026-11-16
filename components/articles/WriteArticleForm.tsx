@@ -197,7 +197,7 @@ export default function WriteArticleForm({
   }
 
   return (
-    <div className="flex flex-col px-md md:px-10 xl:px-45 py-10 gap-gutter bg-surface-container-low">
+    <div className="flex flex-col px-md md:px-10 xl:px-45 py-10 gap-gutter dh-page-bg bg-surface-container-low">
       <Breadcrumb
         parentLabel="Articles"
         parentHref="/articles"

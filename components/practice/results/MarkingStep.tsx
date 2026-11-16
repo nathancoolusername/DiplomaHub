@@ -1,5 +1,6 @@
 "use client";
 
+import { AskBroButton } from "@/components/shared/bro/AskBroButton";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { AttemptAnswer, AttemptResult } from "@/lib/data/types";
@@ -10,13 +11,14 @@ import { QuestionFigures } from "@/components/shared/QuestionFigures";
 import { MarkPointList } from "../MarkPointList";
 import { partHeading } from "../player/question-format";
 import { EssayMarking } from "./EssayMarking";
+import { McqReview } from "./McqReview";
 import { Spinner } from "@/components/spinner";
 
 /**
  * After finishing: every written answer that wasn't marked during the set
  * (all of them in timed mode) gets marked here, against the markscheme.
  */
-export function MarkingStep({ result }: { result: AttemptResult }) {
+export function MarkingStep({ result, isPro = false }: { result: AttemptResult; isPro?: boolean }) {
   const router = useRouter();
   const toMark = result.items.filter((i) => i.answer.marksAwarded === null);
   const [ticks, setTicks] = useState<Record<string, AttemptAnswer["tickedPoints"]>>(() =>
@@ -26,6 +28,7 @@ export function MarkingStep({ result }: { result: AttemptResult }) {
     Object.fromEntries(toMark.filter((i) => i.question.type === "extended").map((i) => [i.question.id, i.answer.criterionMarks])),
   );
   const [saving, start] = useTransition();
+  const [openMcq, setOpenMcq] = useState<string | null>(null);
   const marksFor = (item: (typeof toMark)[number]) =>
     item.question.type === "extended"
       ? essayMarks(item.markscheme, essays[item.question.id] ?? {})
@@ -39,6 +42,7 @@ export function MarkingStep({ result }: { result: AttemptResult }) {
     });
 
   const done = result.items.filter((i) => i.answer.marksAwarded !== null);
+  const mcqs = done.filter((i) => i.question.type === "mcq");
   const mcqCount = done.filter((i) => i.question.type === "mcq").length;
   const selfMarked = done.length - mcqCount;
   const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -57,6 +61,64 @@ export function MarkingStep({ result }: { result: AttemptResult }) {
         </p>
       </header>
 
+      {mcqs.length > 0 && (
+        <section aria-labelledby="mcq-marked" className="rounded-2xl bg-surface-container-lowest border border-outline-variant">
+          <h2 id="mcq-marked" className="px-lg pt-md pb-xs font-serif font-bold text-on-surface">
+            Multiple choice{" "}
+            <span className="font-sans text-label-md font-normal text-on-surface-variant">
+              {mcqs.filter((i) => (i.answer.marksAwarded ?? 0) > 0).length} of {mcqs.length} right
+            </span>
+          </h2>
+          <ol>
+            {mcqs.map(({ question, answer, markscheme }) => {
+              const n = result.items.findIndex((i) => i.question.id === question.id) + 1;
+              const right = (answer.marksAwarded ?? 0) > 0;
+              const isOpen = openMcq === question.id;
+              return (
+                <li key={question.id} className="border-t border-outline-variant">
+                  <div className="flex items-center gap-md px-lg py-sm">
+                    <span className="w-7 text-label-md text-on-surface-variant tabular-nums">{n}</span>
+                    <span className="flex-1 min-w-0 text-body-md text-on-surface">
+                      {answer.selectedOption ? `You picked ${answer.selectedOption}` : "No answer"}
+                      {!right && markscheme.correctOption && <span className="text-on-surface-variant"> · answer {markscheme.correctOption}</span>}
+                    </span>
+                    <span
+                      className={`rounded-full px-sm py-px text-label-sm font-semibold ${right ? "bg-secondary-container text-on-secondary-container" : "bg-tertiary-container text-on-tertiary-container"}`}
+                    >
+                      {right ? "Right" : "Wrong"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setOpenMcq(isOpen ? null : question.id)}
+                      aria-expanded={isOpen}
+                      className="text-label-md font-semibold text-primary hover:underline cursor-pointer w-14 text-right"
+                    >
+                      {isOpen ? "Hide" : "Explain"}
+                    </button>
+                  </div>
+                  {isOpen && (
+                    <div className="px-lg pb-lg pl-[4.25rem] flex flex-col gap-sm text-body-md text-on-surface">
+                      <div className="self-start">
+                        <AskBroButton attemptId={result.attempt.id} questionId={question.id} label={`Question ${n}`} isPro={isPro} />
+                      </div>
+                      {question.stemMd && <MathMarkdown>{question.stemMd}</MathMarkdown>}
+                      <QuestionFigures figures={question.figures} />
+                      {question.parts[0]?.textMd && <MathMarkdown>{question.parts[0].textMd}</MathMarkdown>}
+                      {question.options && <McqReview options={question.options} selected={answer.selectedOption} correct={markscheme.correctOption} />}
+                      {markscheme.workedSolutionMd && (
+                        <div className="rounded-xl bg-surface-container-low border border-outline-variant p-md">
+                          <MathMarkdown>{markscheme.workedSolutionMd}</MathMarkdown>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      )}
+
       {toMark.map((item) => {
         const { question, answer, markscheme } = item;
         const n = result.items.findIndex((i) => i.question.id === question.id) + 1;
@@ -64,9 +126,12 @@ export function MarkingStep({ result }: { result: AttemptResult }) {
           <article key={question.id} className="rounded-2xl bg-surface-container-lowest border border-outline-variant p-lg flex flex-col gap-md">
             <div className="flex items-center justify-between">
               <h2 className="font-serif font-bold text-on-surface">Question {n}</h2>
-              <span className="text-label-md font-semibold tabular-nums text-on-surface">
-                {marksFor(item)} / {question.totalMarks}
-              </span>
+              <div className="flex items-center gap-sm">
+                <AskBroButton attemptId={result.attempt.id} questionId={question.id} label={`Question ${n}`} isPro={isPro} />
+                <span className="text-label-md font-semibold tabular-nums text-on-surface">
+                  {marksFor(item)} / {question.totalMarks}
+                </span>
+              </div>
             </div>
             {question.stemMd && (
               <div className="text-body-md text-on-surface">

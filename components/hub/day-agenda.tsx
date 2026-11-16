@@ -25,11 +25,11 @@ export default function DayAgenda({
   const today = new Date();
   const [activeDate, setActiveDate] = useState<Date>(() => weekDates.find((d) => isSameDay(d, today)) ?? weekDates[0]);
 
+  // All-day items (tests without a time, deadlines) first, then the timed ones.
   const dayItems = items
-    .filter((item) => !item.allDay)
     .filter((item) => item.subjectId === null || activeSubjectIds.has(item.subjectId))
     .filter((item) => isSameDay(item.start, activeDate))
-    .sort((a, b) => a.start.getTime() - b.start.getTime());
+    .sort((a, b) => Number(b.allDay) - Number(a.allDay) || a.start.getTime() - b.start.getTime());
 
   return (
     <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col">
@@ -86,7 +86,7 @@ export default function DayAgenda({
               style={{ borderLeftColor: color.base }}
             >
               <span className="text-label-sm text-on-surface-variant font-semibold w-14 shrink-0">
-                {formatTime(item.start)}
+                {item.allDay ? "All day" : formatTime(item.start)}
               </span>
               {done ? (
                 <Check size={14} className="shrink-0 text-on-surface-variant" />

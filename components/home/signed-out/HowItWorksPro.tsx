@@ -1,4 +1,5 @@
-import { CalendarDays, Gauge, ListChecks } from "lucide-react";
+import Link from "next/link";
+import { CalendarDays, Gauge, ListChecks, Ticket } from "lucide-react";
 import { getSampleStrengthRows } from "@/lib/marketing/sample";
 import { STRENGTH_LABELS } from "@/lib/practice/strength";
 import { StrengthLegend } from "@/components/shared/strength/StrengthLegend";
@@ -100,6 +101,16 @@ export default function HowItWorksPro() {
             </div>
           </Step>
         </ol>
+        {/* Static like the rest of this page: just the idea, no code box (anyone sent a code arrives through its link). */}
+        <p className="flex flex-wrap items-center justify-center gap-x-sm gap-y-xs text-center text-body-lg text-on-surface">
+          <Ticket size={18} className="text-primary" aria-hidden="true" />
+          <span>
+            <span className="font-semibold">Revise with friends:</span> share any practice set or study plan with a short code.
+          </span>
+          <Link href="/codes" prefetch={false} className="text-label-lg font-semibold text-primary hover:underline">
+            How codes work →
+          </Link>
+        </p>
       </div>
     </section>
   );

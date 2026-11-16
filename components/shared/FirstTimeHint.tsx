@@ -9,7 +9,7 @@ import { dismissHintAction } from "@/app/onboarding/actions";
 // (components/MidnightTip.tsx) takes its turn last; announcements
 // (components/NewsToast.tsx, ids "news-…") go first.
 
-const ORDER = ["strength-map", "bro-button", "midnight"];
+const ORDER = ["strength-map", "bro-button", "share-set", "midnight"];
 // Announcements first, then ORDER; ids in neither never show.
 const rank = (id: string) => (id.startsWith("news-") ? -1 : ORDER.includes(id) ? ORDER.indexOf(id) : null);
 let mounted: string[] = [];

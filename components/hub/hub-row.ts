@@ -25,6 +25,8 @@ export type HubItemRow = {
   kind?: HubItemKind | null;
   // Read only: set by "Schedule" on the server, never written from the client.
   set_id?: string | null;
+  // Read only here: the Hub set it's in (migration 46), changed through the set actions.
+  hub_set_id?: string | null;
 };
 
 export function hubItemToRow(item: HubItem): HubItemRow {
@@ -63,5 +65,6 @@ export function rowToHubItem(row: HubItemRow): HubItem {
     hasTimer: row.has_timer ?? false,
     kind: row.kind ?? null,
     setId: row.set_id ?? null,
+    hubSetId: row.hub_set_id ?? null,
   };
 }

@@ -122,10 +122,13 @@ export function MathMarkdown({
   children,
   inline = false,
   className = "",
+  components,
 }: {
   children: string;
   inline?: boolean;
   className?: string;
+  /** Overrides for some elements (Bro's replies render links as button chips). */
+  components?: Components;
 }) {
   const Wrapper = inline ? "span" : "div";
   return (
@@ -133,7 +136,7 @@ export function MathMarkdown({
       <ReactMarkdown
         remarkPlugins={[GFM, remarkMath]}
         rehypePlugins={[rehypeKatex]}
-        components={inline ? inlineComponents : blockComponents}
+        components={{ ...(inline ? inlineComponents : blockComponents), ...components }}
       >
         {evenTables(protectMathDollars(children))}
       </ReactMarkdown>

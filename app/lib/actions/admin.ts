@@ -337,6 +337,7 @@ export type AdminUserRow = {
   email: string;
   points: number;
   is_pro: boolean;
+  pro_expires_at: string | null;
   author_trust_score: number;
   ib_year: string | null;
   avatar_url: string | null;
@@ -361,7 +362,7 @@ export async function getUsersPage(filters: {
   let query = ctx.admin
     .from("users")
     .select(
-      "id, display_name, email, points, is_pro, author_trust_score, ib_year, avatar_url, created_at",
+      "id, display_name, email, points, is_pro, pro_expires_at, author_trust_score, ib_year, avatar_url, created_at",
       { count: "exact" },
     )
     .order("created_at", { ascending: false });
@@ -437,36 +438,8 @@ export async function updateAuthorTrustScore(
   return { success: true, data: null };
 }
 
-export async function setUserPro(
-  userId: string,
-  isPro: boolean,
-): Promise<ActionResult<null>> {
-  const ctx = await requireAdmin();
-  if (!ctx) return { success: false, error: "Not authorized" };
-
-  // Same column-grant restriction as author_trust_score — is_pro is
-  // normally only ever set by the award_points() trigger.
-  const admin = createAdminClient();
-  const { error } = await admin
-    .from("users")
-    .update({ is_pro: isPro })
-    .eq("id", userId);
-
-  if (error) return { success: false, error: error.message };
-
-  if (isPro) {
-    await createNotification({
-      userId,
-      actorId: ctx.user.id,
-      type: "admin_pro_upgrade",
-      message: "You've been upgraded to Diploma Pro!",
-      link: `/profile/${userId}`,
-    });
-  }
-
-  revalidatePath("/admin/users");
-  return { success: true, data: null };
-}
+// Pro is given and ended on Admin → Pro (app/lib/actions/admin-pro.ts),
+// through public.entitlements; nothing writes users.is_pro directly.
 
 export type AdminContentRow = {
   id: string;

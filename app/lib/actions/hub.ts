@@ -45,6 +45,8 @@ async function requireUser() {
 
 const HUB_ITEM_COLUMNS =
   "id, title, type, subject_id, start_at, end_at, all_day, status, stages, notes, resource_ids, weight_label, has_timer, kind, set_id";
+// Hub sets (migration 46). Loaded on top when the column exists: a missing column must never blank the Hub.
+const HUB_ITEM_COLUMNS_WITH_SET = `${HUB_ITEM_COLUMNS}, hub_set_id`;
 
 // Hub's Next steps, Bro's brief and Home's suggestions/countdown are built
 // from hub_items on the server; re-render them after a change that moves,
@@ -65,15 +67,19 @@ export async function getHubItems(): Promise<ActionResult<HubItem[]>> {
   // all re-parsed and serialized into the page on every /hub and dashboard
   // load. Completed items older than that just drop off the calendar.
   const since = new Date(Date.now() - HUB_ITEM_HISTORY_DAYS * 86_400_000).toISOString();
-  const { data, error } = await supabase
-    .from("hub_items")
-    .select(HUB_ITEM_COLUMNS)
-    .eq("owner_id", user.id)
-    .or(`status.eq.todo,end_at.gte.${since}`)
-    .order("start_at", { ascending: true });
+  const load = (columns: string) =>
+    supabase
+      .from("hub_items")
+      .select(columns)
+      .eq("owner_id", user.id)
+      .or(`status.eq.todo,end_at.gte.${since}`)
+      .order("start_at", { ascending: true });
+  let { data, error } = await load(HUB_ITEM_COLUMNS_WITH_SET);
+  // 42703 = column doesn't exist (migration 46 not run yet): load the items without their set.
+  if (error?.code === "42703") ({ data, error } = await load(HUB_ITEM_COLUMNS));
 
   if (error) return { success: false, error: error.message };
-  return { success: true, data: (data as HubItemRow[]).map(rowToHubItem) };
+  return { success: true, data: (data as unknown as HubItemRow[]).map(rowToHubItem) };
 }
 
 export async function getHubStudyLog(

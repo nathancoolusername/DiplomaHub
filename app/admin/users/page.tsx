@@ -13,7 +13,7 @@ export default async function AdminUsersPage() {
     <>
       <PageHeader
         title="Users"
-        description="Search accounts, give or take away Pro, set trust scores, clear a profile, or delete an account. The totals and graphs are on Overview."
+        description="Search accounts, set trust scores, clear a profile, or delete an account. Pro is given and ended on the Pro tab; the totals and graphs are on Overview."
       />
       <UsersTable initialItems={result.data.items} initialTotalCount={result.data.totalCount} />
     </>

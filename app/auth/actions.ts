@@ -45,7 +45,8 @@ export async function signUp(
   });
 
   if (error) return { success: false, error: error.message };
-  redirect("/profile/edit");
+  // A shared code link sends people here with ?next=/codes?c=… so the code is waiting for them.
+  redirect(isSafeNext(formData.get("next") as string | null) ?? "/profile/edit");
 }
 
 // Returns where to go instead of redirecting: the browser then does a full

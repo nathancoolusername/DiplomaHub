@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ClipboardCheck } from "lucide-react";
+import type { ReactNode } from "react";
+import { ClipboardCheck, ClipboardPen, FileDown, RotateCcw } from "lucide-react";
 import type { PastSet } from "@/lib/data/types";
 import { subjectById } from "@/lib/catalog";
 import { links } from "@/lib/practice/links";
@@ -7,12 +8,25 @@ import { links } from "@/lib/practice/links";
 const dateFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
 /** Finished sets with their score and a link back to the results (subject page and Practice). */
-export function PastSets({ sets, showSubject = false, note }: { sets: PastSet[]; showSubject?: boolean; note?: string }) {
+export function PastSets({
+  sets,
+  showSubject = false,
+  note,
+  full = false,
+  heading = "Past sets",
+}: {
+  sets: PastSet[];
+  showSubject?: boolean;
+  note?: ReactNode;
+  /** Your sets page: each row also has PDF and Do it again. */
+  full?: boolean;
+  heading?: string;
+}) {
   return (
     <section className="flex flex-col gap-md" aria-labelledby="past-sets">
       <div className="flex items-end justify-between gap-md flex-wrap">
         <h2 id="past-sets" className="font-serif font-bold text-headline-md text-on-surface">
-          Past sets
+          {heading}
         </h2>
         {note && <p className="text-label-md text-on-surface-variant">{note}</p>}
       </div>
@@ -33,6 +47,26 @@ export function PastSets({ sets, showSubject = false, note }: { sets: PastSet[];
               <span className="shrink-0 text-label-md font-semibold tabular-nums text-on-surface">
                 {marking ? <span className="text-on-surface-variant font-normal">Not marked</span> : scorePct !== null ? `${scorePct}%` : ""}
               </span>
+              {full && (
+                <>
+                  <a
+                    href={`${links.pdf(set.id)}?print=1`}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label={`PDF of ${set.title}`}
+                    title="Download as PDF"
+                    className="shrink-0 p-xs rounded-lg text-on-surface-variant hover:text-primary"
+                  >
+                    <FileDown size={16} />
+                  </a>
+                  <Link href={links.markPaper(set.id)} aria-label={`Mark a printed copy of ${set.title}`} title="Mark a printed copy" className="shrink-0 p-xs rounded-lg text-on-surface-variant hover:text-primary">
+                    <ClipboardPen size={16} />
+                  </Link>
+                  <Link href={links.play(set.id)} aria-label={`Do ${set.title} again`} title="Do it again" className="shrink-0 p-xs rounded-lg text-on-surface-variant hover:text-primary">
+                    <RotateCcw size={16} />
+                  </Link>
+                </>
+              )}
               <Link
                 href={links.attempt(attempt.id)}
                 className="shrink-0 rounded-lg border border-outline-variant px-md py-xs text-label-md font-semibold text-on-surface hover:border-primary"

@@ -25,6 +25,13 @@ export default function Footer() {
               Leaderboard
             </Link>
             <Link
+              href="/codes"
+              prefetch={false}
+              className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
+            >
+              Got a code?
+            </Link>
+            <Link
               href="/legal/impressum"
               className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
             >

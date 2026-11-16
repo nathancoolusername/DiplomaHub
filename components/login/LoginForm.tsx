@@ -125,7 +125,7 @@ export default function LoginForm({ next }: { next?: string | null }) {
         </div>
         <div className="flex flex-col gap-sm">
           <p className="text-on-surface-variant">New to the community?</p>
-          <Link href={"/signup"}>
+          <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}>
             <button className="w-full py-2 rounded-lg border border-outline-variant font-medium hover:bg-surface-container-low cursor-pointer">
               Sign up
             </button>

@@ -82,7 +82,7 @@ export default function ProfileInfo({
   }
 
   return (
-    <div className="flex flex-col lg:flex-row bg-surface-container-low grow h-full py-10 px-md md:px-10 xl:px-30 gap-margin">
+    <div className="flex flex-col lg:flex-row dh-page-bg bg-surface-container-low grow h-full py-10 px-md md:px-10 xl:px-30 gap-margin">
       <div className="flex flex-col lg:basis-1/4 gap-lg">
         <div className="bg-surface-container-lowest p-md  border-1 border-outline-variant rounded-xl flex flex-col gap-lg">
           <h2 className="font-serif text-headline-lg font-bold">Analytics</h2>

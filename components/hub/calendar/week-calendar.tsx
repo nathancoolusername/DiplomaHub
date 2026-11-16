@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { CalendarToolbar } from "./calendar-toolbar";
+import { getSubjectColor } from "../subject-colors";
 import type { Resource } from "@/app/lib/types";
 import type { CustomSubject, HubItem, SubjectId } from "../mock-data";
 import TaskDetailsPanel from "../task-details-panel";
@@ -25,6 +27,8 @@ export type PanelActions = {
   onStartFocus: (itemId: string) => void;
   onEdit: (itemId: string) => void;
   onDelete: (itemId: string) => void;
+  /** Signed in only: guests' items live in this browser, so there's nothing to share. */
+  canShare?: boolean;
   customSubjects: CustomSubject[];
 };
 
@@ -39,6 +43,10 @@ export default function WeekCalendar({
   onClose,
   onMoveItem,
   onResizeItem,
+  onPrev,
+  onNext,
+  onToday,
+  onChangeView,
 }: {
   weekDates: Date[];
   items: HubItem[];
@@ -50,6 +58,11 @@ export default function WeekCalendar({
   onClose: () => void;
   onMoveItem: (id: string, start: Date, end: Date) => void;
   onResizeItem: (id: string, end: Date) => void;
+  /** Week navigation on the calendar itself, so changing week doesn't mean scrolling back up to the header. */
+  onPrev?: () => void;
+  onNext?: () => void;
+  onToday?: () => void;
+  onChangeView?: (v: "week" | "month") => void;
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const columnElsRef = useRef<(HTMLDivElement | null)[]>(new Array(7).fill(null));
@@ -69,6 +82,14 @@ export default function WeekCalendar({
       ),
     [items, activeSubjectIds],
   );
+  // All-day items (tests without a time, deadlines, imported events) get their own row above the hours.
+  const allDayItems = useMemo(
+    () => items.filter((item) => item.allDay && (item.subjectId === null || activeSubjectIds.has(item.subjectId))),
+    [items, activeSubjectIds],
+  );
+  const allDayForDay = (i: number) => allDayItems.filter((item) => isSameDay(item.start, weekDates[i]) || (item.start < weekDates[i] && item.end > weekDates[i]));
+  const hasAllDay = weekDates.some((_, i) => allDayForDay(i).length > 0);
+  const rangeLabel = `${weekDates[0].toLocaleDateString(undefined, { day: "numeric", month: "short" })} – ${weekDates[6].toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}`;
 
   // Always the item's real, committed day — see task-block.tsx for why a
   // dragged item is never rerouted to a different day's list mid-gesture.
@@ -168,6 +189,9 @@ export default function WeekCalendar({
       data-tour="calendar"
       className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden flex flex-col"
     >
+      {onPrev && onNext && onToday && onChangeView && (
+        <CalendarToolbar view="week" onChangeView={onChangeView} onPrev={onPrev} onNext={onNext} onToday={onToday} label={rangeLabel} />
+      )}
       <div className="grid bg-surface-container-low border-b border-outline-variant" style={{ gridTemplateColumns: GRID_COLS }}>
         <div className="py-sm px-sm text-[11px] font-semibold text-outline">Time</div>
         {weekDates.map((date, i) => {
@@ -188,6 +212,33 @@ export default function WeekCalendar({
           );
         })}
       </div>
+
+      {hasAllDay && (
+        <div className="grid border-b border-outline-variant bg-surface-container-lowest" style={{ gridTemplateColumns: GRID_COLS }}>
+          <div className="py-xs px-sm text-[11px] font-semibold text-outline self-center">All day</div>
+          {weekDates.map((_, i) => (
+            <div key={i} className="flex flex-col gap-0.5 p-0.5 min-w-0 border-l border-outline-variant/50">
+              {allDayForDay(i).map((item) => {
+                const color = getSubjectColor(item.subjectId);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => onSelect(item.id)}
+                    title={item.title}
+                    className={`w-full truncate rounded-md px-1.5 py-0.5 text-left text-[11px] font-semibold cursor-pointer hover:opacity-90 ${
+                      item.status === "done" ? "line-through opacity-60" : ""
+                    } ${selectedItem?.id === item.id ? "ring-2 ring-primary" : ""}`}
+                    style={{ backgroundColor: color.base, color: color.onBase }}
+                  >
+                    {item.title}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div ref={wrapperRef} className="relative">
         <div className="select-none">

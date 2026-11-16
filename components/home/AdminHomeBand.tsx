@@ -18,7 +18,7 @@ export async function AdminHomeBand() {
   ].filter((s): s is { label: string; value: number; hint: string } => !!s);
 
   return (
-    <section aria-label="Admin" className="bg-surface-container-low px-md pt-md">
+    <section aria-label="Admin" className="dh-page-bg bg-surface-container-low px-md pt-md">
       <div className="max-w-[1600px] mx-auto w-full rounded-2xl border border-outline-variant bg-surface-container-lowest p-lg flex flex-wrap items-center gap-lg">
         <div className="flex items-center gap-md">
           <span className="w-11 h-11 rounded-xl bg-primary text-on-primary flex items-center justify-center" aria-hidden="true">

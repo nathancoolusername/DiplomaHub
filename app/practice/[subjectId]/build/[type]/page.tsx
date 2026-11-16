@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Camera, ChevronLeft } from "lucide-react";
 import type { BuildSettings, PracticeType } from "@/lib/data/types";
-import { getSavedSets, getSet, getSetQuestions, getStrengthMap, getSubjectsWithQuestions, getSuggestions, getUsage, getUserSubject, getViewer, hasOpenAttempt } from "@/lib/data";
+import { getSavedSets, getSet, getSetQuestions, getStrengthMap, getSubjectsWithQuestions, getSuggestions, getUserSubject, getViewer, hasOpenAttempt } from "@/lib/data";
 import { links } from "@/lib/practice/links";
 import { PRACTICE_TYPES } from "@/lib/practice/practice-types";
 import { BuildSetForm } from "@/components/practice/build/BuildSetForm";
@@ -27,13 +27,12 @@ export default async function BuildPage({ params, searchParams }: Props) {
   if (!isPracticeType(type)) notFound();
 
   // All at once (they're all reads); the checks below still run in order.
-  const [viewer, us, practiceIds, map, allSuggestions, usage, savedSets, set] = await Promise.all([
+  const [viewer, us, practiceIds, map, allSuggestions, savedSets, set] = await Promise.all([
     getViewer(),
     getUserSubject(subjectId),
     getSubjectsWithQuestions().catch(() => null),
     getStrengthMap(subjectId),
     getSuggestions("build", subjectId),
-    getUsage(),
     getSavedSets(subjectId),
     setId ? getSet(setId) : Promise.resolve(null),
   ]);
@@ -84,8 +83,6 @@ export default async function BuildPage({ params, searchParams }: Props) {
     };
   }
 
-  const written = usage.find((u) => u.feature === "written_questions");
-  const writtenRemaining = !viewer.isPro && written && written.limit !== null ? Math.max(0, written.limit - written.used) : null;
 
   return (
     <div className="max-w-[1200px] mx-auto px-md pt-xl flex flex-col gap-lg">
@@ -122,7 +119,6 @@ export default async function BuildPage({ params, searchParams }: Props) {
           initialTopics={initialTopics}
           weakIds={weakIds}
           isPro={viewer.isPro}
-          writtenRemaining={writtenRemaining}
           suggestion={suggestions[0] ?? null}
           savedSets={savedSets}
         />

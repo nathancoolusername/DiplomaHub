@@ -104,6 +104,8 @@ export type UserProfile = {
   display_name: string;
   points: number;
   is_pro: boolean;
+  pro_expires_at: string | null;
+  hide_pro_badge: boolean;
   author_trust_score: number;
   ib_year: "Pre-IB" | "DP1" | "DP2" | "Alumni" | "Educator" | null;
   avatar_url: string;

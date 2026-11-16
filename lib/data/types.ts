@@ -338,7 +338,14 @@ export type LeaderboardPage = { total: number; rows: LeaderboardRow[] };
 export type LeaderboardStanding = { period: LeaderboardPeriod; points: number; rank: number | null; total: number; hidden: boolean };
 
 /** Bro's two-or-three sentence take on the week (Pro). */
-export type BroBrief = { text: string; generatedAt: string };
+export type BroBrief = {
+  text: string;
+  generatedAt: string;
+  /** Bro's line under Home's greeting, for the first Home suggestion; null until written. */
+  nudge: string | null;
+  /** Written by Bro (cached), not the rule-based stand-in. */
+  fromBro: boolean;
+};
 
 /** Home's "Getting started" card: shown until every step is done. */
 export type GettingStarted = {
@@ -366,6 +373,8 @@ export type SuggestionAction =
 export type Suggestion = {
   id: string;
   text: string;
+  /** The same idea in a few words, for Home's line under the greeting. */
+  headline?: string;
   /** Absent for suggestions that only tell you something (no button). */
   actionLabel?: string;
   action?: SuggestionAction;

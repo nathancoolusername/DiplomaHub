@@ -116,6 +116,8 @@ export type HubItem = {
   kind?: HubItemKind | null;
   /** DiplomaPro: the practice set a scheduled study session opens (hub_items.set_id). Read-only here. */
   setId?: string | null;
+  /** The Hub set it belongs to (hub_items.hub_set_id, migration 46). Read-only here; set actions change it. */
+  hubSetId?: string | null;
 };
 
 export type HubItemKind = "deadline" | "test" | "mock" | "study";
