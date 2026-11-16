@@ -24,9 +24,7 @@ const navLinks = [
   { label: "Progress", href: "/progress" },
   { label: "Resources", href: "/resources" },
   { label: "Articles", href: "/articles" },
-  // Wide screens only in the top bar (it overflows at iPad-landscape widths); always in the phone menu and the footer.
-  { label: "Roadmap", href: "/roadmap", wide: true },
-  { label: "About", href: "/about", wide: true },
+  // Roadmap and About live in the footer.
 ];
 
 export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
@@ -49,7 +47,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
                     key={link.href}
                     href={link.href}
                     prefetch={NO_PREFETCH.has(link.href) ? false : undefined}
-                    className={`text-body-md transition-colors ${"wide" in link && link.wide ? "hidden xl:inline" : ""} ${
+                    className={`text-body-md transition-colors ${
                       isActive
                         ? "text-primary font-bold border-b-2 border-primary pb-1"
                         : "text-on-surface-variant hover:text-primary"
