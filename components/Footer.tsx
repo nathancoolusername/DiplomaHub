@@ -32,6 +32,20 @@ export default function Footer() {
               Got a code?
             </Link>
             <Link
+              href="/roadmap"
+              prefetch={false}
+              className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
+            >
+              Roadmap
+            </Link>
+            <Link
+              href="/about"
+              prefetch={false}
+              className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
+            >
+              About
+            </Link>
+            <Link
               href="/legal/impressum"
               className="text-on-surface-variant text-body-md hover:text-primary hover:underline"
             >
