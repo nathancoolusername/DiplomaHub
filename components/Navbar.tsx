@@ -21,12 +21,12 @@ const navLinks = [
   { label: "Hub", href: "/hub" },
   { label: "Practice", href: "/practice" },
   { label: "Bro", href: "/bro" },
-  // Wide screens only in the top bar (it overflowed at 1024px); always in the phone menu and the profile menu.
-  { label: "Progress", href: "/progress", wide: true },
+  { label: "Progress", href: "/progress" },
   { label: "Resources", href: "/resources" },
   { label: "Articles", href: "/articles" },
-  { label: "Roadmap", href: "/roadmap" },
-  { label: "About", href: "/about" },
+  // Wide screens only in the top bar (it overflows at iPad-landscape widths); always in the phone menu and the footer.
+  { label: "Roadmap", href: "/roadmap", wide: true },
+  { label: "About", href: "/about", wide: true },
 ];
 
 export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
