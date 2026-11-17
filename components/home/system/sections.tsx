@@ -6,6 +6,7 @@ import { WaitlistForm } from "@/components/pro/WaitlistForm";
 import { getHomepageStats } from "@/app/lib/actions/site-stats";
 import { getFeaturedResources } from "@/app/lib/actions/resources";
 import { getQuickCheckSubjects } from "@/lib/marketing/quick-check";
+import { getPracticeQuestionCount } from "@/lib/marketing/stats";
 import { allSubjects } from "@/lib/catalog";
 import { QuickCheckPicker } from "./QuickCheck";
 import { SystemDemo } from "./SystemDemo";
@@ -54,17 +55,18 @@ export function Hero() {
 
 /** Real numbers, counting up when they scroll into view. */
 export async function Stats() {
-  const r = await getHomepageStats();
+  const [r, questions] = await Promise.all([getHomepageStats(), getPracticeQuestionCount().catch(() => 0)]);
   const st = r.success ? r.data : null;
   if (!st) return null;
   const items = [
+    ...(questions > 0 ? [{ n: questions, suffix: "+", label: "practice questions" }] : []),
     { n: st.resourceCount, suffix: "+", label: "free resources" },
     { n: st.userCount, suffix: "+", label: "IB students" },
     { n: st.subjectCount, suffix: "", label: "subjects" },
   ];
   return (
     <section className="bg-surface-container-low px-md pb-16">
-      <dl className="max-w-[1000px] mx-auto grid grid-cols-3 gap-md rounded-3xl border border-outline-variant bg-surface-container-lowest px-md py-lg">
+      <dl className="max-w-[1100px] mx-auto grid grid-cols-2 sm:grid-cols-4 gap-y-lg gap-x-md rounded-3xl border border-outline-variant bg-surface-container-lowest px-md py-lg">
         {items.map((x) => (
           <div key={x.label} className="flex flex-col-reverse items-center text-center gap-px">
             <dt className="text-label-md text-on-surface-variant">{x.label}</dt>

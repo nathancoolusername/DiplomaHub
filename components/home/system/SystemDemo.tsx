@@ -154,25 +154,37 @@ function Board({
           <CalendarDays size={14} className="text-primary" aria-hidden="true" /> Plan
           {earlier > 0 && <span className={`font-normal text-on-surface-variant ${show(3)}`}>· plus {earlier} short sessions in the weeks before</span>}
         </div>
-        <div className="grid gap-xs" style={{ gridTemplateColumns: `repeat(${strip.length}, minmax(0, 1fr))` }}>
+        <div className="grid gap-[3px] sm:gap-xs" style={{ gridTemplateColumns: `repeat(${strip.length}, minmax(0, 1fr))` }}>
           {strip.map((d) => {
             const isTest = d === test;
             const s = picks.indexOf(d);
             return (
               <div key={d} className="flex flex-col gap-xs min-w-0">
-                <span className={`text-center text-label-sm ${d === today ? "font-bold text-primary" : "text-on-surface-variant"}`}>{d === today ? "Today" : wk(d)}</span>
-                <div className="h-20 rounded-xl bg-surface-container-low p-[3px] flex flex-col justify-end">
+                <span className={`text-center text-label-sm truncate ${d === today ? "font-bold text-primary" : "text-on-surface-variant"}`}>{d === today ? (
+                    <>
+                      <span className="sm:hidden">{wk(d)}</span>
+                      <span className="hidden sm:inline">Today</span>
+                    </>
+                  ) : (
+                    wk(d)
+                  )}
+                </span>
+                <div className="h-20 rounded-xl bg-surface-container-low p-[3px] flex flex-col justify-end overflow-hidden">
                   {isTest && (
-                    <div className={`rounded-lg bg-on-surface text-surface px-xs py-xs text-[0.68rem] font-bold leading-tight ${show(1)}`}>
-                      {subject.name.split(" ")[0]} test
+                    <div className={`rounded-lg bg-on-surface text-surface px-xs py-xs text-[0.68rem] font-bold leading-tight text-center sm:text-left ${show(1)}`}>
+                      {/* Narrow columns on phones: just "Test". */}
+                      <span className="sm:hidden">Test</span>
+                      <span className="hidden sm:inline break-words">{subject.name.split(" ")[0]} test</span>
                     </div>
                   )}
                   {s >= 0 && (
                     <div
-                      className={`rounded-lg bg-primary text-on-primary px-xs py-xs text-[0.68rem] font-semibold leading-tight ${show(3)}`}
+                      className={`rounded-lg bg-primary text-on-primary px-xs py-xs text-[0.68rem] font-semibold leading-tight text-center sm:text-left ${show(3)}`}
                       style={{ transitionDelay: stage >= 3 ? `${s * 150}ms` : "0ms" }}
                     >
-                      {mins[s]} min
+                      {mins[s]}
+                      <span className="hidden sm:inline"> min</span>
+                      <span className="sm:hidden">m</span>
                     </div>
                   )}
                 </div>
