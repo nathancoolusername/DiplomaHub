@@ -267,12 +267,12 @@ export function ProSection() {
             DiplomaBro knows your subjects, your dates and every mark you&apos;ve lost. It plans your week, builds the sets, books the sessions
             and explains any question from its markscheme, so the time goes into studying, not organising it.
           </p>
-          <div className="flex items-center gap-md">
-            <div className="rounded-3xl bg-primary text-on-primary px-lg py-md">
-              <p className="font-serif font-bold text-[3rem] leading-none tabular-nums">~3 h</p>
-              <p className="text-label-md opacity-90">back every week</p>
+          <div className="flex flex-wrap items-center gap-md">
+            <div className="shrink-0 rounded-3xl bg-primary text-on-primary px-lg py-md">
+              <p className="font-serif font-bold text-[3rem] leading-none tabular-nums whitespace-nowrap">~3&nbsp;h</p>
+              <p className="text-label-md opacity-90 whitespace-nowrap">back every week</p>
             </div>
-            <p className="text-label-sm text-on-surface-variant max-w-60">Estimate for a typical week with one test and a set most days.</p>
+            <p className="flex-1 min-w-40 text-label-sm text-on-surface-variant">Estimate for a typical week with one test and a set most days.</p>
           </div>
           <WaitlistForm source="homepage" />
           <Link href="/pro" className="self-start text-label-lg font-semibold text-primary hover:underline">
