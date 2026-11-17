@@ -1,9 +1,7 @@
 import "server-only";
 
-import type { Markscheme, Question, StrengthLevel, SubtopicStrength } from "@/lib/data/types";
+import type { Markscheme, Question } from "@/lib/data/types";
 import { exportToRow, rowToMarkscheme, rowToQuestion, type ExportQuestion } from "@/lib/data/questions";
-import { MIN_ANSWERED } from "@/lib/practice/strength";
-import { SUBJECTS, topicTree } from "@/lib/catalog";
 // One real verified bank question, public on the homepage on purpose.
 import sampleMaths from "./sample-maths-question.json";
 
@@ -120,37 +118,7 @@ function mathsSample(): SampleQuestion {
   return { subjectLabel: "Maths AA", question: rowToQuestion(row), markscheme: rowToMarkscheme(row) };
 }
 
-/**
- * The questions anyone can try without an account (markschemes included,
- * on purpose). Opens on Chemistry since the hero already shows maths.
- */
+/** Hand-written fallback questions for the homepage's "Try 3 questions" (markschemes included, on purpose). */
 export function getSampleQuestions(): SampleQuestion[] {
   return [CHEMISTRY, ECONOMICS, mathsSample()];
-}
-
-/** The hero's preview question: a real Maths AA bank question. */
-export function getHeroSample(): SampleQuestion {
-  return mathsSample();
-}
-
-// A believable spread of levels, picked by position so it's identical on every build.
-const PATTERN: StrengthLevel[] = ["solid", "strong", "developing", "mastered", "weak", "solid", "none", "strong", "developing", "solid", "mastered", "strong"];
-const SCORE: Record<StrengthLevel, number | null> = { none: null, weak: 0.32, developing: 0.48, solid: 0.62, strong: 0.78, mastered: 0.9 };
-
-function sampleLevels(subjects: string[]): SubtopicStrength[][] {
-  let i = 0;
-  return subjects.map((id) =>
-    topicTree(id)
-      .flatMap((t) => t.subtopics)
-      .map((s) => {
-        const level = PATTERN[i++ % PATTERN.length];
-        return { ...s, level, score: SCORE[level], answeredCount: level === "none" ? 0 : MIN_ANSWERED + 3 };
-      }),
-  );
-}
-
-/** One row of sample tiles per subject, for the "See your level" strip. */
-export function getSampleStrengthRows(): { subject: string; tiles: SubtopicStrength[] }[] {
-  const ids = ["physics", "chemistry", "economics"];
-  return sampleLevels(ids).map((tiles, i) => ({ subject: SUBJECTS[ids[i]].shortName, tiles: tiles.slice(0, 8) }));
 }
