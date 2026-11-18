@@ -145,3 +145,102 @@ export async function getWaitlistEntries(limit = 100): Promise<Result<WaitlistEn
     data: (data ?? []).map((r) => ({ id: r.id, email: r.email, source: r.source, signedIn: r.user_id !== null, createdAt: r.created_at })),
   };
 }
+
+// ── The system features (migrations 48–55): Sunday Reset, Squads, shelf, appearance ──
+
+export type SystemStats = {
+  resets: { total: number; window: number; students: number; studentsWindow: number; avgSessions: number | null; byWeek: Labelled[] };
+  squads: { total: number; window: number; members: number; inASquad: number; avgSize: number | null; solo: number; largest: number; joinsWindow: number };
+  shelf: { total: number; window: number; byType: Labelled[]; adds: number };
+  appearance: { accents: Labelled[]; backdrops: Labelled[]; styleTipSeen: number; homepageWaitlist: number };
+  /** Tables that weren't there (a migration not run yet). */
+  missing: string[];
+};
+
+/** Counts for /admin/system, straight from the tables (they're small). */
+export async function getSystemStats(days: number): Promise<Result<SystemStats>> {
+  if (!isAdmin(await getCurrentUserId())) return { ok: false, error: "Not authorized" };
+  const sb = createAdminClient();
+  const since = new Date(Date.now() - days * 86_400_000).toISOString();
+  const missing: string[] = [];
+  const rows = async <T,>(table: string, query: PromiseLike<{ data: T[] | null; error: { message: string } | null }>): Promise<T[]> => {
+    const { data, error } = await query;
+    if (error) {
+      missing.push(table);
+      return [];
+    }
+    return data ?? [];
+  };
+  const count = async (query: PromiseLike<{ count: number | null; error: unknown }>) => {
+    const { count: n, error } = await query;
+    return error ? 0 : (n ?? 0);
+  };
+
+  const [resets, squads, members, shares, accents, backdrops, styleTipSeen, homepageWaitlist] = await Promise.all([
+    rows<{ user_id: string; week_start: string; sessions: number; done_at: string }>("weekly_resets", sb.from("weekly_resets").select("user_id, week_start, sessions, done_at").limit(20000)),
+    rows<{ id: string; created_at: string }>("squads", sb.from("squads").select("id, created_at").limit(20000)),
+    rows<{ squad_id: string; user_id: string; joined_at: string }>("squad_members", sb.from("squad_members").select("squad_id, user_id, joined_at").limit(50000)),
+    rows<{ code_id: string | null; resource_id: string | null; created_at: string; share_codes: { type: string } | null }>(
+      "squad_shares",
+      sb.from("squad_shares").select("code_id, resource_id, created_at, share_codes(type)").limit(20000) as never,
+    ),
+    Promise.all(["sage", "tide", "orchid", "blossom", "ember"].map(async (a) => ({ label: a, count: await count(sb.from("users").select("id", { count: "exact", head: true }).eq("accent", a)) }))),
+    Promise.all(["dawn", "aurora", "dusk"].map(async (b) => ({ label: b, count: await count(sb.from("users").select("id", { count: "exact", head: true }).eq("backdrop", b)) }))),
+    count(sb.from("users").select("id", { count: "exact", head: true }).contains("dismissed_hints", ["style"])),
+    count(sb.from("pro_waitlist").select("id", { count: "exact", head: true }).eq("source", "homepage")),
+  ]);
+
+  // Sunday Reset
+  const inWindow = (iso: string) => iso >= since;
+  const recentResets = resets.filter((r) => inWindow(r.done_at));
+  const weeks = new Map<string, number>();
+  for (const r of resets) weeks.set(r.week_start, (weeks.get(r.week_start) ?? 0) + 1);
+  const byWeek = [...weeks.entries()].sort((a, b) => b[0].localeCompare(a[0])).slice(0, 8).map(([label, n]) => ({ label: `Week of ${label}`, count: n }));
+
+  // Squads
+  const sizes = new Map<string, number>();
+  for (const m of members) sizes.set(m.squad_id, (sizes.get(m.squad_id) ?? 0) + 1);
+  const sizeList = [...sizes.values()];
+
+  // Shelf: what's shared, and how often a shelf code was then redeemed by someone else.
+  const types = new Map<string, number>();
+  for (const s of shares) {
+    const t = s.resource_id ? "resource" : (s.share_codes?.type ?? "code");
+    types.set(t, (types.get(t) ?? 0) + 1);
+  }
+  const codeIds = [...new Set(shares.map((s) => s.code_id).filter((x): x is string => !!x))];
+  const adds = codeIds.length ? await count(sb.from("share_code_redemptions").select("code_id", { count: "exact", head: true }).in("code_id", codeIds.slice(0, 500))) : 0;
+  const TYPE_LABEL: Record<string, string> = { practice_set: "Practice sets", hub_item: "Hub items (tests, deadlines)", hub_set: "Hub plans", resource: "Library resources" };
+
+  return {
+    ok: true,
+    data: {
+      resets: {
+        total: resets.length,
+        window: recentResets.length,
+        students: new Set(resets.map((r) => r.user_id)).size,
+        studentsWindow: new Set(recentResets.map((r) => r.user_id)).size,
+        avgSessions: resets.length ? Math.round((resets.reduce((s, r) => s + r.sessions, 0) / resets.length) * 10) / 10 : null,
+        byWeek,
+      },
+      squads: {
+        total: squads.length,
+        window: squads.filter((s) => inWindow(s.created_at)).length,
+        members: members.length,
+        inASquad: new Set(members.map((m) => m.user_id)).size,
+        avgSize: sizeList.length ? Math.round((sizeList.reduce((a, b) => a + b, 0) / sizeList.length) * 10) / 10 : null,
+        solo: sizeList.filter((n) => n === 1).length,
+        largest: sizeList.length ? Math.max(...sizeList) : 0,
+        joinsWindow: members.filter((m) => inWindow(m.joined_at)).length,
+      },
+      shelf: {
+        total: shares.length,
+        window: shares.filter((s) => inWindow(s.created_at)).length,
+        byType: [...types.entries()].map(([t, n]) => ({ label: TYPE_LABEL[t] ?? t, count: n })).sort((a, b) => b.count - a.count),
+        adds,
+      },
+      appearance: { accents, backdrops, styleTipSeen, homepageWaitlist },
+      missing,
+    },
+  };
+}
