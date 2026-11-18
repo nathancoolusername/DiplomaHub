@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, Dumbbell } from "lucide-react";
 import type { HubItem } from "@/components/hub/mock-data";
-import { getBroBrief, getExamSession, getGettingStarted, getMyStanding, getNextTimedItem, getPendingHints, getSharingStats, getStrengthMaps, getSuggestions, getViewer } from "@/lib/data";
+import { getBroBrief, getDoneWeeks, getMySquads, getExamSession, getGettingStarted, getMyStanding, getNextTimedItem, getPendingHints, getSharingStats, getStrengthMaps, getSuggestions, getViewer } from "@/lib/data";
 import { links } from "@/lib/practice/links";
 import { Greeting } from "@/components/shared/Greeting";
 import { Countdown } from "@/components/shared/Countdown";
@@ -12,6 +12,8 @@ import { BroButton } from "@/components/shared/bro/BroButton";
 import DashboardNextDays from "@/components/home/dashboard-next-days";
 import DashboardResources from "@/components/home/dashboard-resources";
 import { GettingStartedCard } from "./GettingStartedCard";
+import { ResetBanner } from "@/components/reset/ResetBanner";
+import { SquadsCard } from "./SquadsCard";
 import { RankCard } from "@/components/leaderboard/RankCard";
 import { MidnightPromo } from "./MidnightPromo";
 import { CodesCard } from "./CodesCard";
@@ -40,6 +42,8 @@ export function loadDiplomaProHome() {
     getMyStanding("week").catch(() => null), // null until the leaderboard migration runs
     getSharingStats(), // null until migration 33 runs
     getBroBrief().catch(() => null), // Pro: Bro's line under the greeting (cached)
+    getDoneWeeks(), // Sunday Reset: weeks already planned (none before migration 50)
+    getMySquads(), // [] before migration 52
   ]);
 }
 
@@ -52,7 +56,7 @@ export async function DiplomaProHome({
   hubSubjects: string[] | null;
   data: ReturnType<typeof loadDiplomaProHome>;
 }) {
-  const [viewer, session, nextItem, suggestions, maps, gettingStarted, hints, standing, sharing, brief] = await data;
+  const [viewer, session, nextItem, suggestions, maps, gettingStarted, hints, standing, sharing, brief, doneWeeks, squads] = await data;
   const moreSuggestions = suggestions[0]?.headline ? suggestions.slice(1) : suggestions;
 
   return (
@@ -92,9 +96,13 @@ export async function DiplomaProHome({
           </div>
         </section>
 
+        <ResetBanner doneWeeks={doneWeeks} />
+
         <GettingStartedCard progress={gettingStarted} />
 
         {standing && <RankCard standing={standing} />}
+
+        <SquadsCard squads={squads} />
 
         <CodesCard stats={sharing} />
 

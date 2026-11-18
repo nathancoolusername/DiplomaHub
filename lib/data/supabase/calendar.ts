@@ -125,6 +125,7 @@ export async function completeScheduledSet(setId: string): Promise<void> {
 /** Adds Hub items from a card Bro proposed (after the student tapped "Add to Hub"). Returns the new ids. */
 export async function addHubItems(
   items: { title: string; kind: "test" | "mock" | "deadline" | "study"; subjectId: string | null; start: string; end: string; allDay: boolean; practiceSetId?: string | null }[],
+  notes = "Added by Bro",
 ): Promise<string[]> {
   const uid = await requireUserId();
   const sb = await db();
@@ -149,7 +150,7 @@ export async function addHubItems(
     // Tests and mocks get a countdown on Home, like the add dialog's default; the student can switch it off.
     has_timer: i.kind === "test" || i.kind === "mock",
     kind: i.kind,
-    notes: "Added by Bro",
+    notes,
     set_id: i.practiceSetId && own.has(i.practiceSetId) ? i.practiceSetId : null,
   }));
   const { error } = await sb.from("hub_items").insert(rows);

@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { getCurrentUserId } from "@/app/lib/get-current-user";
@@ -10,7 +11,7 @@ import { MyCodesList } from "@/components/codes/MyCodesList";
 import { CodesLanding } from "@/components/codes/CodesLanding";
 import { SharingReward } from "@/components/codes/SharingReward";
 
-type Props = { searchParams: Promise<{ c?: string }> };
+type Props = { searchParams: Promise<{ c?: string; set?: string }> };
 
 function codeFrom(raw: unknown): string {
   return typeof raw === "string" ? normalizeCode(raw).slice(0, 16) : "";
@@ -39,7 +40,11 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 // the codes you've made. Signed-out visitors (usually a friend who opened a
 // shared link) get a landing page that signs them up with the code kept.
 export default async function CodesPage({ searchParams }: Props) {
-  const code = codeFrom((await searchParams).c);
+  const sp = await searchParams;
+  const code = codeFrom(sp.c);
+  // 6 characters is a squad code, or an older practice set code: try the squad
+  // first; its page sends a non-squad code back here with set=1.
+  if (code.length === 6 && sp.set !== "1") redirect(`/squads/join/${code}`);
   const userId = await getCurrentUserId();
   if (!userId) return <CodesLanding code={code} />;
 

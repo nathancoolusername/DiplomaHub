@@ -122,7 +122,7 @@ export function RedeemBox({ initialCode = "" }: { initialCode?: string }) {
         ) : hubSet ? (
           <HubSetChoice preview={hubSet.preview} busy={busy} error={hubSet.error} onConfirm={redeemHubSet} onCancel={() => setHubSet(null)} />
         ) : result ? (
-          <Outcome result={result} />
+          <Outcome result={result} code={value} />
         ) : (
           <p className="text-label-md text-on-surface-variant">Spaces, dashes and lower case don&apos;t matter.</p>
         )}
@@ -132,7 +132,7 @@ export function RedeemBox({ initialCode = "" }: { initialCode?: string }) {
 }
 
 /** One redeem result: the message for a failure, or what the code gave and where to go next. */
-export function Outcome({ result }: { result: RedeemResult }) {
+export function Outcome({ result, code }: { result: RedeemResult; /** The code tried: a 6-character one might be a squad's. */ code?: string }) {
   if (!result.ok) {
     // needs_choice is handled by HubSetChoice; bad_date only happens there.
     const m =
@@ -147,6 +147,11 @@ export function Outcome({ result }: { result: RedeemResult }) {
         <div className="flex flex-col">
           <p className="text-body-md font-semibold text-on-surface">{m.title}</p>
           <p className="text-label-md text-on-surface-variant">{m.body}</p>
+          {result.reason === "not_found" && code && normalizeCode(code).length === 6 && (
+            <Link href={`/squads/join/${normalizeCode(code)}`} className="text-label-md font-semibold text-primary hover:underline">
+              Is it a squad code? Join the squad
+            </Link>
+          )}
         </div>
       </div>
     );

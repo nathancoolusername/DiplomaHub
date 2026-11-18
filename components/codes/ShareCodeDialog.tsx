@@ -6,6 +6,7 @@ import { codeLink, formatCode } from "@/lib/codes";
 import { links } from "@/lib/practice/links";
 import { Dialog } from "@/components/shared/Dialog";
 import { CopyButton } from "./CopyButton";
+import { SendToSquad } from "./SendToSquad";
 
 type Shareable = "practice_set" | "hub_item" | "hub_set";
 const WHAT: Record<Shareable, { title: string; gets: string }> = {
@@ -67,6 +68,7 @@ export function ShareCodeDialog({
             All my codes
           </Link>
         </p>
+        <SendToSquad code={code} />
       </div>
     </Dialog>
   );
