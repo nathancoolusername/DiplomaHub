@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Bot, Compass, Crown, Grid3x3, Hourglass, LayoutDashboard, MessageSquare, Route, ShieldCheck, Users } from "lucide-react";
+import { BarChart3, Bot, Compass, Crown, Grid3x3, Hourglass, LayoutDashboard, MessageSquare, Route, ShieldCheck, Users, UsersRound } from "lucide-react";
 
 const TABS = [
   { href: "/admin", label: "Overview", Icon: LayoutDashboard, exact: true },
@@ -12,6 +12,7 @@ const TABS = [
   { href: "/admin/hub", label: "Hub", Icon: Compass },
   { href: "/admin/practice", label: "Practice", Icon: BarChart3 },
   { href: "/admin/forty-five", label: "Forty-Five", Icon: Grid3x3 },
+  { href: "/admin/system", label: "System", Icon: UsersRound },
   { href: "/admin/waitlist", label: "Waitlist", Icon: Hourglass },
   { href: "/admin/content", label: "Moderation", Icon: ShieldCheck },
   { href: "/admin/feedback", label: "Feedback", Icon: MessageSquare },
