@@ -15,6 +15,8 @@ export type ViewerPrefs = {
   appearance: Appearance | null;
   /** Show the one-time "Try Midnight" tip: set up, Midnight available to them, not seen yet. */
   midnightTip: boolean;
+  /** Show the one-time "Make it yours" accent-colour tip: not seen yet, still on the default accent. */
+  styleTip: boolean;
   /** The one-time announcement to show ("Chemistry is here"), if any. */
   news: Announcement | null;
 };
@@ -24,15 +26,16 @@ export type ViewerPrefs = {
  * (the nav's theme picker), which can't read them at render time.
  */
 export async function getViewerPrefsAction(): Promise<ViewerPrefs> {
-  if (!(await getCurrentUserId())) return { signedIn: false, isPro: false, theme: null, appearance: null, midnightTip: false, news: null };
+  if (!(await getCurrentUserId())) return { signedIn: false, isPro: false, theme: null, appearance: null, midnightTip: false, styleTip: false, news: null };
   const [viewer, theme, dismissed, saved] = await Promise.all([getViewer(), getThemePreference(), getDismissedHints().catch(() => null), getAppearancePreference().catch(() => null)]);
   const appearance: Appearance | null =
     saved && (saved.accent || saved.backdrop) ? { accent: isAccent(saved.accent) ? saved.accent : "blue", backdrop: isBackdrop(saved.backdrop) ? saved.backdrop : "plain" } : null;
   // Every signed-in student, set up or not (the tips wait while the setup wizard is on screen).
   // If the dismissed list can't be read, show neither rather than risk repeating them.
   const midnightTip = !!dismissed && !dismissed.includes("midnight") && access("midnight_theme", viewer.isPro).allowed && theme !== "midnight";
+  const styleTip = !!dismissed && !dismissed.includes("style") && (appearance?.accent ?? "blue") === "blue";
   const news = dismissed ? pendingAnnouncement(dismissed) : null;
-  return { signedIn: true, isPro: viewer.isPro, theme, appearance, midnightTip, news };
+  return { signedIn: true, isPro: viewer.isPro, theme, appearance, midnightTip, styleTip, news };
 }
 
 /** Saves the theme to the account (Midnight only with Pro; enforced in the database). */

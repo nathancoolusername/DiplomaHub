@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { useState, useSyncExternalStore } from "react";
 import { Monitor, Moon, Palette, Sparkles, Sun } from "lucide-react";
 import { StylePicker } from "./shared/StylePicker";
+import { StyleTip } from "./StyleTip";
 import { switchTheme } from "./shared/theme-transition";
 import { setThemeAction } from "@/app/actions/viewer";
 import { loadViewerPrefs, useIsPro } from "./shared/use-is-pro";
@@ -25,7 +26,7 @@ const OPTIONS = [
 
 const subscribe = () => () => {};
 
-export function ThemeSwitcher({ popoverAlign = "right" }: { popoverAlign?: "left" | "right" }) {
+export function ThemeSwitcher({ popoverAlign = "right", tip = false }: { popoverAlign?: "left" | "right"; tip?: boolean }) {
   const { theme, setTheme } = useTheme();
   // The saved theme is only known on the client; render a neutral state on
   // the server so hydration matches.
@@ -95,6 +96,8 @@ export function ThemeSwitcher({ popoverAlign = "right" }: { popoverAlign?: "left
           <Palette size={14} aria-hidden="true" />
         </button>
       </div>
+      {/* The one-time "Make it yours" tip, its arrow on the palette button (the nav's desktop picker only). */}
+      {tip && !styles && <StyleTip arrowClass="right-[9px]" />}
       {styles && (
         <StylePicker isPro={isPro} onClose={() => setStyles(false)} className={`absolute top-full mt-sm ${popoverAlign === "right" ? "right-0" : "left-0"}`} />
       )}

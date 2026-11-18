@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { MidnightTip } from "./MidnightTip";
+import { StyleTip } from "./StyleTip";
 import { NewsToast } from "./NewsToast";
 
 // /hub is the only route with a loading.tsx, which makes it the one dynamic
@@ -62,10 +63,14 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
           </div>
 
           <div className="relative flex items-center gap-sm sm:gap-md">
+            {/* Phones: under the menu button (on computers it's in the theme picker, on the palette). */}
+            <div className="lg:hidden">
+              <StyleTip />
+            </div>
             <MidnightTip />
             {/* On phones the theme picker lives in the menu, away from the logo. */}
             <div className="hidden lg:block">
-              <ThemeSwitcher />
+              <ThemeSwitcher tip />
             </div>
             {authSlot}
             <button
