@@ -26,9 +26,14 @@ const read = () => {
 };
 const serverValue: Appearance = { accent: "blue", backdrop: "plain" };
 
+/** The saved accent and background, kept in step with storeAppearance() (the defaults on the server). */
+export function useStoredAppearance(): Appearance {
+  return useSyncExternalStore(subscribe, read, () => serverValue);
+}
+
 /** Accent colours (free) and backgrounds (DiplomaPro, "backgrounds"; free while Pro is coming soon), from the nav's theme picker. */
 export function StylePicker({ isPro, onClose, className = "" }: { isPro: boolean | null; onClose: () => void; className?: string }) {
-  const current = useSyncExternalStore(subscribe, read, () => serverValue);
+  const current = useStoredAppearance();
   const allowed = access("backgrounds", isPro === true).allowed;
   const [upsell, setUpsell] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
