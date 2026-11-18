@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarCheck, Check, Copy, Crown, LogOut, PenLine, RefreshCw, Share2, UserMinus, X } from "lucide-react";
+import { CalendarCheck, Check, Crown, Link2, LogOut, PenLine, RefreshCw, UserMinus, X } from "lucide-react";
 import type { SquadBoard } from "@/lib/data";
 import { leaveSquadAction, newSquadCodeAction, removeSquadMemberAction, renameSquadAction } from "@/app/squads/actions";
 import { Avatar } from "@/components/avatar";
@@ -37,17 +37,14 @@ export function SquadBoardView({ board }: { board: SquadBoard }) {
       }
     });
 
+  // Just the invite link, copied: paste it anywhere (it opens the join form with the code filled in).
   const share = async () => {
-    const text = `Join my DiplomaHub squad "${board.name}": ${joinUrl} (code ${board.code})`;
     try {
-      if (navigator.share) await navigator.share({ title: board.name, text, url: joinUrl });
-      else {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
+      await navigator.clipboard.writeText(joinUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
-      // cancelled
+      window.prompt("Copy the invite link:", joinUrl);
     }
   };
 
@@ -90,7 +87,7 @@ export function SquadBoardView({ board }: { board: SquadBoard }) {
         <div className="flex flex-wrap items-center gap-sm">
           <span className="rounded-xl bg-surface-container-lowest border border-outline-variant px-md py-xs font-mono text-body-lg tracking-[0.25em] text-on-surface">{board.code}</span>
           <button type="button" onClick={share} className="inline-flex items-center gap-xs rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 cursor-pointer">
-            {copied ? <Copy size={14} aria-hidden="true" /> : <Share2 size={14} aria-hidden="true" />} {copied ? "Invite copied" : "Invite friends"}
+            {copied ? <Check size={14} aria-hidden="true" /> : <Link2 size={14} aria-hidden="true" />} {copied ? "Link copied" : "Copy invite link"}
           </button>
           <span className="text-label-md text-on-surface-variant">
             {board.members.length} of 15 members
