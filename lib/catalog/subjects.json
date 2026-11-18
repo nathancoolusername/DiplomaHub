@@ -2654,67 +2654,198 @@
         {
           "code": "P1",
           "duration": {
-            "SL": 90,
+            "SL": 75,
             "HL": 120
           },
           "totalMarks": {
-            "SL": 70,
-            "HL": 100
+            "SL": 50,
+            "HL": 80
           },
           "calculator": false
         },
         {
           "code": "P2",
           "duration": {
-            "SL": 60,
-            "HL": 80
+            "SL": 75,
+            "HL": 120
           },
           "totalMarks": {
-            "SL": 45,
-            "HL": 65
+            "SL": 50,
+            "HL": 80
           },
           "calculator": false
         }
       ],
       "topics": [
         {
-          "code": "A",
-          "name": "Concepts of computer science",
+          "code": "A1",
+          "name": "Computer fundamentals",
           "subtopics": [
             {
-              "code": "CS.A1",
-              "name": "Computer fundamentals",
+              "code": "A1.1",
+              "name": "Computer hardware and operation",
               "hlOnly": false
             },
             {
-              "code": "CS.A2",
-              "name": "Networks",
+              "code": "A1.2",
+              "name": "Data representation and computer logic",
               "hlOnly": false
             },
             {
-              "code": "CS.A3",
-              "name": "Databases",
+              "code": "A1.3",
+              "name": "Operating systems and control systems",
+              "hlOnly": false
+            },
+            {
+              "code": "A1.4",
+              "name": "Translation",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "A2",
+          "name": "Networks",
+          "subtopics": [
+            {
+              "code": "A2.1",
+              "name": "Network fundamentals",
+              "hlOnly": false
+            },
+            {
+              "code": "A2.2",
+              "name": "Network architecture",
+              "hlOnly": false
+            },
+            {
+              "code": "A2.3",
+              "name": "Data transmissions",
+              "hlOnly": false
+            },
+            {
+              "code": "A2.4",
+              "name": "Network security",
               "hlOnly": false
             }
           ]
         },
         {
-          "code": "B",
+          "code": "A3",
+          "name": "Databases",
+          "subtopics": [
+            {
+              "code": "A3.1",
+              "name": "Database fundamentals",
+              "hlOnly": false
+            },
+            {
+              "code": "A3.2",
+              "name": "Database design",
+              "hlOnly": false
+            },
+            {
+              "code": "A3.3",
+              "name": "Database programming",
+              "hlOnly": false
+            },
+            {
+              "code": "A3.4",
+              "name": "Alternative databases and data warehouses",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "A4",
+          "name": "Machine learning",
+          "subtopics": [
+            {
+              "code": "A4.1",
+              "name": "Machine learning fundamentals",
+              "hlOnly": false
+            },
+            {
+              "code": "A4.2",
+              "name": "Data preprocessing",
+              "hlOnly": true
+            },
+            {
+              "code": "A4.3",
+              "name": "Machine learning approaches",
+              "hlOnly": true
+            },
+            {
+              "code": "A4.4",
+              "name": "Ethical considerations",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "B1",
           "name": "Computational thinking",
           "subtopics": [
             {
-              "code": "CS.B1",
-              "name": "Computational thinking",
+              "code": "B1.1",
+              "name": "Approaches to computational thinking",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "B2",
+          "name": "Programming",
+          "subtopics": [
+            {
+              "code": "B2.1",
+              "name": "Programming fundamentals",
               "hlOnly": false
             },
             {
-              "code": "CS.B2",
-              "name": "Programming",
+              "code": "B2.2",
+              "name": "Data structures",
               "hlOnly": false
             },
             {
-              "code": "CS.B4",
-              "name": "Abstract data types",
+              "code": "B2.3",
+              "name": "Programming constructs",
+              "hlOnly": false
+            },
+            {
+              "code": "B2.4",
+              "name": "Programming algorithms",
+              "hlOnly": false
+            },
+            {
+              "code": "B2.5",
+              "name": "File processing",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "B3",
+          "name": "Object-oriented programming",
+          "subtopics": [
+            {
+              "code": "B3.1",
+              "name": "Fundamentals of OOP for a single class",
+              "hlOnly": false
+            },
+            {
+              "code": "B3.2",
+              "name": "Fundamentals of OOP for multiple classes",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "B4",
+          "name": "Abstract data types",
+          "subtopics": [
+            {
+              "code": "B4.1",
+              "name": "Fundamentals of ADTs",
               "hlOnly": true
             }
           ]

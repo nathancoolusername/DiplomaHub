@@ -108,6 +108,7 @@ const SUBJECT_ID_BY_EXPORT_SLUG: Record<string, SubjectId> = {
   geography: "geography",
   business: "business",
   "math-ai": "math_ai",
+  "computer-science": "cs",
 };
 
 /** Science exports keep Paper 1A (MCQ) and 1B (data-based): the catalog lists them as papers (migration 16). */
