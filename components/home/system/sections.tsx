@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import Link from "next/link";
-import { CalendarDays, Clock, Crosshair, Library, ListChecks, Sparkles, TrendingUp } from "lucide-react";
+import { CalendarDays, Clock, Crosshair, Library, ListChecks, Sparkles, TrendingUp, Trophy } from "lucide-react";
 import { BroAvatar } from "@/components/shared/BroAvatar";
 import { WaitlistForm } from "@/components/pro/WaitlistForm";
 import { getHomepageStats } from "@/app/lib/actions/site-stats";
@@ -11,12 +11,12 @@ import { allSubjects } from "@/lib/catalog";
 import { QuickCheckPicker } from "./QuickCheck";
 import { SystemDemo } from "./SystemDemo";
 import { CountUp } from "./CountUp";
+import { FortyFiveMark } from "@/components/forty-five/FortyFiveMark";
 
 // The signed-out homepage: "Your IB, run like a system". Everything here is
 // the same for every visitor (the page is static), so the numbers that
-// aren't real counts are labelled as samples. Sections for features still
-// being built (Squads, Sunday Reset, Wrapped) live in ./upcoming.tsx and
-// only show on /dev/home until they ship.
+// aren't real counts are labelled as samples. Wrapped (still being built)
+// lives in ./upcoming.tsx and only shows on /dev/home until it ships.
 
 export const eyebrow = "text-label-md font-bold uppercase tracking-[0.15em] text-primary";
 export const h2 = "font-serif font-bold text-headline-lg text-on-surface";
@@ -244,6 +244,120 @@ export async function LibrarySection() {
             </ul>
           </div>
         )}
+      </div>
+    </section>
+  );
+}
+
+export function SundayReset() {
+  return (
+    <section className="px-md py-20">
+      <div className="max-w-[1300px] mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-xl items-center">
+        <div className={`${card} p-lg flex flex-col gap-md shadow-xl order-2 lg:order-1`}>
+          <div className="flex items-center justify-between gap-sm">
+            <p className="font-serif font-bold text-headline-md text-on-surface">Sunday Reset</p>
+            <span className={sample}>Sample</span>
+          </div>
+          <div className="flex flex-col gap-sm">
+            <div className="rounded-2xl bg-surface-container-low p-md">
+              <p className="text-label-sm font-bold uppercase tracking-wide text-on-surface-variant">Last week</p>
+              <p className="text-body-md text-on-surface">
+                <span className="font-semibold">46 questions, 9 marks won back.</span> Most lost: simple harmonic motion, 7 of 15.
+              </p>
+            </div>
+            <div className="rounded-2xl bg-surface-container-low p-md">
+              <p className="text-label-sm font-bold uppercase tracking-wide text-on-surface-variant">This week</p>
+              <p className="text-body-md text-on-surface">Physics test Thursday · Economics IA draft Friday</p>
+            </div>
+            <div className="rounded-2xl bg-primary-fixed text-on-primary-fixed p-md flex flex-col gap-xs">
+              <p className="text-label-sm font-bold uppercase tracking-wide">Three sessions that count</p>
+              <p className="text-body-md">Mon 25 min · simple harmonic motion · Tue 20 min · price elasticity · Wed 30 min · integration</p>
+              <span className="self-start rounded-lg bg-primary text-on-primary px-md py-xs text-label-md font-semibold">Add all 3 to my Hub</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col gap-md order-1 lg:order-2">
+          <p className={eyebrow}>The weekly ritual</p>
+          <h2 className={h2}>Ten minutes on Sunday. A calm week after it.</h2>
+          <p className="text-body-lg text-on-surface-variant">
+            Look back at last week and where the marks went, see what&apos;s coming, and put three short sessions where they&apos;ll count, each
+            with a practice set ready on your Hub. Free, and your squad sees who&apos;s planned their week.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function Squads() {
+  const board = [
+    { n: "Maya", pts: 142, ff: 41, reset: true },
+    { n: "You", pts: 118, ff: 45, reset: true },
+    { n: "Leo", pts: 87, ff: null, reset: false },
+    { n: "Aarav", pts: 40, ff: 33, reset: true },
+  ];
+  return (
+    <section className="px-md py-20 bg-surface-container-low">
+      <div className="max-w-[1300px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-xl items-center">
+        <div className="flex flex-col gap-md">
+          <p className={eyebrow}>Squads</p>
+          <h2 className={h2}>Revise with your friends, not just next to them.</h2>
+          <p className="text-body-lg text-on-surface-variant">
+            One code and up to 15 friends are in. Your squad gets a weekly board and a shared shelf. You see each other&apos;s practice points,
+            marks won back, Forty-Five scores and who&apos;s planned their week. Never grades.
+          </p>
+          <ul className="grid sm:grid-cols-2 gap-sm text-body-md text-on-surface">
+            <li className="flex gap-sm">
+              <Trophy size={18} className="text-primary shrink-0 mt-px" aria-hidden="true" /> A board for this week and all time
+            </li>
+            <li className="flex gap-sm">
+              <ListChecks size={18} className="text-primary shrink-0 mt-px" aria-hidden="true" /> Sets, test dates and plans in one tap
+            </li>
+            <li className="flex gap-sm">
+              <Library size={18} className="text-primary shrink-0 mt-px" aria-hidden="true" /> Resources from the library
+            </li>
+            <li className="flex gap-sm">
+              <FortyFiveMark /> <span>Forty-Five scores every day</span>
+            </li>
+          </ul>
+        </div>
+        <div className={`${card} p-lg flex flex-col gap-md shadow-xl`}>
+          <div className="flex items-center justify-between gap-sm">
+            <div>
+              <p className="font-serif font-bold text-headline-md text-on-surface">The Paper 2 Survivors</p>
+              <p className="text-label-md text-on-surface-variant">This week · code K7MPXR</p>
+            </div>
+            <span className={sample}>Sample</span>
+          </div>
+          <div className="grid grid-cols-[1.25rem_1fr_3rem_2.5rem_1.5rem] gap-sm px-sm text-label-sm text-on-surface-variant">
+            <span />
+            <span />
+            <span className="text-right">Points</span>
+            <span className="text-right">45</span>
+            <span />
+          </div>
+          <ol className="flex flex-col gap-xs">
+            {board.map((p, i) => (
+              <li key={p.n} className={`grid grid-cols-[1.25rem_1fr_3rem_2.5rem_1.5rem] items-center gap-sm rounded-2xl px-sm py-xs ${p.n === "You" ? "bg-primary-fixed" : ""}`}>
+                <span className="text-label-md font-bold text-on-surface-variant tabular-nums">{i + 1}</span>
+                <span className="flex items-center gap-sm min-w-0">
+                  <span className="w-8 h-8 shrink-0 rounded-full bg-primary/80 text-on-primary flex items-center justify-center text-label-md font-bold">{p.n[0]}</span>
+                  <span className="text-body-md font-semibold text-on-surface truncate">{p.n}</span>
+                </span>
+                <span className="text-right text-label-md font-bold tabular-nums text-on-surface">{p.pts}</span>
+                <span className="text-right text-label-md tabular-nums text-on-surface">{p.ff ?? "–"}</span>
+                <span className="flex justify-end">{p.reset && <CalendarDays size={16} className="text-primary" aria-label="Planned their week" />}</span>
+              </li>
+            ))}
+          </ol>
+          <div className="rounded-2xl bg-surface-container-low p-sm flex items-center gap-sm text-label-md text-on-surface">
+            <ListChecks size={16} className="text-primary" aria-hidden="true" />
+            <span className="flex-1 min-w-0">
+              <span className="font-semibold">Maya</span>{" "}put &ldquo;Organic mechanisms: 10 tricky ones&rdquo; on the shelf
+            </span>
+            <span className="rounded-lg bg-primary text-on-primary px-sm py-px font-semibold">Add</span>
+          </div>
+        </div>
       </div>
     </section>
   );

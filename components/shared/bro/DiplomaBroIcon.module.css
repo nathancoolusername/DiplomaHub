@@ -14,6 +14,53 @@
   overflow: visible;
 }
 
+/* Bro follows the student's accent colour (lib/appearance.ts, data-accent on
+   <html>): a deep disc in the accent's hue with a bright ring and glow. IB Blue
+   (no attribute) keeps the navy and cyan above. Fixed values, so Bro looks the
+   same in Light, Dark and Midnight. */
+:global(html[data-accent="sage"]) .icon {
+  --bro-navy-light: #1f4a35;
+  --bro-navy-dark: #08190f;
+  --bro-outline: #4f9a73;
+  --bro-cyan: #5effb0;
+  --bro-glow: rgb(94 255 176 / 0.55);
+  --bro-glow-strong: rgb(94 255 176 / 0.9);
+}
+:global(html[data-accent="tide"]) .icon {
+  --bro-navy-light: #134a5e;
+  --bro-navy-dark: #051a23;
+  --bro-outline: #3d97b8;
+  --bro-cyan: #3ef5e0;
+  --bro-glow: rgb(62 245 224 / 0.55);
+  --bro-glow-strong: rgb(62 245 224 / 0.9);
+}
+:global(html[data-accent="orchid"]) .icon {
+  --bro-navy-light: #48226e;
+  --bro-navy-dark: #170a2b;
+  --bro-outline: #8a5cc4;
+  --bro-cyan: #d38cff;
+  --bro-glow: rgb(211 140 255 / 0.55);
+  --bro-glow-strong: rgb(211 140 255 / 0.9);
+}
+:global(html[data-accent="blossom"]) .icon {
+  --bro-navy-light: #6e2247;
+  --bro-navy-dark: #26091a;
+  --bro-outline: #c45a8b;
+  --bro-cyan: #ff8cc4;
+  /* The usual pink dot would vanish on a pink Bro. */
+  --bro-dot: #ffd23f;
+  --bro-glow: rgb(255 140 196 / 0.55);
+  --bro-glow-strong: rgb(255 140 196 / 0.9);
+}
+:global(html[data-accent="ember"]) .icon {
+  --bro-navy-light: #6e3416;
+  --bro-navy-dark: #261005;
+  --bro-outline: #c4703f;
+  --bro-cyan: #ffb04a;
+  --bro-glow: rgb(255 176 74 / 0.55);
+  --bro-glow-strong: rgb(255 176 74 / 0.9);
+}
+
 /* Arcs spin and the dot scales about their own centres. (Not the ring: it
    keeps its SVG rotate() and would be shifted by a CSS origin.) */
 .arcOuter,

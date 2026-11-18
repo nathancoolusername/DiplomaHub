@@ -5,7 +5,7 @@ import { AskBroButton } from "@/components/shared/bro/AskBroButton";
 import { McqReview } from "./McqReview";
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { ArrowDown, ArrowRight, ArrowUp, Bookmark, CalendarPlus, Check, FileDown, RotateCcw, Trophy } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, Bookmark, CalendarPlus, Check, FileDown, RotateCcw, Trophy, Users } from "lucide-react";
 import { Spinner } from "@/components/spinner";
 import type { AttemptResult, LeaderboardStanding, StrengthChange } from "@/lib/data/types";
 import { links } from "@/lib/practice/links";
@@ -42,12 +42,15 @@ export function ResultsView({
   isPro,
   points = null,
   standing = null,
+  squad = null,
 }: {
   result: AttemptResult;
   isPro: boolean;
   /** Practice points this set earned (null if unknown). */
   points?: number | null;
   standing?: LeaderboardStanding | null;
+  /** Their rank this week in their first squad with friends in it. */
+  squad?: { id: string; name: string; rank: number; members: number } | null;
 }) {
   const { marksEarned, marksPossible, items, set } = result;
   const pct = marksPossible ? Math.round((marksEarned / marksPossible) * 100) : 0;
@@ -104,6 +107,14 @@ export function ResultsView({
         >
           <Trophy size={14} aria-hidden="true" /> +{points} points
           {standing?.rank && !standing.hidden ? ` · #${standing.rank} this week` : ""}
+        </Link>
+      )}
+      {points !== null && squad && (
+        <Link
+          href={`/squads/${squad.id}`}
+          className="-mt-sm self-start inline-flex items-center gap-xs rounded-full border border-outline-variant px-md py-xs text-label-md font-semibold text-on-surface hover:border-primary hover:text-primary"
+        >
+          <Users size={14} aria-hidden="true" /> #{squad.rank} of {squad.members} in {squad.name}
         </Link>
       )}
 

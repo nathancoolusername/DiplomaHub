@@ -6,7 +6,8 @@ import { getMyHubSubjects } from "@/app/lib/hub-subjects";
 import { getWeekDates, toDateInputValue } from "@/components/hub/calendar/calendar-utils";
 import type { SubjectId } from "@/components/hub/mock-data";
 import type { TaskPracticeSuggestion } from "@/components/hub/calendar/week-calendar";
-import { getBroBrief, getPendingHints, getPracticeStats, getRecentSessions, getSuggestions, getUserSubjects, getViewer } from "@/lib/data";
+import { getBroBrief, getDoneWeeks, getPendingHints, getPracticeStats, getRecentSessions, getSuggestions, getUserSubjects, getViewer } from "@/lib/data";
+import { ResetBanner } from "@/components/reset/ResetBanner";
 import { suggestionHref } from "@/lib/practice/links";
 import { NextStepsRow } from "@/components/hub/pro/NextStepsRow";
 import { PickUpCard } from "@/components/shared/PickUpCard";
@@ -61,6 +62,7 @@ export default async function HubPage({ searchParams }: { searchParams: Promise<
           pro && (
             <>
               {/* Keys: a server fragment passed to a client component arrives as an array of children. */}
+              <ResetBanner key="reset" doneWeeks={pro.doneWeeks} />
               <NextStepsRow key="next-steps" suggestions={pro.nextSteps} />
               <div key="pick-up-and-brief" className="grid md:grid-cols-2 gap-lg items-stretch">
                 <PickUpCard sessions={pro.sessions} />
@@ -81,7 +83,7 @@ export default async function HubPage({ searchParams }: { searchParams: Promise<
 }
 
 async function loadPro() {
-  const [viewer, nextSteps, sessions, brief, stats, userSubjects, hints] = await Promise.all([
+  const [viewer, nextSteps, sessions, brief, stats, userSubjects, hints, doneWeeks] = await Promise.all([
     getViewer(),
     getSuggestions("hub"),
     getRecentSessions(3),
@@ -89,6 +91,7 @@ async function loadPro() {
     getPracticeStats(14),
     getUserSubjects(),
     getPendingHints(),
+    getDoneWeeks(),
   ]);
   // "Suggested for this task": the same per-subject suggestion as the subject page.
   const practiceBySubject: Record<SubjectId, TaskPracticeSuggestion> = Object.fromEntries(
@@ -101,5 +104,5 @@ async function loadPro() {
       )
     ).filter((e) => e !== null),
   );
-  return { viewer, nextSteps, sessions, brief, stats, hints, practiceBySubject };
+  return { viewer, nextSteps, sessions, brief, stats, hints, practiceBySubject, doneWeeks };
 }

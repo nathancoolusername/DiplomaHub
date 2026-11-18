@@ -16,6 +16,7 @@ import {
   ViewerSaveButton,
 } from "@/components/detail/ViewerActions";
 import { ShareButton } from "@/components/shareButton";
+import { SendResourceToSquad } from "@/components/squads/SendResourceToSquad";
 import { Avatar } from "@/components/avatar";
 import { JsonLd } from "@/components/JsonLd";
 
@@ -225,6 +226,7 @@ export default async function resourcePage({
                         size={36}
                         className="rounded-xl text-display-lg transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"
                       />
+                      <SendResourceToSquad resourceId={resource.id} size={36} className="rounded-xl transition text-on-surface-variant hover:text-primary hover:bg-surface-container cursor-pointer p-sm" />
                       <ShareButton
                         size={36}
                         className="rounded-xl transition hover:text-primary hover:bg-surface-container cursor-pointer p-sm"

@@ -17,6 +17,8 @@ type Summary = {
   stats: MyStats | null;
   reaction?: Reaction;
   likes?: number;
+  /** Everyone in the player's squads and today's score (null = not played yet). */
+  squad?: { userId: string; displayName: string; isMe: boolean; score: number | null; seconds: number | null }[];
 };
 
 type GuestSave = { log: string[][]; play: PlayView; startedAt: number; finishedAt: number | null };
@@ -505,6 +507,8 @@ function EndScreen({ puzzleId, number, play, seconds, signedIn, nextResetAt, api
 
       {signedIn && summary?.stats && <Stats stats={summary.stats} today={play.score} />}
 
+      {signedIn && summary && <SquadToday rows={summary.squad ?? []} />}
+
       <div className="flex flex-col gap-xs">
         <div className="flex items-center justify-between">
           <h2 className="font-serif font-bold text-body-lg text-on-surface flex items-center gap-xs">
@@ -658,6 +662,45 @@ function Stats({ stats, today }: { stats: MyStats; today: number | null }) {
             </div>
           ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+/** "Your squads today": friends' scores on today's puzzle, or an invitation to start a squad. */
+function SquadToday({ rows }: { rows: NonNullable<Summary["squad"]> }) {
+  if (rows.length <= 1)
+    return (
+      <Link href="/squads" className="rounded-xl border border-outline-variant px-md py-sm text-center text-label-md text-on-surface-variant hover:border-primary hover:text-primary">
+        Play with friends: <span className="font-semibold text-primary">start a squad</span> and see their scores here every day.
+      </Link>
+    );
+  const waiting = rows.filter((r) => r.score === null && !r.isMe);
+  return (
+    <div className="flex flex-col gap-xs">
+      <div className="flex items-center justify-between">
+        <h2 className="font-serif font-bold text-body-lg text-on-surface">Your squads today</h2>
+        <Link href="/squads" className="text-label-md font-semibold text-primary hover:underline">
+          Squads →
+        </Link>
+      </div>
+      <ol className="divide-y divide-outline-variant rounded-xl border border-outline-variant overflow-hidden">
+        {rows
+          .filter((r) => r.score !== null)
+          .map((r, i) => (
+            <li key={r.userId} className={`flex items-center gap-sm px-md py-xs text-body-md ${r.isMe ? "bg-primary-fixed/40" : ""}`}>
+              <span className="w-6 text-on-surface-variant tabular-nums">{i + 1}</span>
+              <span className="flex-1 min-w-0 truncate font-semibold text-on-surface">{r.isMe ? "You" : r.displayName}</span>
+              <span className="tabular-nums font-semibold text-on-surface">{r.score}</span>
+              <span className="w-14 text-right tabular-nums text-on-surface-variant">{formatTime(r.seconds)}</span>
+            </li>
+          ))}
+      </ol>
+      {waiting.length > 0 && (
+        <p className="text-label-sm text-on-surface-variant">
+          Not played yet: {waiting.slice(0, 5).map((r) => r.displayName).join(", ")}
+          {waiting.length > 5 ? ` and ${waiting.length - 5} more` : ""}.
+        </p>
       )}
     </div>
   );

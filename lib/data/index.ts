@@ -109,3 +109,11 @@ export { getBroHistory, getBroConversations, getAttemptConversationId, getConver
 export { getBroMemory, updateBroMemory, deleteBroMemory, clearBroMemory, type BroMemoryItem, type MemoryWrite } from "./supabase/bro-memory";
 // Progress ─ student_results (migration 41): results students log, "How did it go?" for past Hub tests
 export { getResults, addResult, updateResult, deleteResult, getTestsToLog, getPracticeProgress, getBoundaryOverrides, setBoundaryOverride, type ResultWrite, type PastTest, type PracticeSubject } from "./supabase/results";
+
+// Sunday Reset ─ weekly_resets (migration 50)
+export { getWeeklyReset, markWeeklyReset, getDoneWeeks } from "./supabase/reset";
+export type { WeeklyReset, ResetSession, LostTopic } from "./supabase/reset";
+
+// Squads and marks won back ─ squads, squad_members (migrations 51–52)
+export { getMarksWonBack, getMySquads, getSquadBoard, getSquadsFortyFiveToday, getSquadShelf, shareToSquad, shareResourceToSquad, removeSquadShare, createSquad, joinSquad, leaveSquad, removeSquadMember, renameSquad, newSquadCode } from "./supabase/squads";
+export type { MarksWonBack, SquadSummary, SquadMember, SquadBoard, SquadPeriod, SquadFortyFive, JoinSquadResult, ShelfItem } from "./supabase/squads";
