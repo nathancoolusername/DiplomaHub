@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Timer, Trophy } from "lucide-react";
-import { getCurrentUserId } from "@/app/lib/get-current-user";
+import { getCurrentPlayer } from "@/app/lib/get-current-user";
+import { GuestUpgrade } from "@/components/deadline/Guest";
 import { getDeadlineStats, getMyDeadlineStanding, getMySquads, logDeadlineEvent } from "@/lib/data";
 import { PlayStart, SquadGameButton } from "@/components/deadline/PlayStart";
 
@@ -15,9 +15,16 @@ export const metadata: Metadata = {
 // Deadline's home: your record, Create a room, Join with a code, and a game
 // with any of your squads.
 export default async function DeadlinePlayPage() {
-  const userId = await getCurrentUserId();
-  if (!userId) redirect("/login?next=/play/deadline");
-  const [stats, week, squads] = await Promise.all([getDeadlineStats(userId), getMyDeadlineStanding("week"), getMySquads(), logDeadlineEvent("play_page_opened")]);
+  // Signed out: join with a code (as a guest, from the room's page) or sign up to create.
+  // Guests: the same, plus "keep your wins". Accounts: everything.
+  const player = await getCurrentPlayer();
+  const member = player && !player.guest ? player.id : null;
+  const [stats, week, squads] = await Promise.all([
+    player ? getDeadlineStats(player.id) : null,
+    member ? getMyDeadlineStanding("week") : null,
+    member ? getMySquads() : [],
+    player ? logDeadlineEvent("play_page_opened") : null,
+  ]);
 
   return (
     <div className="dh-page-bg bg-surface-container-low min-h-full">
@@ -30,8 +37,10 @@ export default async function DeadlinePlayPage() {
           </p>
         </header>
 
-        <PlayStart />
+        {player?.guest && <GuestUpgrade />}
+        <PlayStart canCreate={!!member} />
 
+        {stats && (<>
         <section className="grid grid-cols-3 gap-sm" aria-label="Your record">
           {[
             ["Wins", stats.wins],
@@ -48,6 +57,7 @@ export default async function DeadlinePlayPage() {
           {week?.rank ? <>You&apos;re <strong>#{week.rank}</strong> this week. </> : null}
           <Link href="/leaderboard?period=deadline" className="inline-flex items-center gap-xs font-semibold text-primary"><Trophy size={13} aria-hidden="true" />Leaderboard</Link>
         </p>
+        </>)}
 
         {squads.length > 0 && (
           <section className="flex flex-col gap-sm" aria-labelledby="dl-squads">

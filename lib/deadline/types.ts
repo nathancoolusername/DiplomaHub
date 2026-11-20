@@ -15,6 +15,8 @@ export type RoomPlayer = {
   is_out: boolean;
   waiting: boolean;
   muted: boolean;
+  /** Playing as a guest (no account; off the leaderboard). */
+  guest?: boolean;
   /** Lifetime wins: the flex. */
   wins: number;
   last_seen: string;

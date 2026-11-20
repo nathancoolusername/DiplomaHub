@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Timer } from "lucide-react";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { getCurrentUserId } from "@/app/lib/get-current-user";
+import { getCurrentPlayer } from "@/app/lib/get-current-user";
+import { GuestJoin } from "@/components/deadline/Guest";
 import { getRoomState, joinRoom, logDeadlineEvent } from "@/lib/data";
 import { normalizeCode } from "@/lib/codes";
 import type { RoomState } from "@/lib/deadline/types";
@@ -32,15 +33,17 @@ const WHY: Record<string, string> = {
   error: "Couldn't open the room just now. Try again.",
 };
 
-// A room: signed-out visitors get the invite page (sign up / log in, then
-// back here); everyone else joins (or rejoins) and gets the live room.
+// A room: signed-out visitors get the invite page (sign up, log in, or play
+// as a guest, then back here); everyone else joins (or rejoins) and gets the
+// live room. Guests (anonymous sign-ins) only ever exist on Deadline pages.
 export default async function DeadlineRoomPage({ params, searchParams }: Props) {
   const [{ code: raw }, { via }] = await Promise.all([params, searchParams]);
   const code = normalizeCode(decodeURIComponent(raw));
   if (code.length !== 4) redirect("/play/deadline");
   // Signed out (often a friend opening the invite, or a chat app fetching its
   // preview): an invite page that keeps the room through sign-up or login.
-  if (!(await getCurrentUserId())) {
+  const player = await getCurrentPlayer();
+  if (!player) {
     const next = encodeURIComponent(`/play/deadline/${code}`);
     return (
       <div className="bg-surface-container-low min-h-full">
@@ -55,6 +58,7 @@ export default async function DeadlineRoomPage({ params, searchParams }: Props) 
             <Link href={`/signup?next=${next}`} className="rounded-2xl bg-primary text-on-primary px-lg py-sm text-body-lg font-bold">Sign up free to join</Link>
             <Link href={`/login?next=${next}`} className="rounded-2xl border border-outline-variant px-lg py-sm text-body-lg font-semibold text-on-surface">Log in</Link>
           </div>
+          <GuestJoin className="w-full max-w-[24rem]" />
         </div>
       </div>
     );

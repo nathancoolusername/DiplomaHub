@@ -1,24 +1,33 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { ArrowRight, Plus, Users } from "lucide-react";
 import { createRoomAction, joinWithCodeAction } from "@/app/play/deadline/actions";
 import { CODE_ALPHABET } from "@/lib/codes";
 
-/** Create a room, or join one with its 4-character code. */
-export function PlayStart() {
+/** Create a room, or join one with its 4-character code. Signed-out visitors and guests can only join (creating needs an account). */
+export function PlayStart({ canCreate = true }: { canCreate?: boolean }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   return (
     <div className="grid sm:grid-cols-2 gap-md">
-      <button type="button" disabled={pending}
-        onClick={() => start(async () => { const r = await createRoomAction(null); if (r?.error) setError(r.error); })}
-        className="flex flex-col items-start gap-xs rounded-2xl bg-primary text-on-primary p-lg text-left disabled:opacity-60 cursor-pointer">
-        <Plus size={22} aria-hidden="true" />
-        <span className="font-serif font-bold text-headline-md">{pending ? "Making a room…" : "Create a room"}</span>
-        <span className="text-body-md text-on-primary/80">Get a code to send your friends. 2–8 players.</span>
-      </button>
+      {canCreate ? (
+        <button type="button" disabled={pending}
+          onClick={() => start(async () => { const r = await createRoomAction(null); if (r?.error) setError(r.error); })}
+          className="flex flex-col items-start gap-xs rounded-2xl bg-primary text-on-primary p-lg text-left disabled:opacity-60 cursor-pointer">
+          <Plus size={22} aria-hidden="true" />
+          <span className="font-serif font-bold text-headline-md">{pending ? "Making a room…" : "Create a room"}</span>
+          <span className="text-body-md text-on-primary/80">Get a code to send your friends. 2–8 players.</span>
+        </button>
+      ) : (
+        <Link href="/signup?next=/play/deadline" className="flex flex-col items-start gap-xs rounded-2xl bg-primary text-on-primary p-lg text-left">
+          <Plus size={22} aria-hidden="true" />
+          <span className="font-serif font-bold text-headline-md">Create a room</span>
+          <span className="text-body-md text-on-primary/80">Sign up free to make rooms. Joining a friend&apos;s room works without an account.</span>
+        </Link>
+      )}
       <form
         onSubmit={(e) => { e.preventDefault(); start(async () => { const r = await joinWithCodeAction(code); if (r?.error) setError(r.error); }); }}
         className="flex flex-col gap-sm rounded-2xl border border-outline-variant bg-surface-container-lowest p-lg">

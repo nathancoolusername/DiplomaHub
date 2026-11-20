@@ -76,6 +76,7 @@ function Seat({ p, me, isHolder, isHost, fx, reactions, style }: {
         )}
       </span>
       <span className="max-w-full truncate text-label-md font-semibold text-on-surface">{mine ? "You" : nameOf(p)}</span>
+      {p.guest && <span className="-mt-0.5 text-label-sm text-on-surface-variant">guest</span>}
       <span className="flex items-center gap-xs">
         {p.is_out ? <span className="text-label-sm font-bold text-error">Out</span> : <Extensions n={p.extensions} />}
         <span className="text-label-sm tabular-nums text-on-surface-variant">{p.points}</span>

@@ -31,7 +31,7 @@ export function GlobalBro() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const userId = session?.user.id;
+      const userId = session?.user.is_anonymous ? undefined : session?.user.id; // Deadline guests count as signed out
       setBroChatOwner(userId ?? null);
       if (!userId) {
         cached = null;

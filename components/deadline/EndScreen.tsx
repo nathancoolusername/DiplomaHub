@@ -7,6 +7,7 @@ import { Avatar } from "@/components/avatar";
 import { TIERS } from "@/lib/deadline/config";
 import type { RoomActions, RoomState } from "@/lib/deadline/types";
 import { nameOf, Points, WinsBadge } from "./bits";
+import { GuestUpgrade } from "./Guest";
 
 /** The winner, everyone's place, the rarest answer, Play again and Save as squad. */
 export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<RoomActions, "start" | "leave" | "saveSquad"> }) {
@@ -83,7 +84,9 @@ export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<
         )}
       </div>
 
-      {!room.squad_id && (
+      {byId.get(me)?.guest && <GuestUpgrade className="w-full max-w-[28rem]" />}
+
+      {!room.squad_id && !byId.get(me)?.guest && (
         room.saved_squad ? (
           room.saved_squad.member ? (
             <p className="text-label-md text-on-surface-variant inline-flex items-center gap-xs"><Users size={14} aria-hidden="true" />Saved as the squad “{room.saved_squad.name}”.</p>

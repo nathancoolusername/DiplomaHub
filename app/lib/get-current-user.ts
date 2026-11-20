@@ -28,6 +28,21 @@ export const getCurrentUserId = cache(async (): Promise<string | null> => {
   return headersList.get("x-verified-user-id");
 });
 
+/**
+ * Deadline only: the player behind this request, a full account or a guest
+ * (Supabase anonymous sign-in, header set by proxy.ts). Everywhere else in
+ * the site uses getCurrentUserId(), which is null for guests.
+ */
+export const getCurrentPlayer = cache(async (): Promise<{ id: string; guest: boolean } | null> => {
+  const [headersList, cookieStore] = await Promise.all([headers(), cookies()]);
+  if (headersList.has("next-router-prefetch")) return null;
+  if (!AUTH_COOKIES.some((name) => cookieStore.has(name))) return null;
+  const user = headersList.get("x-verified-user-id");
+  if (user) return { id: user, guest: false };
+  const guest = headersList.get("x-verified-guest-id");
+  return guest ? { id: guest, guest: true } : null;
+});
+
 // Full Supabase user object (email_confirmed_at, etc.) — this does its own
 // network round-trip to Supabase's Auth server, on top of the one proxy.ts
 // already did. Only use this where more than the id is actually needed.

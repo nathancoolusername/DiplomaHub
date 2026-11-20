@@ -55,7 +55,7 @@ export function ViewerProvider({
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const userId = session?.user.id ?? null;
+      const userId = session?.user.is_anonymous ? null : (session?.user.id ?? null); // Deadline guests count as signed out
       // Show the comment box and owner controls straight away; the like and
       // save state follow a moment later.
       if (!cancelled) setState({ userId, liked: false, saved: false });

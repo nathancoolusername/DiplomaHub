@@ -60,6 +60,7 @@ export function Lobby({ state, actions, onInvite }: { state: RoomState; actions:
                 )}
               </span>
               <span className="max-w-full truncate text-label-md font-semibold text-on-surface">{p.user_id === me ? "You" : nameOf(p)}</span>
+              {p.guest && <span className="text-label-sm text-on-surface-variant">guest</span>}
               <WinsBadge wins={p.wins} />
             </li>
           ))}
