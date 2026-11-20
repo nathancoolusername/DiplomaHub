@@ -8,9 +8,10 @@ import { TIERS } from "@/lib/deadline/config";
 import type { RoomActions, RoomState } from "@/lib/deadline/types";
 import { nameOf, Points, WinsBadge } from "./bits";
 import { GuestUpgrade } from "./Guest";
+import { SubjectPicker } from "./SubjectPicker";
 
 /** The winner, everyone's place, the rarest answer, Play again and Save as squad. */
-export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<RoomActions, "start" | "leave" | "saveSquad"> }) {
+export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<RoomActions, "start" | "leave" | "saveSquad" | "listSubjects" | "setSubjects"> }) {
   const { room, players, me, end } = state;
   const byId = new Map(players.map((p) => [p.user_id, p]));
   const winner = end?.winner_id ? byId.get(end.winner_id) : null;
@@ -73,6 +74,8 @@ export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<
         </ol>
       )}
 
+      <SubjectPicker chosen={room.settings.subjects ?? []} isHost={isHost} actions={actions} />
+
       <div className="flex flex-wrap justify-center gap-sm">
         {isHost ? (
           <button type="button" disabled={again} onClick={async () => { setAgain(true); await actions.start(); setAgain(false); }}
@@ -84,7 +87,7 @@ export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<
         )}
       </div>
 
-      {byId.get(me)?.guest && <GuestUpgrade className="w-full max-w-[28rem]" />}
+      {byId.get(me)?.guest && <GuestUpgrade next={`/play/deadline/${room.code}`} className="w-full max-w-[28rem]" />}
 
       {!room.squad_id && !byId.get(me)?.guest && (
         room.saved_squad ? (

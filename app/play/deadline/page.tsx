@@ -37,7 +37,7 @@ export default async function DeadlinePlayPage() {
           </p>
         </header>
 
-        {player?.guest && <GuestUpgrade />}
+        {player?.guest && <GuestUpgrade next="/play/deadline" />}
         <PlayStart canCreate={!!member} />
 
         {stats && (<>

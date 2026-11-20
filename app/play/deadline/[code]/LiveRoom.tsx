@@ -14,7 +14,7 @@ const GONE: Record<string, string> = {
 
 /** A live room: the hook keeps the state, chat and clock in step with Supabase. */
 export function LiveRoom({ code, initial }: { code: string; initial: RoomState }) {
-  const { state, offset, messages, reactions, actions, load, live, logEvent } = useRoom(code, initial);
+  const { state, offset, messages, reactions, actions, load, live, logEvent, typing, onTyping } = useRoom(code, initial);
 
   // "Reconnecting…" once the live connection has been down for 2 s (not while it first connects).
   const [down, setDown] = useState(false);
@@ -39,7 +39,8 @@ export function LiveRoom({ code, initial }: { code: string; initial: RoomState }
           <WifiOff size={14} aria-hidden="true" />Reconnecting… the game keeps checking in
         </p>
       )}
-      <DeadlineRoom state={state} offset={offset} messages={messages} reactions={reactions} actions={actions} onEvent={(k) => logEvent(k)} />
+      <DeadlineRoom state={state} offset={offset} messages={messages} reactions={reactions} actions={actions} onEvent={(k) => logEvent(k)}
+        typing={typing} onTyping={onTyping} />
     </>
   );
 }

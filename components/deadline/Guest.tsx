@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Save } from "lucide-react";
 import { createClient } from "@/app/lib/supabase/client";
@@ -54,51 +55,20 @@ export function GuestJoin({ className = "" }: { className?: string }) {
 }
 
 /**
- * For a guest: turn the guest session into a real account (email and
- * password). Same user id, so every game and win so far stays theirs.
+ * For a guest: "Keep your wins" goes to the sign-up page, which turns the
+ * guest into an account (same id, so every game and win stays theirs) and
+ * then comes back to `next`.
  */
-export function GuestUpgrade({ compact = false, className = "" }: { compact?: boolean; className?: string }) {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
-    if (password.length < 8) return setMsg({ ok: false, text: "Use a password of 8+ characters." });
-    setBusy(true);
-    setMsg(null);
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.updateUser({ email: email.trim(), password });
-    if (error) {
-      setBusy(false);
-      return setMsg({ ok: false, text: /already|registered|exists/i.test(error.message) ? "That email already has an account. Log in instead (this guest's wins stay with the guest)." : error.message });
-    }
-    await supabase.auth.refreshSession();
-    setBusy(false);
-    if (data.user?.email) {
-      setMsg({ ok: true, text: "Saved! Your games and wins are on your new account." });
-      router.refresh();
-    } else {
-      setMsg({ ok: true, text: "Check your email to confirm, and your account is ready with your wins." });
-    }
-  }
-
+export function GuestUpgrade({ next, className = "" }: { next: string; className?: string }) {
   return (
-    <form onSubmit={save} className={`flex flex-col gap-xs rounded-2xl border border-outline-variant bg-surface-container-lowest p-md text-left ${className}`}>
-      <p className="font-semibold text-on-surface inline-flex items-center gap-xs"><Save size={16} className="text-primary" aria-hidden="true" />Keep your wins</p>
-      {!compact && <p className="text-label-md text-on-surface-variant">You&apos;re playing as a guest. Add an email and password to turn this into a free account: your games and wins come with you, and you can make rooms.</p>}
-      <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-xs">
-        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" autoComplete="email" aria-label="Email"
-          className="min-w-0 rounded-xl border border-outline-variant bg-surface-container-lowest px-sm py-xs text-body-md text-on-surface outline-none focus:border-primary" />
-        <input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (8+)" autoComplete="new-password" aria-label="Password"
-          className="min-w-0 rounded-xl border border-outline-variant bg-surface-container-lowest px-sm py-xs text-body-md text-on-surface outline-none focus:border-primary" />
-        <button type="submit" disabled={busy} className="rounded-xl bg-primary text-on-primary px-md py-xs text-label-md font-semibold disabled:opacity-50 cursor-pointer">
-          {busy ? "Saving…" : "Make my account"}
-        </button>
-      </div>
-      {msg && <p className={`text-label-md ${msg.ok ? "text-primary" : "text-error"}`} role="status">{msg.text}</p>}
-    </form>
+    <Link href={`/signup?next=${encodeURIComponent(next)}`}
+      className={`group flex items-center gap-md rounded-2xl border border-outline-variant bg-surface-container-lowest p-md text-left hover:border-primary ${className}`}>
+      <span className="w-10 h-10 shrink-0 rounded-xl bg-primary-fixed text-on-primary-fixed flex items-center justify-center" aria-hidden="true"><Save size={18} /></span>
+      <span className="flex-1 min-w-0">
+        <span className="block font-semibold text-on-surface group-hover:text-primary">Keep your wins: sign up free</span>
+        <span className="block text-label-md text-on-surface-variant">You&apos;re playing as a guest. Sign up and your games and wins come with you, and you can make rooms.</span>
+      </span>
+      <ArrowRight size={18} className="text-on-surface-variant" aria-hidden="true" />
+    </Link>
   );
 }

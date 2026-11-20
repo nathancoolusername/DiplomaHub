@@ -61,7 +61,8 @@ export type RoomState = {
     status: RoomStatus;
     host_id: string;
     squad_id: string | null;
-    settings: { mix: string };
+    /** subjects: the host's ticked subjects; empty or missing = Mixed (all). */
+    settings: { mix: string; subjects?: string[] };
     version: number;
     game_no: number;
     last_event: RoomEvent | null;
@@ -92,4 +93,12 @@ export type RoomActions = {
   report: (messageId: string) => Promise<void>;
   mute: (userId: string, muted: boolean) => Promise<void>;
   saveSquad: (name: string) => Promise<{ ok: boolean; reason?: string; code?: string }>;
+  /** Subjects with how many prompts each has. */
+  listSubjects: () => Promise<{ subject: string; prompts: number }[]>;
+  /** Host: tick subjects (empty = Mixed). */
+  setSubjects: (subjects: string[]) => Promise<{ ok: boolean; reason?: string; prompts?: number }>;
 };
+
+/** What players are typing right now (user id → text), as a tiny store so a
+ *  stream of keystrokes re-renders only the line that shows them. */
+export type TypingStore = { subscribe: (onChange: () => void) => () => void; get: () => Readonly<Record<string, string>> };

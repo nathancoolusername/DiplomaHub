@@ -6,9 +6,10 @@ import { Avatar } from "@/components/avatar";
 import { MAX_PLAYERS } from "@/lib/deadline/config";
 import type { RoomActions, RoomState } from "@/lib/deadline/types";
 import { nameOf, WinsBadge } from "./bits";
+import { SubjectPicker } from "./SubjectPicker";
 
 /** Waiting room: the code to share, who's in (with their wins), and Start for the host. */
-export function Lobby({ state, actions, onInvite }: { state: RoomState; actions: Pick<RoomActions, "start" | "leave">; onInvite?: () => void }) {
+export function Lobby({ state, actions, onInvite }: { state: RoomState; actions: Pick<RoomActions, "start" | "leave" | "listSubjects" | "setSubjects">; onInvite?: () => void }) {
   const { room, players, me } = state;
   const isHost = room.host_id === me;
   const [copied, setCopied] = useState(false);
@@ -71,6 +72,8 @@ export function Lobby({ state, actions, onInvite }: { state: RoomState; actions:
           ))}
         </ul>
       </section>
+
+      <SubjectPicker chosen={room.settings.subjects ?? []} isHost={isHost} actions={actions} />
 
       <div className="flex flex-col items-center gap-xs">
         {isHost ? (

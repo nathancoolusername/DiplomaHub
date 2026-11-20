@@ -1,17 +1,36 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Crown, PenLine, ThumbsUp } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { TIERS } from "@/lib/deadline/config";
 import { turnProgress } from "@/lib/deadline/clock";
-import type { Reaction, RoomActions, RoomEvent, RoomPlayer, RoomRound, SubmitResult } from "@/lib/deadline/types";
+import type { Reaction, RoomActions, RoomEvent, RoomPlayer, RoomRound, SubmitResult, TypingStore } from "@/lib/deadline/types";
 import { Extensions, nameOf, Points, WinsBadge } from "./bits";
 import { Bubbles } from "./Reactions";
 
 /** The prompt, inside the clock: the border closes in and the tint deepens. No number. */
-export function PromptClock({ round, offset, mine, holderName, className = "" }: {
-  round: RoomRound; offset: number; mine: boolean; holderName: string; className?: string;
+const NO_TYPING: TypingStore = { subscribe: () => () => {}, get: () => ({}) };
+
+/** The holder's answer as they type it (others see it live; the holder has their own box). */
+function HolderTyping({ store, holderId, holderName }: { store: TypingStore; holderId: string; holderName: string }) {
+  const text = useSyncExternalStore(store.subscribe, () => store.get()[holderId] ?? "", () => "");
+  return (
+    <p className="min-h-7 text-body-lg font-mono text-on-surface" aria-live="off">
+      {text ? (
+        <>
+          <span className="sr-only">{holderName} is typing: </span>
+          {text}<span className="inline-block w-0.5 h-5 align-middle bg-on-surface animate-pulse ml-0.5" aria-hidden="true" />
+        </>
+      ) : (
+        <span className="text-on-surface-variant/60 font-sans text-body-md">…</span>
+      )}
+    </p>
+  );
+}
+
+export function PromptClock({ round, offset, mine, holderName, typing = NO_TYPING, className = "" }: {
+  round: RoomRound; offset: number; mine: boolean; holderName: string; typing?: TypingStore; className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -43,6 +62,7 @@ export function PromptClock({ round, offset, mine, holderName, className = "" }:
         {mine ? "Your turn!" : `${holderName} has the draft`}
         {round.fail_count > 0 && <span className="font-normal text-on-surface-variant"> · one more miss and the prompt changes</span>}
       </p>
+      {!mine && <HolderTyping store={typing} holderId={round.holder_id} holderName={holderName} />}
     </div>
   );
 }
@@ -146,26 +166,51 @@ const SAY: Partial<Record<SubmitResult["result"], string>> = {
 
 /**
  * The answer bar: anyone can type, only the holder can submit (Enter or the
- * button). Wrong → shake; a rejected answer can be flagged with "That's right!".
+ * button). It is never re-mounted (not for a new prompt, not for a wrong
+ * answer), so the keyboard and focus stay put. Wrong → shake, text kept and
+ * focused for a quick fix; a rejected answer can be flagged "That's right!".
+ * While it's your turn, what you type is shared live (onTyping).
  */
-export function AnswerBar({ myTurn, canPlay, actions, holderName }: {
-  myTurn: boolean; canPlay: boolean; actions: Pick<RoomActions, "submit" | "appeal">; holderName: string;
+export function AnswerBar({ roundId, myTurn, canPlay, actions, holderName, onTyping }: {
+  roundId: string; myTurn: boolean; canPlay: boolean; actions: Pick<RoomActions, "submit" | "appeal">; holderName: string;
+  onTyping?: (text: string) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
+  const row = useRef<HTMLDivElement>(null);
   const [text, setText] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
-  const [shake, setShake] = useState(0);
   const [appeal, setAppeal] = useState<{ id: number; text: string; sent: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Your turn: the answer bar gets the keyboard.
+  // A new prompt: start fresh (same input element, so focus stays).
+  const [seenRound, setSeenRound] = useState(roundId);
+  if (seenRound !== roundId) {
+    setSeenRound(roundId);
+    setText("");
+    setMsg(null);
+    setAppeal(null);
+  }
+
+  // Your turn: the answer bar gets the keyboard and shares what's already
+  // typed. Turn over: share nothing (only the holder's typing is ever shown).
   useEffect(() => {
     if (myTurn) input.current?.focus({ preventScroll: true });
+    onTyping?.(myTurn ? input.current?.value ?? "" : "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the turn arrives
   }, [myTurn]);
+
+  function shake() {
+    const el = row.current;
+    if (!el) return;
+    el.classList.remove("dl-shake");
+    void el.offsetWidth; // restart the animation without re-mounting anything
+    el.classList.add("dl-shake");
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const t = text.trim();
+    input.current?.focus({ preventScroll: true });
     if (!t || !myTurn || busy) return;
     setBusy(true);
     const r = await actions.submit(t);
@@ -174,14 +219,17 @@ export function AnswerBar({ myTurn, canPlay, actions, holderName }: {
       setText("");
       setMsg(null);
       setAppeal(null);
+      onTyping?.("");
       return;
     }
     if (r.result === "taken") setMsg(`${r.answer} is already taken.`);
     else setMsg(SAY[r.result] ?? null);
-    if (r.result === "wrong" || r.result === "ambiguous" || r.result === "denied") {
-      setShake((n) => n + 1);
-      if (r.reject_id) setAppeal({ id: r.reject_id, text: t, sent: false });
-      input.current?.select();
+    if (r.result === "wrong" || r.result === "ambiguous" || r.result === "denied" || r.result === "taken") {
+      shake();
+      if (r.result !== "taken" && r.reject_id) setAppeal({ id: r.reject_id, text: t, sent: false });
+      // Stay in the box with the text, caret at the end, ready to fix and press Enter again.
+      const el = input.current;
+      if (el) { el.focus({ preventScroll: true }); el.setSelectionRange(el.value.length, el.value.length); }
     }
   }
 
@@ -190,16 +238,17 @@ export function AnswerBar({ myTurn, canPlay, actions, holderName }: {
   }
   return (
     <form onSubmit={submit} className="flex flex-col gap-xs">
-      <div key={shake} className={`flex items-center gap-xs ${shake ? "dl-shake" : ""}`}>
+      <div ref={row} className="flex items-center gap-xs">
         <label className="flex-1">
           <span className="sr-only">Your answer</span>
-          <input ref={input} value={text} onChange={(e) => { setText(e.target.value.slice(0, 120)); setMsg(null); }}
+          <input ref={input} value={text} onChange={(e) => { const v = e.target.value.slice(0, 120); setText(v); setMsg(null); if (myTurn) onTyping?.(v); }}
             placeholder={myTurn ? "Type an answer…" : `Get one ready while ${holderName} thinks…`}
             autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck={false} enterKeyHint="send"
             className={`w-full rounded-2xl border-2 bg-surface-container-lowest px-md py-sm text-body-lg text-on-surface outline-none transition-colors ${
               myTurn ? "border-error focus:border-error" : "border-outline-variant focus:border-primary"}`} />
         </label>
-        <button type="submit" disabled={!myTurn || !text.trim() || busy}
+        {/* Pressing Go doesn't take focus from the box (the phone keyboard stays open). */}
+        <button type="submit" disabled={!myTurn || !text.trim() || busy} onPointerDown={(e) => e.preventDefault()}
           className="rounded-2xl bg-error text-on-error px-lg py-sm text-body-lg font-bold disabled:bg-surface-container-high disabled:text-on-surface-variant cursor-pointer">
           Go
         </button>

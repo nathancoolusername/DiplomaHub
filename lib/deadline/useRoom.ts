@@ -6,12 +6,13 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { createClient } from "@/app/lib/supabase/client";
 import { GRACE_MS } from "./config";
 import { clockOffset, turnEndsAt } from "./clock";
-import type { ChatMessage, Reaction, RoomActions, RoomState, SubmitResult } from "./types";
+import type { ChatMessage, Reaction, RoomActions, RoomState, SubmitResult, TypingStore } from "./types";
 
 // A live Deadline room (migration 56), straight from the browser to Supabase:
 //  - state: get_room_state, refetched whenever the room's private channel
-//    (dl:{id}) says "state", on reconnect, when the tab comes back, and on a
-//    slow poll as a safety net (faster if the channel is down);
+//    (dl:{id}) says "state" (the broadcast carries the new state, so usually
+//    no fetch at all), on reconnect, when the tab comes back, and on a slow
+//    poll as a safety net (faster if the channel is down);
 //  - chat, reactions and hidden messages arrive on the same channel;
 //  - after the turn's deadline (server time) one tick_room call times it out.
 
@@ -20,6 +21,18 @@ export type RoomLoad = { status: "ok" } | { status: "gone"; reason: string };
 const POLL_LIVE_MS = 20_000;
 const POLL_DOWN_MS = 3_000;
 const BUBBLE_MS = 2_000;
+const TYPING_EVERY_MS = 120;
+
+/** A tiny external store for live typing (user id → text). */
+export function makeTypingStore() {
+  let value: Record<string, string> = {};
+  const listeners = new Set<() => void>();
+  return {
+    subscribe: (cb: () => void) => { listeners.add(cb); return () => { listeners.delete(cb); }; },
+    get: () => value,
+    set: (next: Record<string, string>) => { value = next; listeners.forEach((l) => l()); },
+  };
+}
 
 export function useRoom(code: string, initial: RoomState) {
   const supabase = useMemo(() => createClient(), []);
@@ -60,8 +73,24 @@ export function useRoom(code: string, initial: RoomState) {
     if (Array.isArray(data)) setMessages(data as ChatMessage[]);
   }, [supabase]);
 
+  // ── Live typing over Presence on the room channel (players may only send
+  //    presence, never broadcasts, so nobody can fake a game event).
+  const typingStore = useMemo(() => makeTypingStore(), []);
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingLatest = useRef("");
+  const onTyping = useCallback((text: string) => {
+    typingLatest.current = text.slice(0, 60);
+    if (typingTimer.current) return;
+    typingTimer.current = setTimeout(() => {
+      typingTimer.current = null;
+      void channelRef.current?.track({ typing: typingLatest.current });
+    }, TYPING_EVERY_MS);
+  }, []);
+
   // ── The room's private channel.
   const roomId = state.room.id;
+  const me = state.me;
   useEffect(() => {
     let channel: RealtimeChannel | null = null;
     let cancelled = false;
@@ -69,8 +98,25 @@ export function useRoom(code: string, initial: RoomState) {
     (async () => {
       await supabase.realtime.setAuth();
       if (cancelled) return;
-      channel = supabase.channel(`dl:${roomId}`, { config: { private: true } })
-        .on("broadcast", { event: "state" }, () => void refetch())
+      channel = supabase.channel(`dl:${roomId}`, { config: { private: true, presence: { key: me } } })
+        .on("presence", { event: "sync" }, () => {
+          const ps = channel!.presenceState<{ typing?: string }>();
+          const next: Record<string, string> = {};
+          for (const [key, metas] of Object.entries(ps)) next[key] = metas.at(-1)?.typing ?? "";
+          typingStore.set(next);
+        })
+        .on("broadcast", { event: "state" }, ({ payload }) => {
+          // The new state rides along: apply it (one trip instead of two). Only
+          // squad membership on "Save as squad" is per-player, so fetch for that.
+          const next = (payload as { state?: RoomState | null })?.state;
+          if (!next || !next.ok) return void refetch();
+          const cur = stateRef.current;
+          const squad = next.room.saved_squad;
+          const known = squad && cur.room.saved_squad?.id === squad.id ? cur.room.saved_squad.member : undefined;
+          setState((old) => (next.room.version < old.room.version ? old
+            : { ...next, me: old.me, room: { ...next.room, saved_squad: squad ? { ...squad, member: known ?? false } : null } }));
+          if (squad && known === undefined) void refetch();
+        })
         .on("broadcast", { event: "chat" }, ({ payload }) => {
           const m = payload as ChatMessage;
           setMessages((ms) => (ms.some((x) => x.id === m.id) ? ms : [...ms, m].slice(-200)));
@@ -89,14 +135,16 @@ export function useRoom(code: string, initial: RoomState) {
           const up = status === "SUBSCRIBED";
           setLive(up);
           // Back on the channel: catch up on anything missed while away.
-          if (up) { void refetch(); void loadMessages(); }
+          if (up) { void refetch(); void loadMessages(); void channel!.track({ typing: "" }); }
         });
+      channelRef.current = channel;
     })();
     return () => {
       cancelled = true;
+      channelRef.current = null;
       if (channel) void supabase.removeChannel(channel);
     };
-  }, [supabase, roomId, refetch, loadMessages]);
+  }, [supabase, roomId, me, refetch, loadMessages, typingStore]);
 
   // ── Safety nets: the tab coming back, and a poll (faster while the channel is down).
   useEffect(() => {
@@ -121,9 +169,10 @@ export function useRoom(code: string, initial: RoomState) {
       await refetch();
       // Nobody could time it out yet (clocks a hair apart): try again shortly.
       const cur = stateRef.current.round;
-      if (!fired && tries < 5 && cur && `${cur.id}:${cur.turn_started_at}:${cur.turn_ms}` === deadlineKey) t = setTimeout(() => void fire(tries + 1), 700);
+      if (!fired && tries < 5 && cur && `${cur.id}:${cur.turn_started_at}:${cur.turn_ms}` === deadlineKey) t = setTimeout(() => void fire(tries + 1), 300);
     };
-    const wait = turnEndsAt(r) + GRACE_MS + 300 + Math.random() * 400 - (Date.now() + offset);
+    // Just past the server's grace, with a little spread so 8 phones don't all call at once.
+    const wait = turnEndsAt(r) + GRACE_MS + 60 + Math.random() * 140 - (Date.now() + offset);
     t = setTimeout(() => void fire(0), Math.max(0, wait));
     return () => clearTimeout(t);
   }, [deadlineKey, offset, supabase, refetch]);
@@ -163,6 +212,16 @@ export function useRoom(code: string, initial: RoomState) {
       react: async (emoji) => { await supabase.rpc("send_reaction", { p_room: room(), p_emoji: emoji }); },
       report: async (messageId) => { await supabase.rpc("report_room_message", { p_message: messageId, p_reason: null }); },
       mute: async (userId, muted) => { await supabase.rpc("host_mute", { p_room: room(), p_user: userId, p_muted: muted }); void refetch(); },
+      listSubjects: async () => {
+        const { data } = await supabase.rpc("deadline_subjects");
+        return Array.isArray(data) ? (data as { subject: string; prompts: number }[]) : [];
+      },
+      setSubjects: async (subjects) => {
+        const { data, error } = await supabase.rpc("set_room_subjects", { p_room: room(), p_subjects: subjects });
+        if (error) return { ok: false, reason: "error" };
+        void refetch();
+        return data as { ok: boolean; reason?: string; prompts?: number };
+      },
       saveSquad: async (name) => {
         const { data, error } = await supabase.rpc("save_room_as_squad", { p_room: room(), p_name: name });
         if (error) {
@@ -179,5 +238,6 @@ export function useRoom(code: string, initial: RoomState) {
     void supabase.rpc("log_deadline_event", { p_kind: kind, p_room: stateRef.current.room.id, p_data: data });
   }, [supabase]);
 
-  return { state, offset, messages, reactions, actions, load, live, logEvent };
+  const typing: TypingStore = typingStore;
+  return { state, offset, messages, reactions, actions, load, live, logEvent, typing, onTyping };
 }

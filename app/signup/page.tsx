@@ -1,6 +1,7 @@
 // app/signup/page.tsx
 "use client";
-import { use, useState, FormEvent } from "react";
+import { use, useEffect, useState, FormEvent } from "react";
+import { createClient } from "@/app/lib/supabase/client";
 import { signUp } from "../auth/actions";
 import { Eye } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -13,6 +14,15 @@ export default function SignupPage({ searchParams }: { searchParams: Promise<{ n
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState("password");
+  // A Deadline guest signing up keeps their games: say so, and start from their guest name.
+  const [guestName, setGuestName] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    createClient().auth.getSession().then(({ data: { session } }) => {
+      if (!cancelled && session?.user.is_anonymous) setGuestName(String(session.user.user_metadata?.display_name ?? ""));
+    });
+    return () => { cancelled = true; };
+  }, []);
   const [icon, setIcon] = useState(false);
   const handleToggle = () => {
     if (type === "password") {
@@ -52,6 +62,11 @@ export default function SignupPage({ searchParams }: { searchParams: Promise<{ n
       <div className="w-full max-w-140 flex flex-col gap-gutter bg-surface-container-lowest p-margin rounded-xl border-1 border-outline-variant">
         <Logo size="lg" prefix="Join " />
         <h1 className="text-headline-lg font-semibold font-serif">Sign up</h1>
+        {guestName !== null && (
+          <p className="rounded-lg bg-primary/10 px-md py-sm text-body-md text-on-surface">
+            You&apos;ve been playing Deadline as a guest. Sign up here and your games and wins come with you.
+          </p>
+        )}
 
         <form onSubmit={onSubmit} className="space-y-4">
           {next && <input type="hidden" name="next" value={next} />}
@@ -60,8 +75,10 @@ export default function SignupPage({ searchParams }: { searchParams: Promise<{ n
               Display name
             </label>
             <input
+              key={guestName ?? "new"}
               name="display_name"
               required
+              defaultValue={guestName ?? undefined}
               className="w-full border rounded-lg px-3 py-2"
             />
           </div>

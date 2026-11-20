@@ -20,3 +20,13 @@ export const TIERS: Record<number, { label: string; color: string }> = {
 };
 
 export const REACTIONS = ["😂", "💀", "🔥", "👏", "😭", "😮", "🫡", "🧠"] as const;
+
+/** How subjects show in the picker (bank keys → names). "mixed" in the bank is cross-subject IB prompts. */
+export const SUBJECT_LABELS: Record<string, string> = {
+  mixed: "IB general", biology: "Biology", chemistry: "Chemistry", physics: "Physics", math: "Maths", geography: "Geography",
+  history: "History", economics: "Economics", psychology: "Psychology", "computer science": "Computer Science", business: "Business",
+  tok: "TOK", ess: "ESS", english: "English",
+};
+export const subjectLabel = (s: string) => SUBJECT_LABELS[s] ?? s.replace(/\b\w/g, (c) => c.toUpperCase());
+/** Below this many prompts, the picker suggests ticking more (the game starts repeating sooner). */
+export const FEW_PROMPTS = 12;

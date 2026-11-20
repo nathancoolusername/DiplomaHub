@@ -1,19 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DeadlineRoom } from "@/components/deadline/DeadlineRoom";
+import { makeTypingStore } from "@/lib/deadline/useRoom";
 import { BONUS_EVERY, MAX_EXTENSIONS, START_EXTENSIONS, TURN_MS } from "@/lib/deadline/config";
 import type { ChatMessage, Reaction, RoomActions, RoomPlayer, RoomRound, RoomState, SubmitResult } from "@/lib/deadline/types";
 
 // Dev-only: a small fake engine that follows the game's rules closely enough
 // to see every screen. Made-up prompts (the real bank stays private).
-const PROMPTS: { text: string; answers: [string, number][] }[] = [
-  { text: "Name a fruit", answers: [["Apple", 1], ["Banana", 1], ["Orange", 1], ["Mango", 2], ["Kiwi", 2], ["Lychee", 4], ["Durian", 5], ["Rambutan", 6], ["Salak", 7]] },
-  { text: "Name a board game", answers: [["Chess", 1], ["Monopoly", 1], ["Scrabble", 2], ["Cluedo", 3], ["Risk", 3], ["Catan", 4], ["Carcassonne", 5], ["Go", 4], ["Mancala", 6]] },
-  { text: "Name a pizza topping", answers: [["Cheese", 1], ["Pepperoni", 1], ["Mushroom", 1], ["Olives", 2], ["Pineapple", 2], ["Anchovies", 4], ["Artichoke", 5], ["Capers", 6]] },
-  { text: "Name a breakfast food", answers: [["Toast", 1], ["Cereal", 1], ["Pancakes", 1], ["Porridge", 2], ["Croissant", 2], ["Bagel", 3], ["Shakshuka", 5], ["Congee", 6]] },
-  { text: "Name an ice cream flavour", answers: [["Vanilla", 1], ["Chocolate", 1], ["Strawberry", 1], ["Mint", 2], ["Pistachio", 3], ["Rum raisin", 5], ["Ube", 7]] },
-  { text: "Name a dog breed", answers: [["Labrador", 1], ["Poodle", 1], ["Beagle", 2], ["Dachshund", 3], ["Corgi", 2], ["Husky", 2], ["Vizsla", 6], ["Basenji", 7]] },
+const PROMPTS: { text: string; subject: string; answers: [string, number][] }[] = [
+  { text: "Name a fruit", subject: "food", answers: [["Apple", 1], ["Banana", 1], ["Orange", 1], ["Mango", 2], ["Kiwi", 2], ["Lychee", 4], ["Durian", 5], ["Rambutan", 6], ["Salak", 7]] },
+  { text: "Name a board game", subject: "games", answers: [["Chess", 1], ["Monopoly", 1], ["Scrabble", 2], ["Cluedo", 3], ["Risk", 3], ["Catan", 4], ["Carcassonne", 5], ["Go", 4], ["Mancala", 6]] },
+  { text: "Name a pizza topping", subject: "food", answers: [["Cheese", 1], ["Pepperoni", 1], ["Mushroom", 1], ["Olives", 2], ["Pineapple", 2], ["Anchovies", 4], ["Artichoke", 5], ["Capers", 6]] },
+  { text: "Name a breakfast food", subject: "food", answers: [["Toast", 1], ["Cereal", 1], ["Pancakes", 1], ["Porridge", 2], ["Croissant", 2], ["Bagel", 3], ["Shakshuka", 5], ["Congee", 6]] },
+  { text: "Name an ice cream flavour", subject: "food", answers: [["Vanilla", 1], ["Chocolate", 1], ["Strawberry", 1], ["Mint", 2], ["Pistachio", 3], ["Rum raisin", 5], ["Ube", 7]] },
+  { text: "Name a dog breed", subject: "animals", answers: [["Labrador", 1], ["Poodle", 1], ["Beagle", 2], ["Dachshund", 3], ["Corgi", 2], ["Husky", 2], ["Vizsla", 6], ["Basenji", 7]] },
 ];
 const ME = "me";
 const BOTS = [["b1", "Maya", 12], ["b2", "Leo", 3], ["b3", "Aarav", 0], ["b4", "Sofia", 27], ["b5", "Jonas", 1]] as const;
@@ -50,12 +51,14 @@ function nextHolder(s: RoomState, after: string) {
   return (seats.find((p) => p.seat! > me.seat!) ?? seats[0]).user_id;
 }
 function openRound(e: Engine, holder: string, overtimeForce = false): Engine {
-  const unused = PROMPTS.map((_, i) => i).filter((i) => !e.used.includes(i));
-  const idx = unused.length ? unused[Math.floor(Math.random() * unused.length)] : Math.floor(Math.random() * PROMPTS.length);
+  const subjects = e.state.room.settings.subjects ?? [];
+  const pool = PROMPTS.map((_, i) => i).filter((i) => !subjects.length || subjects.includes(PROMPTS[i].subject));
+  const unused = pool.filter((i) => !e.used.includes(i));
+  const idx = unused.length ? unused[Math.floor(Math.random() * unused.length)] : pool[Math.floor(Math.random() * pool.length)];
   const overtime = overtimeForce || unused.length < 3;
   const prev = e.state.round;
   const round: RoomRound = {
-    id: uid(), prompt: PROMPTS[idx].text, subject: "mixed", prompt_no: (prev?.prompt_no ?? 0) + 1, holder_id: holder,
+    id: uid(), prompt: PROMPTS[idx].text, subject: PROMPTS[idx].subject, prompt_no: (prev?.prompt_no ?? 0) + 1, holder_id: holder,
     turn_started_at: iso(), turn_ms: overtime ? Math.max(6000, 9000 - 1000 * (prev?.overtime ? prev.prompt_no % 3 : 0)) : TURN_MS,
     overtime, fail_count: 0, failed_by: null, answers: [],
   };
@@ -133,6 +136,7 @@ export function DeadlinePreview() {
     { id: "m2", user_id: "b4", body: "not me", created_at: iso() },
   ]);
   const [reactions, setReactions] = useState<Reaction[]>([]);
+  const typingStore = useMemo(() => makeTypingStore(), []);
   const engRef = useRef(eng);
   useEffect(() => { engRef.current = eng; }, [eng]);
 
@@ -159,13 +163,16 @@ export function DeadlinePreview() {
   useEffect(() => {
     if (!bots || !round || !holder || holder === ME || eng.state.room.status !== "playing") return;
     const slow = Math.random() < 0.18;
-    const wait = slow ? round.turn_ms + 600 : 1200 + Math.random() * (round.turn_ms - 2500);
+    const wait = slow ? round.turn_ms + 600 : 1800 + Math.random() * (round.turn_ms - 3200);
+    // The bot picks now and types it out letter by letter (everyone sees the holder typing).
+    const left0 = PROMPTS[engRef.current.promptIdx].answers.filter(([a]) => !round.answers.some((x) => x.answer === a));
+    const pick = left0.length ? left0[Math.floor(Math.random() * left0.length)][0] : "";
+    const typers: ReturnType<typeof setTimeout>[] = [];
+    for (let k = 1; k <= pick.length; k++) typers.push(setTimeout(() => typingStore.set({ [holder]: pick.slice(0, k) }), Math.max(0, wait - (pick.length - k + 1) * 110)));
     const t = setTimeout(() => {
+      typingStore.set({});
       const e = engRef.current;
-      if (!e.state.round || e.state.round.holder_id !== holder) return;
-      const left = PROMPTS[e.promptIdx].answers.filter(([a]) => !e.state.round!.answers.some((x) => x.answer === a));
-      if (!left.length) return;
-      const pick = left[Math.floor(Math.random() * left.length)][0];
+      if (!e.state.round || e.state.round.holder_id !== holder || !pick) return;
       const { e: next } = answer(e, holder, pick);
       setEng(next);
       const others = next.state.players.filter((p) => p.user_id !== ME && p.user_id !== holder);
@@ -173,7 +180,7 @@ export function DeadlinePreview() {
       if (others.length && Math.random() < 0.35) reactAs(any()!, ["🔥", "😮", "👏", "🧠"][Math.floor(Math.random() * 4)]);
       if (others.length && Math.random() < 0.12) say(any()!, LINES[Math.floor(Math.random() * LINES.length)]);
     }, wait);
-    return () => clearTimeout(t);
+    return () => { clearTimeout(t); typers.forEach(clearTimeout); typingStore.set({}); };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one schedule per turn
   }, [turnKey, bots]);
 
@@ -203,6 +210,16 @@ export function DeadlinePreview() {
     react: async (emoji) => reactAs(ME, emoji),
     report: async () => {},
     mute: async (userId, muted) => setEng((e) => ({ ...e, state: { ...e.state, players: e.state.players.map((p) => (p.user_id === userId ? { ...p, muted } : p)) } })),
+    listSubjects: async () => {
+      const n = new Map<string, number>();
+      for (const p of PROMPTS) n.set(p.subject, (n.get(p.subject) ?? 0) + 1);
+      return [...n.entries()].map(([subject, prompts]) => ({ subject, prompts }));
+    },
+    setSubjects: async (subjects) => {
+      if (engRef.current.state.room.status === "playing") return { ok: false, reason: "playing" };
+      setEng((e) => ({ ...e, state: { ...e.state, room: { ...e.state.room, settings: { ...e.state.room.settings, subjects } } } }));
+      return { ok: true, prompts: PROMPTS.filter((p) => !subjects.length || subjects.includes(p.subject)).length };
+    },
     saveSquad: async (name) => {
       setEng((e) => ({ ...e, state: { ...e.state, room: { ...e.state.room, saved_squad: { id: "sq", name, code: "K7MPXR", member: true } } } }));
       return { ok: true };
@@ -229,7 +246,7 @@ export function DeadlinePreview() {
 
   return (
     <>
-      <DeadlineRoom state={eng.state} offset={0} messages={messages} reactions={reactions} actions={actions} />
+      <DeadlineRoom state={eng.state} offset={0} messages={messages} reactions={reactions} actions={actions} typing={typingStore} />
       <div className="fixed left-sm bottom-sm z-[80] max-w-[calc(100vw-1rem)]">
         {panel ? (
           <div className="rounded-2xl border border-outline-variant bg-surface-container-lowest/95 backdrop-blur shadow-xl p-sm flex flex-col gap-xs w-72">

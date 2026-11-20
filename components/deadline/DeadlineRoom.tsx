@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LogOut } from "lucide-react";
-import type { ChatMessage, Reaction, RoomActions, RoomState } from "@/lib/deadline/types";
+import type { ChatMessage, Reaction, RoomActions, RoomState, TypingStore } from "@/lib/deadline/types";
 import { nameOf } from "./bits";
 import { ChatButton, ChatPanel, ChatSheet } from "./Chat";
 import { EndScreen } from "./EndScreen";
@@ -32,7 +32,7 @@ function usePhoneViewportHeight(): number | null {
  * behind a button (it closes itself when your turn starts); in the lobby and
  * end screen, chat sits below.
  */
-export function DeadlineRoom({ state, offset, messages, reactions, actions, onEvent }: {
+export function DeadlineRoom({ state, offset, messages, reactions, actions, onEvent, typing, onTyping }: {
   state: RoomState;
   /** ms to add to Date.now() for server time. */
   offset: number;
@@ -41,6 +41,10 @@ export function DeadlineRoom({ state, offset, messages, reactions, actions, onEv
   actions: RoomActions;
   /** Funnel analytics (log_deadline_event). */
   onEvent?: (kind: "invite_copied" | "chat_opened") => void;
+  /** The holder's live typing (others see it under the prompt). */
+  typing?: TypingStore;
+  /** Share what you type while it's your turn. */
+  onTyping?: (text: string) => void;
 }) {
   const { room, players, me, round } = state;
   const meP = players.find((p) => p.user_id === me);
@@ -97,7 +101,7 @@ export function DeadlineRoom({ state, offset, messages, reactions, actions, onEv
               <div className="m-auto w-full flex flex-col gap-md py-sm lg:m-0 lg:py-0">
               <div className="relative">
                 <SeatRing players={players} me={me} round={round} hostId={room.host_id} event={room.last_event} reactions={reactions}>
-                  <PromptClock round={round} offset={offset} mine={myTurn} holderName={nameOf(holder)} />
+                  <PromptClock round={round} offset={offset} mine={myTurn} holderName={nameOf(holder)} typing={typing} />
                 </SeatRing>
                 {flash && (
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
@@ -111,8 +115,8 @@ export function DeadlineRoom({ state, offset, messages, reactions, actions, onEv
               </div>
             </div>
             <div className="flex flex-col gap-xs pt-sm pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:pb-0">
-              <AnswerBar key={round.id + (meP?.is_out ? "out" : "")} myTurn={myTurn} canPlay={!!meP && meP.seat !== null && !meP.is_out}
-                actions={actions} holderName={nameOf(holder)} />
+              <AnswerBar roundId={round.id} myTurn={myTurn} canPlay={!!meP && meP.seat !== null && !meP.is_out}
+                actions={actions} holderName={nameOf(holder)} onTyping={onTyping} />
               <ReactionBar onReact={react} />
             </div>
           </>
