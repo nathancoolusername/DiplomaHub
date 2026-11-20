@@ -10,6 +10,7 @@ import type { RoomState } from "@/lib/deadline/types";
 const GONE: Record<string, string> = {
   not_found: "This room has closed.",
   not_member: "You're no longer in this room.",
+  kicked: "The host removed you from this room.",
 };
 
 /** A live room: the hook keeps the state, chat and clock in step with Supabase. */

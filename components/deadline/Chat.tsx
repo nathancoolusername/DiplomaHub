@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Flag, MessageCircle, MoreHorizontal, Send, VolumeX, X } from "lucide-react";
+import { Flag, MessageCircle, MoreHorizontal, Send, UserX, VolumeX, X } from "lucide-react";
 import type { ChatMessage, RoomActions, RoomPlayer } from "@/lib/deadline/types";
 import { nameOf } from "./bits";
 
@@ -24,7 +24,7 @@ export function ChatPanel({
   players: RoomPlayer[];
   me: string;
   isHost: boolean;
-  actions: Pick<RoomActions, "sendChat" | "report" | "mute">;
+  actions: Pick<RoomActions, "sendChat" | "report" | "mute" | "kick">;
   className?: string;
   autoFocus?: boolean;
 }) {
@@ -34,6 +34,12 @@ export function ChatPanel({
   const [reported, setReported] = useState<Set<string>>(new Set());
   const list = useRef<HTMLOListElement>(null);
   const byId = new Map(players.map((p) => [p.user_id, p]));
+  // Names of everyone who's been in the room, so a message from someone who
+  // left (or was removed) still shows who wrote it.
+  const [names, setNames] = useState<Record<string, string>>({});
+  if (players.some((p) => names[p.user_id] !== nameOf(p))) {
+    setNames({ ...names, ...Object.fromEntries(players.map((p) => [p.user_id, nameOf(p)])) });
+  }
   const meMuted = byId.get(me)?.muted;
 
   // Stay at the bottom as messages arrive (unless you scrolled up to read).
@@ -63,7 +69,7 @@ export function ChatPanel({
           const mine = m.user_id === me;
           return (
             <li key={m.id} className={`group relative flex flex-col max-w-[85%] ${mine ? "self-end items-end" : "self-start items-start"}`}>
-              {!mine && <span className="text-label-sm font-semibold text-on-surface-variant px-xs">{nameOf(who)}</span>}
+              {!mine && <span className="text-label-sm font-semibold text-on-surface-variant px-xs">{who ? nameOf(who) : names[m.user_id] ?? "Someone"}</span>}
               <span className={`rounded-2xl px-sm py-xs text-body-md break-words ${mine ? "bg-primary text-on-primary rounded-br-md" : "bg-surface-container text-on-surface rounded-bl-md"}`}>
                 {m.body}
               </span>
@@ -84,6 +90,13 @@ export function ChatPanel({
                         <button role="menuitem" type="button" onClick={() => { void actions.mute(m.user_id, !who.muted); setMenu(null); }}
                           className="w-full flex items-center gap-xs px-sm py-xs hover:bg-surface-container cursor-pointer">
                           <VolumeX size={13} aria-hidden="true" />{who.muted ? `Unmute ${nameOf(who)}` : `Mute ${nameOf(who)}`}
+                        </button>
+                      )}
+                      {isHost && who && (
+                        <button role="menuitem" type="button"
+                          onClick={() => { if (confirm(`Remove ${nameOf(who)} from the room? They can't come back in.`)) void actions.kick(m.user_id); setMenu(null); }}
+                          className="w-full flex items-center gap-xs px-sm py-xs text-error hover:bg-surface-container cursor-pointer">
+                          <UserX size={13} aria-hidden="true" />Remove from room
                         </button>
                       )}
                     </div>

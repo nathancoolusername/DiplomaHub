@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Crown, LogOut, Play } from "lucide-react";
+import { Check, Copy, Crown, LogOut, Play, X } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { MAX_PLAYERS } from "@/lib/deadline/config";
 import type { RoomActions, RoomState } from "@/lib/deadline/types";
@@ -9,7 +9,7 @@ import { nameOf, WinsBadge } from "./bits";
 import { SubjectPicker } from "./SubjectPicker";
 
 /** Waiting room: the code to share, who's in (with their wins), and Start for the host. */
-export function Lobby({ state, actions, onInvite }: { state: RoomState; actions: Pick<RoomActions, "start" | "leave" | "listSubjects" | "setSubjects">; onInvite?: () => void }) {
+export function Lobby({ state, actions, onInvite }: { state: RoomState; actions: Pick<RoomActions, "start" | "leave" | "listSubjects" | "setSubjects" | "kick">; onInvite?: () => void }) {
   const { room, players, me } = state;
   const isHost = room.host_id === me;
   const [copied, setCopied] = useState(false);
@@ -53,7 +53,14 @@ export function Lobby({ state, actions, onInvite }: { state: RoomState; actions:
         </h2>
         <ul className="grid grid-cols-2 sm:grid-cols-4 gap-sm">
           {players.map((p) => (
-            <li key={p.user_id} className="flex flex-col items-center gap-0.5 rounded-2xl border border-outline-variant bg-surface-container-lowest p-sm">
+            <li key={p.user_id} className="relative flex flex-col items-center gap-0.5 rounded-2xl border border-outline-variant bg-surface-container-lowest p-sm">
+              {isHost && p.user_id !== me && (
+                <button type="button" aria-label={`Remove ${nameOf(p)} from the room`} title="Remove from room"
+                  onClick={() => { if (confirm(`Remove ${nameOf(p)} from the room? They can't come back in.`)) void actions.kick(p.user_id); }}
+                  className="absolute right-1 top-1 rounded-full p-0.5 text-on-surface-variant hover:text-error hover:bg-error/10 cursor-pointer">
+                  <X size={14} />
+                </button>
+              )}
               <span className="relative">
                 <Avatar src={p.avatar_url} name={nameOf(p)} size={48} />
                 {p.user_id === room.host_id && (

@@ -140,7 +140,7 @@ export async function searchUsersForPro(query: string): Promise<ActionResult<Pro
   const q = query.trim().replace(/[%,()]/g, "");
   if (q.length < 2) return { success: true, data: [] };
   const { data, error } = await ctx.admin
-    .from("users")
+    .from("dp_members") // not guests
     .select("id, display_name, email, is_pro, pro_expires_at")
     .or(`display_name.ilike.%${q}%,email.ilike.%${q}%`)
     .order("created_at", { ascending: false })

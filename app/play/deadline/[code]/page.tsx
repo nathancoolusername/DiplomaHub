@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const WHY: Record<string, string> = {
   not_found: "There's no open room with that code. Check it with whoever sent it.",
   full: "That room is full (8 players).",
+  kicked: "The host removed you from this room.",
   rate_limited: "Too many wrong codes. Try again in a bit.",
   error: "Couldn't open the room just now. Try again.",
 };

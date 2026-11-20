@@ -1,7 +1,7 @@
 "use server";
 
+import { createAdminClient } from "@/app/lib/supabase/admin";
 import { unstable_cache } from "next/cache";
-import { createPublicClient } from "../supabase/public";
 import { getResourceCountsBySubject } from "./resources";
 import type { ActionResult } from "../types";
 
@@ -16,8 +16,9 @@ export type HomepageStats = {
 // scopes can't read cookies. Throws on error so a failure is never cached.
 const getCachedUserCount = unstable_cache(
   async (): Promise<number> => {
-    const { count, error } = await createPublicClient()
-      .from("public_profiles")
+    // Members only: Deadline guests (anonymous sign-ins) aren't counted.
+    const { count, error } = await createAdminClient()
+      .from("dp_members")
       .select("id", { count: "exact", head: true });
     if (error) throw new Error(error.message);
     return count ?? 0;

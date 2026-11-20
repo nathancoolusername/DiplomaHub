@@ -21,7 +21,8 @@ export type RoomLoad = { status: "ok" } | { status: "gone"; reason: string };
 const POLL_LIVE_MS = 20_000;
 const POLL_DOWN_MS = 3_000;
 const BUBBLE_MS = 2_000;
-const TYPING_EVERY_MS = 120;
+const TYPING_EVERY_MS = 70;
+const TYPING_MAX = 60;
 
 /** A tiny external store for live typing (user id → text). */
 export function makeTypingStore() {
@@ -73,38 +74,40 @@ export function useRoom(code: string, initial: RoomState) {
     if (Array.isArray(data)) setMessages(data as ChatMessage[]);
   }, [supabase]);
 
-  // ── Live typing over Presence on the room channel (players may only send
-  //    presence, never broadcasts, so nobody can fake a game event).
+  // ── Live typing on its own channel, dl-typing:{room}: members (not muted)
+  //    may broadcast there; the game channel dl:{room} stays server-only, so
+  //    nobody can fake a game event. Sent at once, then at most every 70 ms.
   const typingStore = useMemo(() => makeTypingStore(), []);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const typingRef = useRef<RealtimeChannel | null>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingLast = useRef({ at: 0, text: "" });
   const typingLatest = useRef("");
-  const onTyping = useCallback((text: string) => {
-    typingLatest.current = text.slice(0, 60);
-    if (typingTimer.current) return;
-    typingTimer.current = setTimeout(() => {
-      typingTimer.current = null;
-      void channelRef.current?.track({ typing: typingLatest.current });
-    }, TYPING_EVERY_MS);
+  const sendTyping = useCallback(() => {
+    const text = typingLatest.current;
+    if (text === typingLast.current.text) return;
+    typingLast.current = { at: Date.now(), text };
+    void typingRef.current?.send({ type: "broadcast", event: "typing", payload: { u: stateRef.current.me, t: text } });
   }, []);
+  const onTyping = useCallback((text: string) => {
+    typingLatest.current = text.slice(0, TYPING_MAX);
+    if (typingTimer.current) return;
+    const wait = Math.max(0, TYPING_EVERY_MS - (Date.now() - typingLast.current.at));
+    if (wait === 0) return sendTyping();
+    typingTimer.current = setTimeout(() => { typingTimer.current = null; sendTyping(); }, wait);
+  }, [sendTyping]);
 
   // ── The room's private channel.
   const roomId = state.room.id;
-  const me = state.me;
   useEffect(() => {
     let channel: RealtimeChannel | null = null;
+    let typing: RealtimeChannel | null = null;
     let cancelled = false;
     void loadMessages();
     (async () => {
       await supabase.realtime.setAuth();
       if (cancelled) return;
-      channel = supabase.channel(`dl:${roomId}`, { config: { private: true, presence: { key: me } } })
-        .on("presence", { event: "sync" }, () => {
-          const ps = channel!.presenceState<{ typing?: string }>();
-          const next: Record<string, string> = {};
-          for (const [key, metas] of Object.entries(ps)) next[key] = metas.at(-1)?.typing ?? "";
-          typingStore.set(next);
-        })
+      channel = supabase.channel(`dl:${roomId}`, { config: { private: true } })
         .on("broadcast", { event: "state" }, ({ payload }) => {
           // The new state rides along: apply it (one trip instead of two). Only
           // squad membership on "Save as squad" is per-player, so fetch for that.
@@ -135,16 +138,35 @@ export function useRoom(code: string, initial: RoomState) {
           const up = status === "SUBSCRIBED";
           setLive(up);
           // Back on the channel: catch up on anything missed while away.
-          if (up) { void refetch(); void loadMessages(); void channel!.track({ typing: "" }); }
+          if (up) { void refetch(); void loadMessages(); }
         });
       channelRef.current = channel;
+      // Typing: shown only for players in the room who aren't muted, capped in length.
+      typing = supabase.channel(`dl-typing:${roomId}`, { config: { private: true } })
+        .on("broadcast", { event: "typing" }, ({ payload }) => {
+          const { u, t } = (payload ?? {}) as { u?: string; t?: string };
+          const p = stateRef.current.players.find((x) => x.user_id === u);
+          if (!u || typeof t !== "string" || !p || p.muted) return;
+          typingStore.set({ ...typingStore.get(), [u]: t.slice(0, TYPING_MAX) });
+        })
+        .subscribe();
+      typingRef.current = typing;
     })();
     return () => {
       cancelled = true;
       channelRef.current = null;
+      typingRef.current = null;
       if (channel) void supabase.removeChannel(channel);
+      if (typing) void supabase.removeChannel(typing);
     };
-  }, [supabase, roomId, me, refetch, loadMessages, typingStore]);
+  }, [supabase, roomId, refetch, loadMessages, typingStore]);
+
+  // A new turn: nobody's old text lingers.
+  const turnKey = state.round ? `${state.round.id}:${state.round.holder_id}:${state.round.turn_started_at}` : null;
+  useEffect(() => {
+    typingStore.set({});
+    typingLast.current = { at: 0, text: "" };
+  }, [turnKey, typingStore]);
 
   // ── Safety nets: the tab coming back, and a poll (faster while the channel is down).
   useEffect(() => {
@@ -212,6 +234,12 @@ export function useRoom(code: string, initial: RoomState) {
       react: async (emoji) => { await supabase.rpc("send_reaction", { p_room: room(), p_emoji: emoji }); },
       report: async (messageId) => { await supabase.rpc("report_room_message", { p_message: messageId, p_reason: null }); },
       mute: async (userId, muted) => { await supabase.rpc("host_mute", { p_room: room(), p_user: userId, p_muted: muted }); void refetch(); },
+      kick: async (userId) => {
+        const { data, error } = await supabase.rpc("kick_player", { p_room: room(), p_user: userId });
+        if (error) return { ok: false, reason: "error" };
+        void refetch();
+        return data as { ok: boolean; reason?: string };
+      },
       listSubjects: async () => {
         const { data } = await supabase.rpc("deadline_subjects");
         return Array.isArray(data) ? (data as { subject: string; prompts: number }[]) : [];
@@ -237,6 +265,18 @@ export function useRoom(code: string, initial: RoomState) {
   const logEvent = useCallback((kind: "invite_copied" | "chat_opened", data: Record<string, unknown> = {}) => {
     void supabase.rpc("log_deadline_event", { p_kind: kind, p_room: stateRef.current.room.id, p_data: data });
   }, [supabase]);
+
+  // Removed or the room closed: stop listening to it.
+  useEffect(() => {
+    if (load.status === "gone" && channelRef.current) {
+      void supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+    if (load.status === "gone" && typingRef.current) {
+      void supabase.removeChannel(typingRef.current);
+      typingRef.current = null;
+    }
+  }, [load.status, supabase]);
 
   const typing: TypingStore = typingStore;
   return { state, offset, messages, reactions, actions, load, live, logEvent, typing, onTyping };

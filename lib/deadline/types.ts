@@ -42,7 +42,7 @@ export type RoomEvent =
   | { type: "started"; at: string }
   | { type: "answer"; user_id: string; answer: string; points: number; bonus: number; at: string }
   | { type: "timeout"; user_id: string; out: boolean; at: string }
-  | { type: "joined" | "left"; user_id: string; at: string };
+  | { type: "joined" | "left" | "kicked"; user_id: string; at: string };
 
 export type RoomEnd = {
   winner_id: string | null;
@@ -92,6 +92,8 @@ export type RoomActions = {
   react: (emoji: string) => Promise<void>;
   report: (messageId: string) => Promise<void>;
   mute: (userId: string, muted: boolean) => Promise<void>;
+  /** Host: remove someone from the room (they can't rejoin it). */
+  kick: (userId: string) => Promise<{ ok: boolean; reason?: string }>;
   saveSquad: (name: string) => Promise<{ ok: boolean; reason?: string; code?: string }>;
   /** Subjects with how many prompts each has. */
   listSubjects: () => Promise<{ subject: string; prompts: number }[]>;

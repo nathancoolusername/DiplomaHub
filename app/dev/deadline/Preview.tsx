@@ -210,6 +210,18 @@ export function DeadlinePreview() {
     react: async (emoji) => reactAs(ME, emoji),
     report: async () => {},
     mute: async (userId, muted) => setEng((e) => ({ ...e, state: { ...e.state, players: e.state.players.map((p) => (p.user_id === userId ? { ...p, muted } : p)) } })),
+    kick: async (userId) => {
+      setEng((e) => {
+        const s0 = e.state;
+        if (s0.room.status !== "playing" || !s0.round) return { ...e, state: { ...s0, players: s0.players.filter((p) => p.user_id !== userId) } };
+        const players = s0.players.map((p) => (p.user_id === userId ? { ...p, is_out: true, extensions: 0 } : p));
+        const next: Engine = { ...e, state: { ...s0, players } };
+        if (active(next.state).length <= 1) return endGame(next);
+        if (s0.round.holder_id === userId) return { ...next, state: { ...next.state, round: { ...s0.round, holder_id: nextHolder(next.state, userId), turn_started_at: iso() } } };
+        return next;
+      });
+      return { ok: true };
+    },
     listSubjects: async () => {
       const n = new Map<string, number>();
       for (const p of PROMPTS) n.set(p.subject, (n.get(p.subject) ?? 0) + 1);
