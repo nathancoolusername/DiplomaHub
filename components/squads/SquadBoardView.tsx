@@ -11,6 +11,7 @@ import { Spinner } from "@/components/spinner";
 import { links } from "@/lib/practice/links";
 import { formatTime } from "@/lib/forty-five/dates";
 import { FortyFiveMark } from "@/components/forty-five/FortyFiveMark";
+import { useSquadPresence } from "@/lib/deadline/useSquadPresence";
 
 const ghost = "inline-flex items-center gap-xs rounded-lg px-md py-xs text-label-md font-semibold text-on-surface-variant hover:text-primary cursor-pointer disabled:opacity-50";
 
@@ -22,6 +23,9 @@ export function SquadBoardView({ board }: { board: SquadBoard }) {
   const [copied, setCopied] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   const top = Math.max(1, ...board.members.map((m) => m.points));
+  // Online now: who else has this squad open (green dot on their avatar).
+  const online = useSquadPresence(board.id, board.members.find((m) => m.isMe)?.userId ?? null);
+  const othersOnline = board.members.filter((m) => !m.isMe && online.has(m.userId)).length;
   const week = board.period === "week";
   const joinUrl = typeof window === "undefined" ? `/squads/join/${board.code}` : `${window.location.origin}/squads/join/${board.code}`;
 
@@ -91,6 +95,11 @@ export function SquadBoardView({ board }: { board: SquadBoard }) {
           </button>
           <span className="text-label-md text-on-surface-variant">
             {board.members.length} of 15 members
+            {othersOnline > 0 && (
+              <span className="ml-sm inline-flex items-center gap-xs text-secondary font-semibold">
+                <span className="h-2 w-2 rounded-full bg-secondary" aria-hidden="true" />{othersOnline} online now
+              </span>
+            )}
           </span>
         </div>
       </header>
@@ -132,7 +141,12 @@ export function SquadBoardView({ board }: { board: SquadBoard }) {
               <div className="grid grid-cols-[1.5rem_1fr_auto] sm:grid-cols-[1.5rem_1fr_7rem_4rem_4.5rem_3.5rem] items-center gap-sm">
                 <span className="text-label-md font-bold text-on-surface-variant tabular-nums">{i + 1}</span>
                 <span className="flex items-center gap-sm min-w-0">
-                  <Avatar src={m.avatarUrl} name={m.displayName} size={32} />
+                  <span className="relative shrink-0">
+                    <Avatar src={m.avatarUrl} name={m.displayName} size={32} />
+                    {!m.isMe && online.has(m.userId) && (
+                      <span className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full bg-secondary ring-2 ring-surface-container-lowest" title="Online now" aria-label="online now" />
+                    )}
+                  </span>
                   <span className="min-w-0">
                     <span className="flex items-center gap-xs text-body-md font-semibold text-on-surface truncate">
                       {m.isMe ? "You" : m.displayName}

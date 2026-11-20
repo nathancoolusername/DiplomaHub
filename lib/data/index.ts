@@ -117,3 +117,7 @@ export type { WeeklyReset, ResetSession, LostTopic } from "./supabase/reset";
 // Squads and marks won back ─ squads, squad_members (migrations 51–52)
 export { getMarksWonBack, getMySquads, getSquadBoard, getSquadsFortyFiveToday, getSquadShelf, shareToSquad, shareResourceToSquad, removeSquadShare, createSquad, joinSquad, leaveSquad, removeSquadMember, renameSquad, newSquadCode } from "./supabase/squads";
 export type { MarksWonBack, SquadSummary, SquadMember, SquadBoard, SquadPeriod, SquadFortyFive, JoinSquadResult, ShelfItem } from "./supabase/squads";
+
+// Deadline ─ the party game (migration 56)
+export { joinRoom, getRoomState, createRoom, getDeadlineStats, getMyDeadlineStanding, getDeadlineLeaderboard, getSquadDeadline, logDeadlineEvent } from "./supabase/deadline";
+export type { JoinRoomResult, DeadlineStats, DeadlineStanding, DeadlineLeader, SquadDeadline } from "./supabase/deadline";

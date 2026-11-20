@@ -45,6 +45,8 @@ export default async function CodesPage({ searchParams }: Props) {
   // 6 characters is a squad code, or an older practice set code: try the squad
   // first; its page sends a non-squad code back here with set=1.
   if (code.length === 6 && sp.set !== "1") redirect(`/squads/join/${code}`);
+  // 4 characters is a Deadline room.
+  if (code.length === 4) redirect(`/play/deadline/${code}?via=code`);
   const userId = await getCurrentUserId();
   if (!userId) return <CodesLanding code={code} />;
 

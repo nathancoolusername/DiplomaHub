@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, Timer, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { MidnightTip } from "./MidnightTip";
@@ -60,6 +60,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
                 );
               })}
               <FortyFiveLink active={pathname === "/forty-five"} />
+              <DeadlineLink active={pathname.startsWith("/play/deadline")} />
             </nav>
           </div>
 
@@ -113,6 +114,15 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
             >
               <FortyFiveMark /> Forty-Five <span className="text-label-sm font-normal text-on-surface-variant">daily puzzle</span>
             </Link>
+            <Link
+              href="/play/deadline"
+              onClick={() => setMenuOpen(false)}
+              className={`px-lg py-md text-body-md font-semibold transition-colors flex items-center gap-sm ${
+                pathname.startsWith("/play/deadline") ? "text-primary bg-surface-container-low" : "text-on-surface hover:text-primary hover:bg-surface-container-low"
+              }`}
+            >
+              <Timer size={14} className="text-error" aria-hidden="true" /> Deadline <span className="text-label-sm font-normal text-on-surface-variant">party game with friends</span>
+            </Link>
             {/* Phones only: the desktop bar has no room, and signed-in people also have it in the profile menu. */}
             <Link
               href="/codes"
@@ -148,6 +158,24 @@ function FortyFiveLink({ active }: { active: boolean }) {
       <FortyFiveMark />
       {/* Mark only on small laptops / iPad landscape, where the full label overflows the bar. */}
       <span className="hidden xl:inline">Forty-Five</span>
+    </Link>
+  );
+}
+
+/** Highlighted link to the party game (desktop bar), next to Forty-Five. */
+function DeadlineLink({ active }: { active: boolean }) {
+  return (
+    <Link
+      href="/play/deadline"
+      aria-label="Deadline"
+      title="Deadline: party game with friends"
+      className={`-my-1 hidden lg:inline-flex items-center gap-xs whitespace-nowrap rounded-full border px-sm py-1 text-body-md font-semibold transition-colors ${
+        active ? "border-primary bg-primary-fixed text-primary" : "border-outline-variant text-on-surface hover:border-primary hover:text-primary"
+      }`}
+    >
+      <Timer size={14} className="text-error" aria-hidden="true" />
+      {/* Icon only on small laptops / iPad landscape, like Forty-Five. */}
+      <span className="hidden xl:inline">Deadline</span>
     </Link>
   );
 }

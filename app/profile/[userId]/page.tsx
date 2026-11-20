@@ -2,14 +2,14 @@ import { getCurrentUserId } from "@/app/lib/get-current-user";
 import { notFound } from "next/navigation";
 import { getPublicProfile } from "@/app/lib/actions/profile";
 import Image from "next/image";
-import { Medal, Calendar, Ticket } from "lucide-react";
+import { Medal, Calendar, Ticket, Trophy } from "lucide-react";
 import Link from "next/link";
 import ProfileInfo from "@/components/profile/ProfileInfo";
 import { getSavedItems } from "@/app/lib/actions/saved-items";
 import { initialsFor } from "@/app/lib/initials";
 import { ShareButton } from "@/components/shareButton";
 import { DiplomaProBadge } from "@/components/DiplomaProBadge";
-import { getPublicShareUses } from "@/lib/data";
+import { getDeadlineStats, getPublicShareUses } from "@/lib/data";
 
 const months = [
   "January",
@@ -33,7 +33,7 @@ export default async function ProfilePage({
 }) {
   const { userId } = await params;
   const result = await getPublicProfile(userId);
-  const [currentUserId, shareUses] = await Promise.all([getCurrentUserId(), getPublicShareUses(userId).catch(() => null)]);
+  const [currentUserId, shareUses, deadline] = await Promise.all([getCurrentUserId(), getPublicShareUses(userId).catch(() => null), getDeadlineStats(userId)]);
   const isOwnProfile = currentUserId === userId;
   if (!result.success) notFound();
   const {
@@ -101,6 +101,16 @@ export default async function ProfilePage({
                   <Ticket className="text-primary" />
                   <p className="text-body-lg text-on-surface-variant font-bold">
                     Shared codes used {shareUses} time{shareUses === 1 ? "" : "s"}
+                  </p>
+                </Link>
+              )}
+              {/* Deadline: the flex (wins in 3+ player games). */}
+              {deadline.games > 0 && (
+                <Link href="/leaderboard?period=deadline-all" className="flex flex-row gap-sm items-center hover:underline">
+                  <Trophy className="text-primary" />
+                  <p className="text-body-lg text-on-surface-variant font-bold">
+                    {deadline.wins} Deadline win{deadline.wins === 1 ? "" : "s"}
+                    {deadline.bestStreak > 1 && ` · best streak ${deadline.bestStreak}`}
                   </p>
                 </Link>
               )}

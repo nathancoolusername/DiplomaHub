@@ -1,4 +1,5 @@
 import FortyFiveTeaser from "./signed-out/FortyFiveTeaser";
+import DeadlineTeaser from "./signed-out/DeadlineTeaser";
 import { FinalCta, Hero, Improvement, LibrarySection, Loop, ProSection, Squads, Stats, SundayReset, TryIt } from "./system/sections";
 
 // The signed-out homepage: "Your IB, run like a system". Everything here is
@@ -17,6 +18,7 @@ export default function SignedOutHome() {
       <SundayReset />
       <Squads />
       <FortyFiveTeaser />
+      <DeadlineTeaser />
       <ProSection />
       <FinalCta />
     </div>
