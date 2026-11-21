@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, Lock } from "lucide-react";
+import { ArrowRight, CheckCheck, Eye, Lock } from "lucide-react";
 import type { AttemptAnswer, Markscheme, Question } from "@/lib/data/types";
 import { tickedMarks } from "@/lib/practice/marking";
 import { MathMarkdown } from "@/components/shared/MathMarkdown";
@@ -12,7 +12,10 @@ import { partHeading } from "./question-format";
 
 /**
  * Structured short answer: an optional box per part (or "on paper"), then
- * the markscheme as tick boxes that tally the marks.
+ * the markscheme as tick boxes that tally the marks. Marking here, during
+ * the set, is the main path: once there's an answer the student is nudged to
+ * mark it now, and the ticks count when the set is finished (no separate
+ * marking step for questions marked here).
  */
 export function ShortAnswer({
   question,
@@ -24,6 +27,7 @@ export function ShortAnswer({
   onChange,
   onReveal,
   onAskBro,
+  done,
 }: {
   question: Question;
   answer: AttemptAnswer;
@@ -35,9 +39,13 @@ export function ShortAnswer({
   onReveal: () => void;
   /** Opens Bro on this question with a request (saves the answer first). Absent in timed sets. */
   onAskBro?: (prompt: string) => void;
+  /** Shown under the ticks once the markscheme is open: carries on to the next question, or to results. */
+  done?: { label: string; onClick: () => void; disabled?: boolean };
 }) {
   const [showSolution, setShowSolution] = useState(false);
   const single = question.parts.length === 1;
+  // Something to mark: typed in a box, or answering on paper.
+  const hasWork = answer.onPaper || Object.values(answer.partAnswers).some((t) => t?.trim());
 
   const toggleTick = (label: string, i: number) => {
     const current = answer.tickedPoints[label] ?? [];
@@ -79,7 +87,17 @@ export function ShortAnswer({
             <Lock size={14} aria-hidden="true" /> Markschemes unlock when you finish the set
           </span>
         ) : (
-          !markscheme && (
+          !markscheme &&
+          (hasWork ? (
+            <button
+              type="button"
+              onClick={onReveal}
+              disabled={revealing}
+              className="inline-flex items-center gap-xs rounded-lg bg-primary text-on-primary px-md py-xs text-label-md font-semibold hover:bg-primary/90 cursor-pointer disabled:opacity-50"
+            >
+              <CheckCheck size={14} aria-hidden="true" /> {revealing ? "Loading…" : "Mark it now"}
+            </button>
+          ) : (
             <button
               type="button"
               onClick={onReveal}
@@ -88,7 +106,7 @@ export function ShortAnswer({
             >
               <Eye size={14} aria-hidden="true" /> {revealing ? "Loading…" : "Show markscheme"}
             </button>
-          )
+          ))
         )}
 
         {!timed && onAskBro && (
@@ -134,6 +152,19 @@ export function ShortAnswer({
           {showSolution && (
             <div className="text-body-md text-on-surface border-t border-outline-variant pt-sm">
               <MathMarkdown>{markscheme.workedSolutionMd}</MathMarkdown>
+            </div>
+          )}
+          {done && (
+            <div className="flex flex-wrap items-center justify-end gap-sm border-t border-outline-variant pt-md">
+              <span className="text-label-sm text-on-surface-variant mr-auto">Your ticks are saved and count as this question&apos;s marks.</span>
+              <button
+                type="button"
+                onClick={done.onClick}
+                disabled={done.disabled}
+                className="inline-flex items-center gap-xs rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 cursor-pointer disabled:opacity-60"
+              >
+                {done.label} <ArrowRight size={14} aria-hidden="true" />
+              </button>
             </div>
           )}
         </section>
