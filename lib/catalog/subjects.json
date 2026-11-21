@@ -3441,10 +3441,256 @@
       "name": "Environmental Systems and Societies",
       "shortName": "ESS",
       "ibGroup": 4,
-      "resourceTag": null,
-      "supportedTypes": [],
-      "papers": [],
-      "topics": []
+      "resourceTag": "ESS",
+      "supportedTypes": [
+        "mcq_short",
+        "essay",
+        "mock",
+        "grade_own"
+      ],
+      "papers": [
+        {
+          "code": "P1",
+          "duration": {
+            "SL": 60,
+            "HL": 120
+          },
+          "totalMarks": {
+            "SL": 35,
+            "HL": 70
+          },
+          "calculator": true
+        },
+        {
+          "code": "P2",
+          "duration": {
+            "SL": 120,
+            "HL": 150
+          },
+          "totalMarks": {
+            "SL": 60,
+            "HL": 80
+          },
+          "calculator": true
+        }
+      ],
+      "topics": [
+        {
+          "code": "1",
+          "name": "Foundation",
+          "subtopics": [
+            {
+              "code": "1.1",
+              "name": "Perspectives",
+              "hlOnly": false
+            },
+            {
+              "code": "1.2",
+              "name": "Systems",
+              "hlOnly": false
+            },
+            {
+              "code": "1.3",
+              "name": "Sustainability",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "2",
+          "name": "Ecology",
+          "subtopics": [
+            {
+              "code": "2.1",
+              "name": "Individuals, populations, communities, and ecosystems",
+              "hlOnly": false
+            },
+            {
+              "code": "2.2",
+              "name": "Energy and biomass in ecosystems",
+              "hlOnly": false
+            },
+            {
+              "code": "2.3",
+              "name": "Biogeochemical cycles",
+              "hlOnly": false
+            },
+            {
+              "code": "2.4",
+              "name": "Climate and biomes",
+              "hlOnly": false
+            },
+            {
+              "code": "2.5",
+              "name": "Zonation, succession and change in ecosystems",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "3",
+          "name": "Biodiversity and conservation",
+          "subtopics": [
+            {
+              "code": "3.1",
+              "name": "Biodiversity and evolution",
+              "hlOnly": false
+            },
+            {
+              "code": "3.2",
+              "name": "Human impact on biodiversity",
+              "hlOnly": false
+            },
+            {
+              "code": "3.3",
+              "name": "Conservation and regeneration",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "4",
+          "name": "Water",
+          "subtopics": [
+            {
+              "code": "4.1",
+              "name": "Water systems",
+              "hlOnly": false
+            },
+            {
+              "code": "4.2",
+              "name": "Water access, use and security",
+              "hlOnly": false
+            },
+            {
+              "code": "4.3",
+              "name": "Aquatic food production systems",
+              "hlOnly": false
+            },
+            {
+              "code": "4.4",
+              "name": "Water pollution",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "5",
+          "name": "Land",
+          "subtopics": [
+            {
+              "code": "5.1",
+              "name": "Soil",
+              "hlOnly": false
+            },
+            {
+              "code": "5.2",
+              "name": "Agriculture and food",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "6",
+          "name": "Atmosphere and climate change",
+          "subtopics": [
+            {
+              "code": "6.1",
+              "name": "Introduction to the atmosphere",
+              "hlOnly": false
+            },
+            {
+              "code": "6.2",
+              "name": "Climate change—causes and impacts",
+              "hlOnly": false
+            },
+            {
+              "code": "6.3",
+              "name": "Climate change—mitigation and adaptation",
+              "hlOnly": false
+            },
+            {
+              "code": "6.4",
+              "name": "Stratospheric ozone",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "7",
+          "name": "Natural resources",
+          "subtopics": [
+            {
+              "code": "7.1",
+              "name": "Natural resources—uses and management",
+              "hlOnly": false
+            },
+            {
+              "code": "7.2",
+              "name": "Energy sources—uses and management",
+              "hlOnly": false
+            },
+            {
+              "code": "7.3",
+              "name": "Solid waste",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "8",
+          "name": "Human populations and urban systems",
+          "subtopics": [
+            {
+              "code": "8.1",
+              "name": "Human populations",
+              "hlOnly": false
+            },
+            {
+              "code": "8.2",
+              "name": "Urban systems and urban planning",
+              "hlOnly": false
+            },
+            {
+              "code": "8.3",
+              "name": "Urban air pollution",
+              "hlOnly": false
+            }
+          ]
+        },
+        {
+          "code": "HL",
+          "name": "HL lenses",
+          "subtopics": [
+            {
+              "code": "HL.a",
+              "name": "Environmental law",
+              "hlOnly": true
+            },
+            {
+              "code": "HL.b",
+              "name": "Environmental economics",
+              "hlOnly": true
+            },
+            {
+              "code": "HL.c",
+              "name": "Environmental ethics",
+              "hlOnly": true
+            }
+          ]
+        },
+        {
+          "code": "T",
+          "name": "Tools and inquiry",
+          "subtopics": [
+            {
+              "code": "TI",
+              "name": "Tools and inquiry (data handling, fieldwork methods, investigation design)",
+              "hlOnly": false
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "sport_science",
