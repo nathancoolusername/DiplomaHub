@@ -1,5 +1,4 @@
-import FortyFiveTeaser from "./signed-out/FortyFiveTeaser";
-import { FinalCta, Hero, Improvement, LibrarySection, Loop, ProSection, Squads, Stats, SundayReset, TryIt } from "./system/sections";
+import { FinalCta, Hero, LibrarySection, Loop, ProSection, Stats, StayOnTrack, TryIt } from "./system/sections";
 
 // The signed-out homepage: "Your IB, run like a system". Everything here is
 // the same for every visitor (ISR, see app/page.tsx), so nothing reads
@@ -10,13 +9,10 @@ export default function SignedOutHome() {
     <div className="flex flex-col">
       <Hero />
       <Stats />
-      <Loop />
-      <Improvement />
       <TryIt />
+      <Loop />
       <LibrarySection />
-      <SundayReset />
-      <Squads />
-      <FortyFiveTeaser />
+      <StayOnTrack />
       <ProSection />
       <FinalCta />
     </div>

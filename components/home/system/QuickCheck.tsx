@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Eye, RotateCcw } from "lucide-react";
+import { ArrowRight, Check, Eye, RotateCcw, X } from "lucide-react";
 import type { Markscheme, Question } from "@/lib/data/types";
 import { tickedMarks } from "@/lib/practice/marking";
 import { MathMarkdown } from "@/components/shared/MathMarkdown";
@@ -39,6 +39,10 @@ export function QuickCheckPicker({ subjects }: { subjects: CheckSubject[] }) {
   );
 }
 type Ticks = Record<string, number[]>;
+/** Multiple choice: marked by itself (the chosen option against the key). */
+const isMcq = (q: CheckQuestion) => q.question.type === "mcq" && !!q.question.options?.length && !!q.markscheme.correctOption;
+const earnedFor = (q: CheckQuestion, t: Ticks, pick: string | null) =>
+  isMcq(q) ? (pick === q.markscheme.correctOption ? q.question.totalMarks : 0) : tickedMarks(q.markscheme, t);
 
 /**
  * The homepage hook: three questions, marked like the markscheme, then
@@ -48,16 +52,18 @@ export function QuickCheck({ questions }: { questions: CheckQuestion[] }) {
   const [i, setI] = useState(0);
   const [marking, setMarking] = useState(false);
   const [ticks, setTicks] = useState<Ticks[]>(() => questions.map(() => ({})));
+  const [picks, setPicks] = useState<(string | null)[]>(() => questions.map(() => null));
   const [done, setDone] = useState(false);
 
   const restart = () => {
     setI(0);
     setMarking(false);
     setTicks(questions.map(() => ({})));
+    setPicks(questions.map(() => null));
     setDone(false);
   };
 
-  if (done) return <Summary questions={questions} ticks={ticks} onRestart={restart} />;
+  if (done) return <Summary questions={questions} ticks={ticks} picks={picks} onRestart={restart} />;
 
   const q = questions[i];
   const t = ticks[i];
@@ -88,13 +94,16 @@ export function QuickCheck({ questions }: { questions: CheckQuestion[] }) {
         <span className="font-semibold text-on-surface">
           {q.subjectLabel} · {q.topic}
         </span>
-        <span className="tabular-nums">[{q.question.totalMarks} marks]</span>
+        <span className="tabular-nums">[{q.question.totalMarks} mark{q.question.totalMarks === 1 ? "" : "s"}]</span>
       </div>
 
       <div className="text-body-md text-on-surface">
         <MathMarkdown>{q.question.stemMd}</MathMarkdown>
       </div>
 
+      {isMcq(q) ? (
+        <McqOptions q={q} pick={picks[i]} onPick={(k) => { setPicks((all) => all.map((x, j) => (j === i ? k : x))); setMarking(true); }} />
+      ) : (
       <ol className="flex flex-col gap-md">
         {q.question.parts.map((part) => {
           const ms = q.markscheme.parts.find((p) => p.label === part.label);
@@ -125,14 +134,19 @@ export function QuickCheck({ questions }: { questions: CheckQuestion[] }) {
           );
         })}
       </ol>
+      )}
 
       {!marking ? (
+        isMcq(q) ? <p className="text-label-md text-on-surface-variant">Pick one: it&apos;s marked straight away.</p> : (
         <button type="button" onClick={() => setMarking(true)} className="self-start inline-flex items-center gap-xs rounded-lg bg-primary text-on-primary px-lg py-sm font-semibold hover:bg-primary/90 cursor-pointer">
           <Eye size={16} aria-hidden="true" /> Mark it
         </button>
+        )
       ) : (
         <div className="flex flex-wrap items-center gap-sm border-t border-outline-variant pt-sm">
-          <p className="text-label-md text-on-surface-variant flex-1">Tick each mark your answer earns, like an examiner would.</p>
+          <p className="text-label-md text-on-surface-variant flex-1">
+            {isMcq(q) ? (picks[i] === q.markscheme.correctOption ? "Right. That's the mark." : `The answer is ${q.markscheme.correctOption}.`) : "Tick each mark your answer earns, like an examiner would."}
+          </p>
           <button
             type="button"
             onClick={() => {
@@ -151,10 +165,44 @@ export function QuickCheck({ questions }: { questions: CheckQuestion[] }) {
   );
 }
 
-function Summary({ questions, ticks, onRestart }: { questions: CheckQuestion[]; ticks: Ticks[]; onRestart: () => void }) {
+/** Multiple choice: the four options; once one is picked, the right one turns green (and a wrong pick red). */
+function McqOptions({ q, pick, onPick }: { q: CheckQuestion; pick: string | null; onPick: (key: string) => void }) {
+  const right = q.markscheme.correctOption;
+  return (
+    <div className="flex flex-col gap-md">
+      {q.question.parts.map((part) => (
+        <div key={part.label} className="text-body-md text-on-surface"><MathMarkdown>{part.textMd}</MathMarkdown></div>
+      ))}
+      <ul className="grid sm:grid-cols-2 gap-xs" role="radiogroup" aria-label="Options">
+        {q.question.options!.map((o) => {
+          const state = pick === null ? "open" : o.key === right ? "right" : o.key === pick ? "wrong" : "other";
+          return (
+            <li key={o.key}>
+              <button type="button" role="radio" aria-checked={pick === o.key} disabled={pick !== null} onClick={() => onPick(o.key)}
+                className={`w-full flex items-center gap-sm rounded-xl border-2 px-sm py-xs text-left text-body-md transition-colors ${
+                  state === "right" ? "border-secondary bg-secondary-container text-on-secondary-container"
+                  : state === "wrong" ? "border-error bg-error-container text-on-error-container"
+                  : state === "other" ? "border-outline-variant text-on-surface-variant opacity-60"
+                  : "border-outline-variant text-on-surface hover:border-primary cursor-pointer"}`}>
+                <span className="w-6 shrink-0 font-bold">{o.key}</span>
+                <span className="flex-1 min-w-0"><MathMarkdown>{o.textMd}</MathMarkdown></span>
+                {state === "right" && <Check size={16} aria-label="correct" />}
+                {state === "wrong" && <X size={16} aria-label="your answer" />}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function Summary({ questions, ticks, picks, onRestart }: { questions: CheckQuestion[]; ticks: Ticks[]; picks: (string | null)[]; onRestart: () => void }) {
   const rows = questions.map((q, j) => {
-    const earned = tickedMarks(q.markscheme, ticks[j]);
-    const missed = q.markscheme.parts.flatMap((p) => p.markPoints.filter((_, n) => !(ticks[j][p.label] ?? []).includes(n)));
+    const earned = earnedFor(q, ticks[j], picks[j]);
+    const missed = isMcq(q)
+      ? earned ? [] : [{ code: q.markscheme.correctOption!, text: `The answer was ${q.markscheme.correctOption}.` }]
+      : q.markscheme.parts.flatMap((p) => p.markPoints.filter((_, n) => !(ticks[j][p.label] ?? []).includes(n)));
     return { q, earned, lost: q.question.totalMarks - earned, missed };
   });
   const total = rows.reduce((s, r) => s + r.q.question.totalMarks, 0);
