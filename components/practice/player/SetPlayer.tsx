@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, ChevronLeft, ChevronRight, Flag, LayoutGrid, Lightbulb, Table2, X } from "lucide-react";
+import { BookOpen, CheckCheck, ChevronLeft, ChevronRight, Flag, LayoutGrid, Lightbulb, Table2, X } from "lucide-react";
 import type { Attempt, AttemptAnswer, Level, Markscheme, PracticeSet, Question } from "@/lib/data/types";
 import { topicOfSubtopic, type Booklet } from "@/lib/booklets";
 import { isAnswered } from "@/lib/practice/marking";
@@ -343,6 +343,28 @@ export function SetPlayer({
   const marksTotal = questions.reduce((s, q) => s + q.totalMarks, 0);
   const marksAttempted = questions.reduce((s, q) => s + (isAnswered(q, answers[q.id]) ? q.totalMarks : 0), 0);
 
+  // Marking as you go. A short answer is marked once its markscheme is open
+  // (its ticks become its marks on Finish), an MCQ once it's answered (the
+  // server marks those on Finish). Essays, and everything in a timed set,
+  // are marked after the set. When nothing is left to mark, Finish goes
+  // straight to the results: finish_attempt skips the marking step.
+  const markedCount = questions.filter((q) =>
+    q.type === "mcq" ? answers[q.id]?.selectedOption != null : q.type === "short" && !timed && !!answers[q.id]?.revealed,
+  ).length;
+  const toMark = timed ? [] : questions.flatMap((q, i) => (q.type === "short" && !answers[q.id]?.revealed ? [i] : []));
+  const straightToResults = !timed && questions.every((q) => q.type === "mcq" || (q.type === "short" && !!answers[q.id]?.revealed));
+  const hasShort = questions.some((q) => q.type === "short");
+  const finishLabel = finishing ? "Finishing…" : straightToResults ? "See your results" : "Finish set";
+  const requestFinish = () => (unanswered > 0 ? setConfirmFinish(true) : finish());
+  // Under a marked short answer: on to the next question, back to the ones
+  // still to mark, or (all marked) the results.
+  const isLast = index === questions.length - 1;
+  const afterMarking = !isLast
+    ? { label: "Next question", onClick: () => goTo(index + 1) }
+    : toMark.length > 0
+      ? { label: toMark.length === 1 ? "Mark the 1 left" : `Mark the ${toMark.length} left`, onClick: () => goTo(toMark[0]) }
+      : { label: finishLabel, onClick: requestFinish, disabled: finishing };
+
   const finish = () => {
     setConfirmFinish(false);
     startFinish(async () => {
@@ -566,7 +588,31 @@ export function SetPlayer({
               }}
               onReveal={() => void reveal(question.id)}
               onAskBro={canAskBro ? (p) => void askBro(question.id, `Question ${index + 1}`, p) : undefined}
+              done={timed ? undefined : afterMarking}
             />
+          )}
+
+          {/* Everything answered: say so, and point at the results (students used to stop here without finishing). */}
+          {unanswered === 0 && (
+            <div className="rounded-xl bg-primary-fixed text-on-primary-fixed p-md flex flex-wrap items-center gap-sm">
+              <CheckCheck size={18} aria-hidden="true" className="shrink-0" />
+              <p className="flex-1 min-w-48 text-body-md">
+                <span className="font-semibold">All {questions.length} answered.</span>{" "}
+                {timed
+                  ? "Finish to see the markscheme and mark them."
+                  : toMark.length > 0
+                    ? `${toMark.length} still to mark: mark ${toMark.length === 1 ? "it" : "them"} here, or on the next page.`
+                    : "Everything is marked."}
+              </p>
+              <button
+                type="button"
+                onClick={finish}
+                disabled={finishing}
+                className="rounded-lg bg-primary text-on-primary px-md py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-60 cursor-pointer"
+              >
+                {finishLabel}
+              </button>
+            </div>
           )}
         </article>
 
@@ -584,9 +630,10 @@ export function SetPlayer({
             type="button"
             onClick={() => goTo(index - 1)}
             disabled={index === 0}
+            aria-label="Previous question"
             className="inline-flex items-center gap-xs rounded-lg border border-outline-variant px-md py-sm text-label-md font-semibold text-on-surface hover:border-primary disabled:opacity-40 cursor-pointer disabled:cursor-default"
           >
-            <ChevronLeft size={16} aria-hidden="true" /> Previous
+            <ChevronLeft size={16} aria-hidden="true" /> <span className="hidden sm:inline">Previous</span>
           </button>
           <button
             type="button"
@@ -604,13 +651,26 @@ export function SetPlayer({
           >
             Next <ChevronRight size={16} aria-hidden="true" />
           </button>
+          {!timed && hasShort && (
+            <span className="ml-auto hidden sm:inline text-label-sm text-on-surface-variant tabular-nums">
+              {markedCount} of {questions.length} marked
+            </span>
+          )}
           <button
             type="button"
-            onClick={() => (unanswered > 0 ? setConfirmFinish(true) : finish())}
+            onClick={requestFinish}
             disabled={finishing}
-            className="ml-auto rounded-lg bg-primary text-on-primary px-lg py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-60 cursor-pointer"
+            className={`${!timed && hasShort ? "sm:ml-0 ml-auto" : "ml-auto"} rounded-lg bg-primary text-on-primary px-lg py-sm text-label-md font-semibold hover:bg-primary/90 disabled:opacity-60 cursor-pointer whitespace-nowrap`}
           >
-            {finishing ? "Finishing…" : "Finish set"}
+            {/* Short on phones, where the bar is tight. */}
+            {straightToResults && !finishing ? (
+              <>
+                <span className="sm:hidden">Results</span>
+                <span className="hidden sm:inline">See your results</span>
+              </>
+            ) : (
+              finishLabel
+            )}
           </button>
         </div>
       </div>
