@@ -1,6 +1,6 @@
 import { FinalCta, Hero, LibrarySection, Loop, ProSection, Stats, StayOnTrack, TryIt } from "./system/sections";
 
-// The signed-out homepage: "Your IB, run like a system". Everything here is
+// The signed-out homepage, led by practice (what students use most). Everything here is
 // the same for every visitor (ISR, see app/page.tsx), so nothing reads
 // per-user data. Wrapped (still being built) is in ./system/upcoming.tsx
 // (preview at /dev/home); add it here when it ships.

@@ -13,7 +13,7 @@ import { SystemDemo } from "./SystemDemo";
 import { CountUp } from "./CountUp";
 import { FortyFiveMark } from "@/components/forty-five/FortyFiveMark";
 
-// The signed-out homepage: "Your IB, run like a system". Everything here is
+// The signed-out homepage, led by practice: "Find your lost marks. Win them back." Everything here is
 // the same for every visitor (the page is static), so the numbers that
 // aren't real counts are labelled as samples. Wrapped (still being built)
 // lives in ./upcoming.tsx and only shows on /dev/home until it ships.
@@ -31,21 +31,33 @@ export function Hero() {
     <section className="bg-surface-container-low px-md pt-16 md:pt-20 pb-xl">
       <div className="max-w-[1300px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-xl items-center">
         <div className="flex flex-col gap-lg text-center lg:text-left">
-          <p className={eyebrow}>For every IB subject, Year 1 and Year 2</p>
+          <p className={eyebrow}>IB practice, marked like the markscheme</p>
           <h1 className="font-serif font-bold text-on-surface text-[clamp(2.5rem,4.6vw,4.25rem)] leading-[1.02] tracking-tight">
-            Your IB,
+            Find your lost marks.
             <br />
-            <span className="text-primary">run like a system.</span>
+            <span className="text-primary">Win them back.</span>
           </h1>
-          <p className="text-body-lg text-on-surface-variant max-w-140 mx-auto lg:mx-0">Every test planned. Every result tracked. Every subject climbing.</p>
+          <p className="text-body-lg text-on-surface-variant max-w-140 mx-auto lg:mx-0">
+            IB-style questions marked like an examiner would. Add your tests to the Hub and practise the right topics before each one.
+          </p>
           <div className="flex flex-wrap items-center gap-md justify-center lg:justify-start">
             <Link href="/signup" className="rounded-lg bg-primary text-on-primary px-lg py-sm text-body-lg font-semibold hover:bg-primary/90">
-              Start free
+              Start practising free
             </Link>
             <a href="#try-it" className="text-body-md font-semibold text-primary hover:underline">
               or try 3 questions ↓
             </a>
           </div>
+          <Link
+            href="/forty-five"
+            prefetch={false}
+            className="self-center lg:self-start inline-flex items-center gap-sm rounded-full border border-outline-variant bg-surface-container-lowest px-md py-xs text-label-md text-on-surface hover:border-primary"
+          >
+            <FortyFiveMark />
+            <span>
+              <span className="font-semibold">Forty-Five</span>{" "}· today&apos;s free IB puzzle →
+            </span>
+          </Link>
         </div>
         <SystemDemo subjects={subjects} />
       </div>
@@ -82,9 +94,9 @@ export async function Stats() {
 
 export function Loop() {
   const steps: { icon: ReactNode; name: string; body: string; link?: { href: string; label: string } }[] = [
-    { icon: <Crosshair size={20} />, name: "Find", body: "A strength map of every subject, topic by topic, and every marked set shows exactly where the marks went." },
-    { icon: <CalendarDays size={20} />, name: "Plan", body: "Tests, IAs and deadlines on one Hub, with study sessions placed before each one." },
-    { icon: <ListChecks size={20} />, name: "Practise", body: "Short sets on exactly the topics you need, not \"revise everything\". On screen or printed." },
+    { icon: <CalendarDays size={20} />, name: "Plan", body: "Add your tests, mocks and IA deadlines to the Hub, with study sessions placed before each one." },
+    { icon: <ListChecks size={20} />, name: "Practise", body: "Short sets on exactly the topics that test covers, not \"revise everything\". On screen or printed." },
+    { icon: <Crosshair size={20} />, name: "Find", body: "Every marked set shows exactly where the marks went, and a strength map shows every topic." },
     {
       icon: <TrendingUp size={20} />,
       name: "Improve",
@@ -96,8 +108,8 @@ export function Loop() {
     <section className="px-md py-20 bg-surface-container-low">
       <div className="max-w-[1300px] mx-auto flex flex-col gap-xl">
         <div className="text-center flex flex-col gap-sm">
-          <p className={eyebrow}>The system</p>
-          <h2 className={h2}>One loop. Every week. Until May.</h2>
+          <p className={eyebrow}>How it works</p>
+          <h2 className={h2}>Add a test. Practise before it. Watch the grade climb.</h2>
         </div>
         <ol className="grid md:grid-cols-2 lg:grid-cols-4 gap-md">
           {steps.map((s, i) => (
@@ -130,7 +142,7 @@ export async function TryIt() {
       <div className="max-w-[820px] mx-auto flex flex-col gap-lg">
         <div className="text-center flex flex-col gap-sm">
           <p className={eyebrow}>Try it now</p>
-          <h2 className={h2}>Find your lost marks in 3 questions.</h2>
+          <h2 className={h2}>See where your marks go in 3 questions.</h2>
           <p className="text-body-lg text-on-surface-variant">Pick a subject, answer, mark it like an examiner. No account needed.</p>
         </div>
         <QuickCheckPicker subjects={subjects} />
@@ -210,6 +222,14 @@ export async function LibrarySection() {
 export function StayOnTrack() {
   const items: { icon: ReactNode; iconBox?: string; name: string; body: string; href: string; cta: string }[] = [
     {
+      icon: <span className="scale-[1.75]"><FortyFiveMark /></span>,
+      iconBox: "bg-surface-container-high",
+      name: "Forty-Five",
+      body: "A free daily puzzle: 16 words from across the IB hide 4 groups of 4.",
+      href: "/forty-five",
+      cta: "Play today's puzzle",
+    },
+    {
       icon: <CalendarDays size={20} />,
       name: "Sunday Reset",
       body: "Ten minutes on Sunday: last week's lost marks, this week's dates, three sessions that count.",
@@ -222,14 +242,6 @@ export function StayOnTrack() {
       body: "One code and your friends are in: a weekly board and a shared shelf. Never grades.",
       href: "/squads",
       cta: "Start a squad",
-    },
-    {
-      icon: <span className="scale-[1.75]"><FortyFiveMark /></span>,
-      iconBox: "bg-surface-container-high",
-      name: "Forty-Five",
-      body: "A free daily puzzle: 16 words from across the IB hide 4 groups of 4.",
-      href: "/forty-five",
-      cta: "Play today's puzzle",
     },
   ];
   return (
@@ -320,8 +332,8 @@ export function FinalCta() {
   return (
     <section className="px-md py-24 text-center">
       <div className="max-w-180 mx-auto flex flex-col gap-lg items-center">
-        <h2 className="font-serif font-bold text-on-surface text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.05]">Run your IB like a system.</h2>
-        <p className="text-body-lg text-on-surface-variant">Free for every subject. Takes a minute to set up.</p>
+        <h2 className="font-serif font-bold text-on-surface text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.05]">Your next test starts here.</h2>
+        <p className="text-body-lg text-on-surface-variant">Free practice, a Hub for every subject, and a minute to set up.</p>
         <Link href="/signup" className="rounded-xl bg-primary text-on-primary px-xl py-md text-body-lg font-semibold hover:bg-primary/90">
           Start free
         </Link>
