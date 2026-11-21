@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import FortyFiveTeaser from "@/components/home/signed-out/FortyFiveTeaser";
-import { FinalCta, Hero, Improvement, LibrarySection, Loop, ProSection, Squads, Stats, SundayReset, TryIt } from "@/components/home/system/sections";
+import { FinalCta, Hero, LibrarySection, Loop, ProSection, Stats, StayOnTrack, TryIt } from "@/components/home/system/sections";
 import { Wrap } from "@/components/home/system/upcoming";
 
 export const metadata: Metadata = { title: "Homepage preview (dev)", robots: { index: false } };
@@ -14,14 +13,11 @@ export default function HomePreviewPage() {
     <main className="bg-surface">
       <Hero />
       <Stats />
-      <Loop />
-      <Improvement />
       <TryIt />
+      <Loop />
       <LibrarySection />
-      <SundayReset />
-      <Squads />
+      <StayOnTrack />
       <Wrap />
-      <FortyFiveTeaser />
       <ProSection />
       <FinalCta />
     </main>
