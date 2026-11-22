@@ -23,6 +23,11 @@ export function puzzleNumber(date: string): number {
   return Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${LAUNCH_DATE}T00:00:00Z`)) / 86_400_000) + 1;
 }
 
+/** "2026-11-12" → "Thu 12 Nov" (the puzzle's UTC day). */
+export function dayLabel(date: string): string {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+}
+
 /** 133 → "2:13", 3725 → "1:02:05". */
 export function formatTime(seconds: number | null): string {
   if (seconds == null) return "–";

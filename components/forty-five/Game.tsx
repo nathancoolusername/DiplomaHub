@@ -7,7 +7,7 @@ import { FORTY_FIVE } from "@/lib/forty-five/config";
 import { TIERS, type Tier } from "@/lib/forty-five/tiers";
 import type { BoardRow, GuessResponse, MyStats, PlayView, PublicGroup, TodayPuzzle } from "@/lib/forty-five/types";
 import type { GuessRecord } from "@/lib/forty-five/engine";
-import { formatTime } from "@/lib/forty-five/dates";
+import { dayLabel, formatTime } from "@/lib/forty-five/dates";
 
 type Reaction = "like" | "dislike" | null;
 
@@ -94,6 +94,8 @@ export function shareText(number: number, play: PlayView, seconds: number | null
 
 export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: TodayPuzzle; signedIn: boolean; api?: string }) {
   const storageKey = `forty-five:${puzzle.puzzleId}`;
+  const archive = !!puzzle.archive;
+  const here = archive ? `/forty-five/archive/${puzzle.number}` : "/forty-five";
   const [order, setOrder] = useState<string[]>(puzzle.words);
   const [selected, setSelected] = useState<string[]>([]);
   const [play, setPlay] = useState<PlayView>(EMPTY);
@@ -122,13 +124,13 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
   useEffect(() => {
     let cancelled = false;
     if (signedIn) {
-      fetch(`${api}/start`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ begin: false }) })
+      fetch(`${api}/start`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ begin: false, ...(archive ? { puzzleId: puzzle.puzzleId } : {}) }) })
         .then(async (r) => {
           if (cancelled) return;
           if (r.status === 401) return setLoadError("Your session has ended. Log in again to play.");
           if (!r.ok) return setLoadError("Couldn't load your game. Refresh to try again.");
           const data = (await r.json()) as { play: PlayView | null; puzzle: TodayPuzzle; returning: boolean; serverNow: string };
-          if (data.puzzle.puzzleId !== puzzle.puzzleId) return setLoadError("A new puzzle is out. Refresh to play it.");
+          if (data.puzzle.puzzleId !== puzzle.puzzleId) return setLoadError(archive ? "This puzzle isn't available." : "A new puzzle is out. Refresh to play it.");
           setClockOffset(Date.parse(data.serverNow) - Date.now());
           if (data.play) setPlay(data.play);
           else setIntro({ returning: data.returning || seenBefore() });
@@ -152,7 +154,7 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
     return () => {
       cancelled = true;
     };
-  }, [signedIn, storageKey, puzzle.puzzleId, api]);
+  }, [signedIn, storageKey, puzzle.puzzleId, api, archive]);
 
   const solvedWords = useMemo(() => new Set(play.solved.flatMap((g) => g.words.map(norm))), [play.solved]);
   const remaining = order.filter((w) => !solvedWords.has(norm(w)));
@@ -176,7 +178,7 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
     }
     setStarting(true);
     try {
-      const r = await fetch(`${api}/start`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ begin: true }) });
+      const r = await fetch(`${api}/start`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ begin: true, ...(archive ? { puzzleId: puzzle.puzzleId } : {}) }) });
       if (r.status === 401) return setLoadError("Your session has ended. Log in again to play.");
       if (!r.ok) return flash("Couldn't start. Try again.");
       const data = (await r.json()) as { play: PlayView | null; serverNow: string };
@@ -198,6 +200,13 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
 
   const submit = async () => {
     if (selected.length !== 4 || busy || play.finished) return;
+    // Already tried: say what it got last time (the first toast is easy to miss), at no cost.
+    const setKey = (ws: string[]) => ws.map((w) => w.trim().toLowerCase()).sort().join("|");
+    const before = play.guesses.find((g) => setKey(g.words) === setKey(selected));
+    if (before) {
+      flash(before.result === "one_away" ? "Already tried: that one was one away." : "Already tried: that one wasn't a group.");
+      return;
+    }
     setBusy(true);
     let save: GuestSave | null = null;
     if (!signedIn) {
@@ -217,7 +226,7 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
           repeat: "You've already tried those four.",
           stale: "Your game was updated in another tab. Synced.",
           finished: "This game is already over.",
-          no_puzzle: "A new puzzle is out. Refresh to play it.",
+          no_puzzle: archive ? "This puzzle isn't available." : "A new puzzle is out. Refresh to play it.",
           rate_limited: "Slow down a little and try again.",
           invalid: "Pick four words from the grid.",
           error: "Something went wrong. Try again.",
@@ -260,7 +269,7 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
       <p role="alert" className="rounded-2xl border border-outline-variant bg-surface-container-lowest p-lg text-body-md text-on-surface">
         {loadError}{" "}
         {loadError.includes("Log in") && (
-          <Link href="/login?next=/forty-five" className="font-semibold text-primary hover:underline">
+          <Link href={`/login?next=${here}`} className="font-semibold text-primary hover:underline">
             Log in
           </Link>
         )}
@@ -275,7 +284,7 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
     <div className="flex flex-col gap-md">
       {/* Room for the first-time card on phones, where it's taller than the board. */}
       <div className={`relative ${intro && !intro.returning ? "min-h-[600px] sm:min-h-0" : ""}`}>
-        {intro && ready && <Intro number={puzzle.number} returning={intro.returning} signedIn={signedIn} starting={starting} onStart={begin} />}
+        {intro && ready && <Intro number={puzzle.number} date={archive ? puzzle.date : null} returning={intro.returning} signedIn={signedIn} starting={starting} onStart={begin} />}
         <div className={`flex flex-col gap-md transition-[filter] ${intro || !ready ? "blur-sm pointer-events-none select-none" : ""}`} aria-hidden={intro ? true : undefined} inert={intro ? true : undefined}>
           <div className="flex items-center justify-between gap-md text-body-md">
             <p className="tabular-nums">
@@ -344,24 +353,29 @@ export function Game({ puzzle, signedIn, api = "/api/forty-five" }: { puzzle: To
         {toast && <span className="inline-block rounded-full bg-on-surface text-surface px-md py-0.5 text-label-md font-semibold">{toast}</span>}
       </div>
 
-      {play.finished && <EndScreen puzzleId={puzzle.puzzleId} number={puzzle.number} play={play} seconds={seconds} signedIn={signedIn} nextResetAt={puzzle.nextResetAt} api={api} />}
+      {play.finished && <EndScreen puzzle={puzzle} play={play} seconds={seconds} signedIn={signedIn} api={api} here={here} />}
     </div>
   );
 }
 
 /** The card over the blurred board before the clock starts. */
-function Intro({ number, returning, signedIn, starting, onStart }: { number: number; returning: boolean; signedIn: boolean; starting: boolean; onStart: () => void }) {
+function Intro({ number, date, returning, signedIn, starting, onStart }: { number: number; date: string | null; returning: boolean; signedIn: boolean; starting: boolean; onStart: () => void }) {
   return (
     <div className="absolute inset-0 z-10 flex items-center justify-center p-sm">
       <div role="dialog" aria-modal="false" aria-labelledby="ff-intro-title" className="w-full max-w-[440px] rounded-2xl border border-outline-variant bg-surface-container-lowest p-lg shadow-lg flex flex-col gap-md ff-solve">
         <div className="text-center flex flex-col gap-xs">
           <p className="text-label-md font-semibold text-primary uppercase tracking-wide">{returning ? "Ready?" : "First time? Here's how it works"}</p>
           <h2 id="ff-intro-title" className="font-serif font-bold text-headline-md text-on-surface">
-            {returning ? `Today's Forty-Five #${number}` : "Find the four hidden groups"}
+            {returning ? (date ? `Forty-Five #${number}` : `Today's Forty-Five #${number}`) : "Find the four hidden groups"}
           </h2>
         </div>
+        {date && (
+          <p className="text-center text-body-md text-on-surface-variant">
+            From the archive ({dayLabel(date)}). Play it for fun: it won&apos;t change the leaderboard or your streak.
+          </p>
+        )}
         {returning ? (
-          <p className="text-center text-body-md text-on-surface-variant">Sixteen new words are waiting. The clock starts when you press Start.</p>
+          !date && <p className="text-center text-body-md text-on-surface-variant">Sixteen new words are waiting. The clock starts when you press Start.</p>
         ) : (
           <ul className="flex flex-col gap-xs text-body-md text-on-surface-variant list-disc pl-lg">
             <li>Sixteen IB words hide four groups of four. Pick four that share a link and press Check.</li>
@@ -370,9 +384,9 @@ function Intro({ number, returning, signedIn, starting, onStart }: { number: num
             </li>
             <li>
               <span className="font-semibold text-on-surface">It&apos;s timed.</span> The clock starts when you press Start and stops when you finish.{" "}
-              {signedIn ? "On the leaderboard, equal scores are ranked by time." : "Your time shows on your result."}
+              {signedIn && !date ? "On the leaderboard, equal scores are ranked by time." : "Your time shows on your result."}
             </li>
-            <li>One puzzle a day, the same for everyone. A new one arrives at 00:00 UTC.</li>
+            {!date && <li>One puzzle a day, the same for everyone. A new one arrives at 00:00 UTC.</li>}
           </ul>
         )}
         <button
@@ -440,23 +454,25 @@ function Countdown({ to }: { to: string }) {
   return <span className="tabular-nums">{`${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`}</span>;
 }
 
-function EndScreen({ puzzleId, number, play, seconds, signedIn, nextResetAt, api }: { puzzleId: string; number: number; play: PlayView; seconds: number | null; signedIn: boolean; nextResetAt: string; api: string }) {
+function EndScreen({ puzzle, play, seconds, signedIn, api, here }: { puzzle: TodayPuzzle; play: PlayView; seconds: number | null; signedIn: boolean; api: string; here: string }) {
+  const { puzzleId, number, nextResetAt } = puzzle;
+  const archive = !!puzzle.archive;
   const [copied, setCopied] = useState(false);
   const [summary, setSummary] = useState<Summary | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${api}/summary`)
+    fetch(archive ? `${api}/summary?puzzle=${encodeURIComponent(puzzleId)}` : `${api}/summary`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => !cancelled && d && setSummary(d))
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [api]);
+  }, [api, archive, puzzleId]);
 
   const share = async () => {
-    const text = shareText(number, play, seconds, `${window.location.origin}/forty-five`);
+    const text = shareText(number, play, seconds, `${window.location.origin}${here}`);
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -476,7 +492,7 @@ function EndScreen({ puzzleId, number, play, seconds, signedIn, nextResetAt, api
         </p>
         <p className="text-body-md text-on-surface-variant tabular-nums">
           {seconds != null ? `in ${formatTime(seconds)}` : ""}
-          {signedIn && summary?.standing?.rank ? ` · #${summary.standing.rank} today` : ""}
+          {signedIn && summary?.standing?.rank ? ` · #${summary.standing.rank} ${archive ? "on the day" : "today"}` : ""}
         </p>
       </div>
 
@@ -486,33 +502,48 @@ function EndScreen({ puzzleId, number, play, seconds, signedIn, nextResetAt, api
         </button>
       </div>
       <LikeButtons puzzleId={puzzleId} signedIn={signedIn} api={api} fromServer={summary ? (summary.reaction ?? null) : undefined} likes={summary?.likes} />
-      <p className="text-center text-body-md text-on-surface-variant">
-        Next puzzle in <Countdown to={nextResetAt} />
-      </p>
+      {archive ? (
+        <p className="flex flex-wrap justify-center gap-x-md gap-y-xs text-body-md">
+          <Link href="/forty-five/archive" className="font-semibold text-primary hover:underline">
+            ← More past puzzles
+          </Link>
+          <Link href="/forty-five" className="font-semibold text-primary hover:underline">
+            Today&apos;s puzzle →
+          </Link>
+        </p>
+      ) : (
+        <p className="text-center text-body-md text-on-surface-variant">
+          Next puzzle in <Countdown to={nextResetAt} />
+          {" · "}
+          <Link href="/forty-five/archive" className="font-semibold text-primary hover:underline">
+            Play past puzzles
+          </Link>
+        </p>
+      )}
 
       {!signedIn && (
         <div className="rounded-xl bg-primary-fixed/50 border border-primary/30 p-md text-center flex flex-col gap-sm items-center">
           <p className="text-body-md font-semibold text-on-surface">Sign in to keep your stats, build your streak and get on the leaderboard.</p>
           <div className="flex gap-sm">
-            <Link href="/signup?next=/forty-five" className="rounded-full bg-primary text-on-primary px-md py-xs text-label-md font-semibold">
+            <Link href={`/signup?next=${here}`} className="rounded-full bg-primary text-on-primary px-md py-xs text-label-md font-semibold">
               Create a free account
             </Link>
-            <Link href="/login?next=/forty-five" className="rounded-full border border-outline-variant px-md py-xs text-label-md font-semibold text-on-surface">
+            <Link href={`/login?next=${here}`} className="rounded-full border border-outline-variant px-md py-xs text-label-md font-semibold text-on-surface">
               Log in
             </Link>
           </div>
-          <p className="text-label-sm text-on-surface-variant">Today&apos;s game stays a guest game; your next one counts.</p>
+          <p className="text-label-sm text-on-surface-variant">{archive ? "This game stays a guest game." : "Today's game stays a guest game; your next one counts."}</p>
         </div>
       )}
 
       {signedIn && summary?.stats && <Stats stats={summary.stats} today={play.score} />}
 
-      {signedIn && summary && <SquadToday rows={summary.squad ?? []} />}
+      {signedIn && summary && !archive && <SquadToday rows={summary.squad ?? []} />}
 
       <div className="flex flex-col gap-xs">
         <div className="flex items-center justify-between">
           <h2 className="font-serif font-bold text-body-lg text-on-surface flex items-center gap-xs">
-            <Trophy size={18} aria-hidden="true" /> Today&apos;s top 10
+            <Trophy size={18} aria-hidden="true" /> {archive ? `Top 10 on ${dayLabel(puzzle.date)}` : "Today's top 10"}
           </h2>
           <Link href="/leaderboard?period=forty-five" className="text-label-md font-semibold text-primary hover:underline">
             Full leaderboard →
@@ -521,7 +552,7 @@ function EndScreen({ puzzleId, number, play, seconds, signedIn, nextResetAt, api
         {!summary ? (
           <p className="text-label-md text-on-surface-variant">Loading…</p>
         ) : summary.board.rows.length === 0 ? (
-          <p className="text-label-md text-on-surface-variant">Nobody&apos;s on today&apos;s board yet.</p>
+          <p className="text-label-md text-on-surface-variant">{archive ? "Nobody finished it on the day." : "Nobody's on today's board yet."}</p>
         ) : (
           <ol className="divide-y divide-outline-variant rounded-xl border border-outline-variant overflow-hidden">
             {summary.board.rows.map((r) => (
@@ -551,7 +582,7 @@ function guestLog(puzzleId: string): string[][] {
   }
 }
 
-/** 👍 / 👎 on today's puzzle. Signed in: the server remembers; guests: this browser does. Tap again to take it back. */
+/** 👍 / 👎 on the puzzle. Signed in: the server remembers; guests: this browser does. Tap again to take it back. */
 function LikeButtons({ puzzleId, signedIn, api, fromServer, likes }: { puzzleId: string; signedIn: boolean; api: string; fromServer: Reaction | undefined; likes: number | undefined }) {
   const key = `forty-five:reaction:${puzzleId}`;
   const [mine, setMine] = useState<Reaction>(null);
@@ -608,7 +639,7 @@ function LikeButtons({ puzzleId, signedIn, api, fromServer, likes }: { puzzleId:
   return (
     <div className="flex flex-col items-center gap-xs">
       <p className="text-body-md font-semibold text-on-surface" id="ff-like-q">
-        {mine === "like" ? "Glad you liked it!" : mine === "dislike" ? "Thanks, we'll use that." : "Did you like today's puzzle?"}
+        {mine === "like" ? "Glad you liked it!" : mine === "dislike" ? "Thanks, we'll use that." : "Did you like this puzzle?"}
       </p>
       <div className="flex gap-sm" role="group" aria-labelledby="ff-like-q">
         <button type="button" onClick={() => choose("like")} aria-pressed={mine === "like"} className={btn("like", mine === "like")}>
@@ -622,7 +653,7 @@ function LikeButtons({ puzzleId, signedIn, api, fromServer, likes }: { puzzleId:
         const total = Math.max(0, likes - (saved === "like" ? 1 : 0) + (mine === "like" ? 1 : 0));
         return (
           <p className="text-label-md text-on-surface-variant tabular-nums">
-            {total === 0 ? "Be the first to like today's puzzle." : `${total.toLocaleString()} ${total === 1 ? "player likes" : "players like"} today's puzzle`}
+            {total === 0 ? "Be the first to like this puzzle." : `${total.toLocaleString()} ${total === 1 ? "player likes" : "players like"} this puzzle`}
           </p>
         );
       })()}

@@ -5,7 +5,15 @@ import type { GuessRecord } from "./engine.ts";
 
 export type PublicGroup = { difficulty: 1 | 2 | 3 | 4; label: string; words: string[]; explanation: string };
 
-export type TodayPuzzle = { puzzleId: string; number: number; date: string; words: string[]; nextResetAt: string };
+export type TodayPuzzle = {
+  puzzleId: string;
+  number: number;
+  date: string;
+  words: string[];
+  nextResetAt: string;
+  /** A past day's puzzle (the archive): played for fun, never on boards or streaks. */
+  archive?: boolean;
+};
 
 export type PlayView = {
   guesses: GuessRecord[];
