@@ -28,6 +28,11 @@ export default async function FortyFivePage() {
         <p className="text-label-md font-semibold text-primary uppercase tracking-wide">Daily puzzle</p>
         <h1 className="font-serif font-bold text-headline-lg md:text-display-lg text-on-surface">{puzzle ? `Forty-Five #${puzzle.number}` : "Forty-Five"}</h1>
         <p className="text-body-md text-on-surface-variant">Sixteen words from across the IB hide four groups of four. Some words fit more than one subject.</p>
+        <p>
+          <Link href="/forty-five/archive" className="text-label-md font-semibold text-primary hover:underline">
+            Missed a day? Play past puzzles →
+          </Link>
+        </p>
       </header>
 
       {puzzle ? (

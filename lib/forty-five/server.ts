@@ -16,26 +16,97 @@ type Puzzle = { id: string; number: number; date: string; groups: Group[] };
 
 const admin = () => createAdminClient();
 
-/** Today's approved daily puzzle (00:00 UTC rollover), with answers. Server only. */
-export const getTodayPuzzle = cache(async (): Promise<Puzzle | null> => {
-  const today = gameDay();
-  const { data, error } = await admin()
-    .from("forty_five_puzzles")
-    .select("id, number, scheduled_for, forty_five_groups (difficulty, label, words, explanation)")
-    .eq("mode", "daily")
-    .eq("status", "approved")
-    .eq("scheduled_for", today)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
+const PUZZLE_COLS = "id, number, scheduled_for, forty_five_groups (difficulty, label, words, explanation)";
+type PuzzleRow = { id: string; number: number; scheduled_for: string; forty_five_groups: Group[] };
+
+function toPuzzle(data: PuzzleRow | null): Puzzle | null {
   if (!data) return null;
-  const groups = (data.forty_five_groups as Group[]).sort((a, b) => a.difficulty - b.difficulty);
+  const groups = [...data.forty_five_groups].sort((a, b) => a.difficulty - b.difficulty);
   if (groups.length !== 4) return null;
   return { id: data.id, number: data.number, date: data.scheduled_for, groups };
+}
+
+/** Today's approved daily puzzle (00:00 UTC rollover), with answers. Server only. */
+export const getTodayPuzzle = cache(async (): Promise<Puzzle | null> => {
+  const { data, error } = await admin()
+    .from("forty_five_puzzles")
+    .select(PUZZLE_COLS)
+    .eq("mode", "daily")
+    .eq("status", "approved")
+    .eq("scheduled_for", gameDay())
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return toPuzzle(data as PuzzleRow | null);
 });
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * A daily puzzle that may be played: today's, or an approved one from an
+ * earlier day (the archive). Never a future one. With answers; server only.
+ */
+export const getPlayablePuzzle = cache(async (puzzleId: string): Promise<Puzzle | null> => {
+  if (!UUID_RE.test(puzzleId)) return null;
+  const { data, error } = await admin()
+    .from("forty_five_puzzles")
+    .select(PUZZLE_COLS)
+    .eq("id", puzzleId)
+    .eq("mode", "daily")
+    .eq("status", "approved")
+    .lte("scheduled_for", gameDay())
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return toPuzzle(data as PuzzleRow | null);
+});
+
+/** A past (or today's) daily puzzle by its number, for /forty-five/archive/[number]. */
+export const getPuzzleByNumber = cache(async (number: number): Promise<Puzzle | null> => {
+  const { data, error } = await admin()
+    .from("forty_five_puzzles")
+    .select(PUZZLE_COLS)
+    .eq("number", number)
+    .eq("mode", "daily")
+    .eq("status", "approved")
+    .lte("scheduled_for", gameDay())
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return toPuzzle(data as PuzzleRow | null);
+});
+
+/** Today's puzzle when no id is given (the daily page), otherwise that puzzle if it's playable. */
+const resolvePuzzle = (puzzleId?: string | null) => (puzzleId ? getPlayablePuzzle(puzzleId) : getTodayPuzzle());
+
+export type ArchiveEntry = { puzzleId: string; number: number; date: string; result: { finished: boolean; score: number | null; won: boolean; counted: boolean } | null };
+
+/** Every daily puzzle before today, newest first, with the signed-in student's result on each. */
+export async function getArchive(userId: string | null): Promise<ArchiveEntry[]> {
+  const sb = admin();
+  const { data, error } = await sb
+    .from("forty_five_puzzles")
+    .select("id, number, scheduled_for")
+    .eq("mode", "daily")
+    .eq("status", "approved")
+    .lt("scheduled_for", gameDay())
+    .order("scheduled_for", { ascending: false });
+  if (error) throw new Error(error.message);
+  const puzzles = (data ?? []) as { id: string; number: number; scheduled_for: string }[];
+  const mine = new Map<string, ArchiveEntry["result"]>();
+  if (userId && puzzles.length) {
+    const plays = await sb
+      .from("forty_five_plays")
+      .select("puzzle_id, finished_at, score, groups_found, counts_for_leaderboard")
+      .eq("user_id", userId)
+      .in("puzzle_id", puzzles.map((p) => p.id));
+    if (plays.error) throw new Error(plays.error.message);
+    for (const r of plays.data ?? [])
+      mine.set(r.puzzle_id, { finished: !!r.finished_at, score: r.score, won: r.groups_found === 4, counted: r.counts_for_leaderboard });
+  }
+  return puzzles.map((p) => ({ puzzleId: p.id, number: p.number, date: p.scheduled_for, result: mine.get(p.id) ?? null }));
+}
 
 /** What the browser may see before playing: the 16 words, shuffled the same way for everyone. */
 export function publicPuzzle(p: Puzzle): TodayPuzzle {
-  return { puzzleId: p.id, number: p.number, date: p.date, words: shuffledWords(p.groups, p.id), nextResetAt: nextResetAt().toISOString() };
+  return { puzzleId: p.id, number: p.number, date: p.date, words: shuffledWords(p.groups, p.id), nextResetAt: nextResetAt().toISOString(), archive: p.date < gameDay() };
 }
 
 type PlayRow = {
@@ -70,18 +141,19 @@ export type StartResult = {
 };
 
 /**
- * Today's puzzle for a signed-in student. `begin` false only peeks (the page
- * shows the intro first); `begin` true starts the clock on the first call,
- * and later calls change nothing.
+ * A puzzle for a signed-in student: today's, or `puzzleId` from the archive.
+ * `begin` false only peeks (the page shows the intro first); `begin` true
+ * starts the clock on the first call, and later calls change nothing. Only a
+ * play started on the puzzle's own day counts for leaderboards and streaks.
  */
-export async function startPlay(userId: string, begin: boolean): Promise<StartResult | null> {
-  const p = await getTodayPuzzle();
+export async function startPlay(userId: string, begin: boolean, puzzleId?: string | null): Promise<StartResult | null> {
+  const p = await resolvePuzzle(puzzleId);
   if (!p) return null;
   const sb = admin();
   if (begin) {
     const ins = await sb
       .from("forty_five_plays")
-      .upsert({ user_id: userId, puzzle_id: p.id, counts_for_leaderboard: true }, { onConflict: "user_id,puzzle_id", ignoreDuplicates: true });
+      .upsert({ user_id: userId, puzzle_id: p.id, counts_for_leaderboard: p.date === gameDay() }, { onConflict: "user_id,puzzle_id", ignoreDuplicates: true });
     if (ins.error) throw new Error(ins.error.message);
   }
   const [{ data, error }, others] = await Promise.all([
@@ -100,8 +172,8 @@ export async function startPlay(userId: string, begin: boolean): Promise<StartRe
 
 /** A signed-in guess. `expected` is how many guesses the browser thinks are recorded (double-submits and other tabs lose). */
 export async function guessSigned(userId: string, puzzleId: string, words: string[], expected: number): Promise<GuessResponse> {
-  const p = await getTodayPuzzle();
-  if (!p || p.id !== puzzleId) return { ok: false, reason: "no_puzzle" };
+  const p = await getPlayablePuzzle(puzzleId);
+  if (!p) return { ok: false, reason: "no_puzzle" };
   const sb = admin();
   const { data, error } = await sb.from("forty_five_plays").select(PLAY_COLS).eq("user_id", userId).eq("puzzle_id", p.id).maybeSingle();
   if (error) throw new Error(error.message);
@@ -138,8 +210,8 @@ export async function guessSigned(userId: string, puzzleId: string, words: strin
 
 /** A guest guess. Guests keep their own log in localStorage and send it each time; nothing is stored. */
 export async function guessGuest(puzzleId: string, log: string[][], words: string[]): Promise<GuessResponse> {
-  const p = await getTodayPuzzle();
-  if (!p || p.id !== puzzleId) return { ok: false, reason: "no_puzzle" };
+  const p = await getPlayablePuzzle(puzzleId);
+  if (!p) return { ok: false, reason: "no_puzzle" };
   return guestGuess(p.groups, log, words);
 }
 
@@ -198,11 +270,12 @@ export async function getMyDailyStanding(userId: string, date: string): Promise<
   const hidden = await isHidden(userId);
   const { data: puzzle } = await sb.from("forty_five_puzzles").select("id").eq("mode", "daily").eq("scheduled_for", date).maybeSingle();
   if (!puzzle) return { played: false, finished: false, score: null, seconds: null, rank: null, hidden };
-  const { data } = await sb.from("forty_five_plays").select(PLAY_COLS).eq("user_id", userId).eq("puzzle_id", puzzle.id).maybeSingle();
+  const { data } = await sb.from("forty_five_plays").select(`${PLAY_COLS}, counts_for_leaderboard`).eq("user_id", userId).eq("puzzle_id", puzzle.id).maybeSingle();
   if (!data) return { played: false, finished: false, score: null, seconds: null, rank: null, hidden };
-  const row = data as PlayRow;
+  const row = data as PlayRow & { counts_for_leaderboard: boolean };
   const seconds = secondsOf(row);
-  if (!row.finished_at || hidden || row.score == null || seconds == null) return { played: true, finished: !!row.finished_at, score: row.score, seconds, rank: null, hidden };
+  // An archive play (started after the puzzle's day) isn't on the board, so it has no rank.
+  if (!row.finished_at || hidden || !row.counts_for_leaderboard || row.score == null || seconds == null) return { played: true, finished: !!row.finished_at, score: row.score, seconds, rank: null, hidden };
   const ahead = await sb
     .from("forty_five_daily_scores")
     .select("user_id", { count: "exact", head: true })
@@ -250,8 +323,7 @@ export async function getMyStats(userId: string): Promise<MyStats> {
 
 // ── Likes and guest finishes (migration 36) ──────────────────────────────
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-export const isGuestId = (x: unknown): x is string => typeof x === "string" && UUID.test(x);
+export const isGuestId = (x: unknown): x is string => typeof x === "string" && UUID_RE.test(x);
 
 /** Counts a finished guest game for insights. The first finish per browser per puzzle wins; errors never reach the player. */
 export async function recordGuestFinish(puzzleId: string, guestId: string, play: PlayView): Promise<void> {
@@ -269,13 +341,13 @@ export type Reaction = "like" | "dislike" | null;
 type Who = { userId: string } | { guestId: string; log: string[][] };
 
 /**
- * 👍 / 👎 on today's puzzle, or null to take it back. Only after finishing it:
+ * 👍 / 👎 on a puzzle (today's or the archive's), or null to take it back. Only after finishing it:
  * a signed-in play with finished_at, or a guest whose guess log replays to a
  * finished game (which also records their finish, if the guess route didn't).
  */
 export async function setReaction(who: Who, puzzleId: string, reaction: Reaction): Promise<"ok" | "no_puzzle" | "not_finished"> {
-  const p = await getTodayPuzzle();
-  if (!p || p.id !== puzzleId) return "no_puzzle";
+  const p = await getPlayablePuzzle(puzzleId);
+  if (!p) return "no_puzzle";
   const sb = admin();
   if ("userId" in who) {
     const finished = await sb.from("forty_five_plays").select("id").eq("user_id", who.userId).eq("puzzle_id", p.id).not("finished_at", "is", null).maybeSingle();
@@ -304,17 +376,17 @@ export async function setReaction(who: Who, puzzleId: string, reaction: Reaction
   return "ok";
 }
 
-/** A signed-in player's 👍 / 👎 on today's puzzle (guests remember theirs in the browser). */
-export async function getMyReaction(userId: string): Promise<Reaction> {
-  const p = await getTodayPuzzle();
+/** A signed-in player's 👍 / 👎 on a puzzle (guests remember theirs in the browser). */
+export async function getMyReaction(userId: string, puzzleId?: string | null): Promise<Reaction> {
+  const p = await resolvePuzzle(puzzleId);
   if (!p) return null;
   const { data } = await admin().from("forty_five_reactions").select("liked").eq("puzzle_id", p.id).eq("user_id", userId).maybeSingle();
   return data ? (data.liked ? "like" : "dislike") : null;
 }
 
-/** How many players liked today's puzzle (0 until migration 36 runs). */
-export async function getTodayLikes(): Promise<number> {
-  const p = await getTodayPuzzle();
+/** How many players liked a puzzle, today's by default (0 until migration 36 runs). */
+export async function getPuzzleLikes(puzzleId?: string | null): Promise<number> {
+  const p = await resolvePuzzle(puzzleId);
   if (!p) return 0;
   const { count, error } = await admin().from("forty_five_reactions").select("id", { count: "exact", head: true }).eq("puzzle_id", p.id).eq("liked", true);
   return error ? 0 : (count ?? 0);

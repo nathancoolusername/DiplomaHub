@@ -4,9 +4,10 @@ import { checkRateLimit } from "@/app/lib/ratelimit";
 import { startPlay } from "@/lib/forty-five/server";
 import { sameOriginJson } from "@/lib/forty-five/request";
 
-// Today's Forty-Five for a signed-in student. Body { begin: false } only looks
-// (the page shows its intro first); { begin: true } records started_at
-// (database clock) the first time; refreshing just returns the same play.
+// Forty-Five for a signed-in student: today's, or { puzzleId } for a past day
+// (the archive). Body { begin: false } only looks (the page shows its intro
+// first); { begin: true } records started_at (database clock) the first time;
+// refreshing just returns the same play.
 export async function POST(req: Request) {
   if (!sameOriginJson(req)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const userId = await getCurrentUserId();
@@ -14,11 +15,14 @@ export async function POST(req: Request) {
   const limit = await checkRateLimit("game", `ff:${userId}`);
   if (!limit.allowed) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   let begin = false;
+  let puzzleId: string | null = null;
   try {
-    begin = (await req.json())?.begin === true;
+    const body = await req.json();
+    begin = body?.begin === true;
+    if (typeof body?.puzzleId === "string" && body.puzzleId.length <= 64) puzzleId = body.puzzleId;
   } catch {}
   try {
-    const r = await startPlay(userId, begin);
+    const r = await startPlay(userId, begin, puzzleId);
     if (!r) return NextResponse.json({ error: "no_puzzle" }, { status: 404 });
     return NextResponse.json(r, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
