@@ -21,8 +21,7 @@ const MEDALS = ["bg-[#f5c542] text-[#3d2e00]", "bg-[#c9d1dc] text-[#25303d]", "b
 
 type Board = LeaderboardPeriod | "contribution" | "forty-five" | "forty-five-all";
 const TABS: { id: Board; label: string }[] = [
-  { id: "week", label: "This week" },
-  { id: "all", label: "All time" },
+  { id: "week", label: "Practice" },
   { id: "contribution", label: "Contribution" },
   { id: "forty-five", label: "Forty-Five" },
 ];
@@ -33,7 +32,9 @@ const TABS: { id: Board; label: string }[] = [
 export default async function Leaderboard({ searchParams }: Props) {
   const sp = await searchParams;
   const tab: Board =
-    sp.period === "all" || sp.period === "contribution" || sp.period === "forty-five" || sp.period === "forty-five-all" ? sp.period : "week";
+    sp.period === "all" || sp.period === "contribution" || sp.period === "forty-five" || sp.period === "forty-five-all"
+      ? sp.period
+      : "week";
   if (tab === "contribution") return <ContributionBoard page={Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1)} />;
   if (tab === "forty-five" || tab === "forty-five-all")
     return (
@@ -69,7 +70,17 @@ export default async function Leaderboard({ searchParams }: Props) {
 
       <div className="flex flex-wrap items-center justify-between gap-md">
         <BoardTabs current={period} />
-        {period === "week" && <p className="text-label-md text-on-surface-variant">Resets every Monday</p>}
+        <div className="flex items-center gap-sm">
+          {period === "week" && <p className="text-label-md text-on-surface-variant">Resets every Monday</p>}
+          <nav aria-label="Practice period" className="inline-flex gap-0.5 rounded-xl bg-surface-container p-0.5">
+            {(["week", "all"] as const).map((p) => (
+              <Link key={p} href={href(p)} aria-current={period === p ? "page" : undefined}
+                className={`rounded-lg px-md py-xs text-label-md font-semibold ${period === p ? "bg-surface-container-lowest text-on-surface shadow-sm" : "text-on-surface-variant hover:text-primary"}`}>
+                {p === "week" ? "This week" : "All time"}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </div>
 
       {standing ? (
@@ -135,16 +146,17 @@ function boardHref(b: Board, n = 1): string {
 }
 
 function BoardTabs({ current }: { current: Board }) {
-  // "forty-five-all" is a sub-view of the Forty-Five tab.
+  // Each tab's own period switch picks the view: "all" is Practice's all time,
+  // "forty-five-all" the Forty-Five board's.
   return (
-    <nav aria-label="Leaderboard" className="inline-flex gap-0.5 rounded-xl bg-surface-container p-0.5">
+    <nav aria-label="Leaderboard" className="inline-flex max-w-full overflow-x-auto gap-0.5 rounded-xl bg-surface-container p-0.5">
       {TABS.map((t) => (
         <Link
           key={t.id}
           href={boardHref(t.id)}
-          aria-current={current === t.id ? "page" : undefined}
-          className={`rounded-lg px-md py-xs text-label-md font-semibold ${
-            current === t.id ? "bg-surface-container-lowest text-on-surface shadow-sm" : "text-on-surface-variant hover:text-primary"
+          aria-current={current === t.id || (t.id === "week" && current === "all") ? "page" : undefined}
+          className={`shrink-0 whitespace-nowrap rounded-lg px-md py-xs text-label-md font-semibold ${
+            current === t.id || (t.id === "week" && current === "all") ? "bg-surface-container-lowest text-on-surface shadow-sm" : "text-on-surface-variant hover:text-primary"
           }`}
         >
           {t.label}
