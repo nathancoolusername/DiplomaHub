@@ -930,6 +930,21 @@ html.theme-vt-midnight::view-transition-new(root) {
     linear-gradient(180deg, #04030c 0%, #0e0a2e 50%, #1d1450 100%);
 }
 
+/* Pages whose root wrapper paints its own panel (Squads, Deadline, login…,
+   marked h-full or min-h-full): the percentage can't resolve against <main>,
+   which has no height, so on short pages the panel stopped mid-screen and the
+   background showed below it as a hard line. Let <main> fill the column and
+   the panel grow. width: 100% keeps mx-auto panels from shrinking to fit. */
+main:has(> :is(.h-full, .min-h-full)) {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+main > :is(.h-full, .min-h-full) {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
 @media print {
   body::before {
     display: none !important;
