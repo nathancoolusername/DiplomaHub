@@ -4,10 +4,12 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Crown, PenLine, ThumbsUp } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { TIERS } from "@/lib/deadline/config";
+import { sfx } from "@/lib/deadline/sound";
 import { turnProgress } from "@/lib/deadline/clock";
 import type { Reaction, RoomActions, RoomEvent, RoomPlayer, RoomRound, SubmitResult, TypingStore } from "@/lib/deadline/types";
 import { Extensions, nameOf, Points, WinsBadge } from "./bits";
 import { Bubbles } from "./Reactions";
+import { playerColors, seatAvatarClass } from "./fx";
 
 /** The prompt, inside the clock: the border closes in and the tint deepens. No number. */
 const NO_TYPING: TypingStore = { subscribe: () => () => {}, get: () => ({}) };
@@ -70,18 +72,18 @@ export function PromptClock({ round, offset, mine, holderName, typing = NO_TYPIN
 type Fx = { key: string; kind: "points" | "boom" | "out" | "bonus"; points?: number; bonus?: number };
 
 /** One seat: avatar, name, extensions, points, wins, plus pops and reactions. */
-function Seat({ p, me, isHolder, isHost, fx, reactions, style }: {
-  p: RoomPlayer; me: string; isHolder: boolean; isHost: boolean; fx: Fx | null; reactions: Reaction[]; style?: React.CSSProperties;
+function Seat({ p, me, isHolder, isHost, fx, reactions, color, style }: {
+  p: RoomPlayer; me: string; isHolder: boolean; isHost: boolean; fx: Fx | null; reactions: Reaction[]; color: string; style?: React.CSSProperties;
 }) {
   const mine = p.user_id === me;
   return (
-    <li style={style}
-      className={`relative shrink-0 w-20 lg:w-24 flex flex-col items-center gap-0.5 text-center lg:absolute lg:left-(--x) lg:top-(--y) lg:-translate-x-1/2 lg:-translate-y-1/2 transition-opacity ${p.is_out ? "opacity-40 grayscale" : ""}`}
+    <li style={{ ...style, "--seat": color } as React.CSSProperties} data-holder={isHolder || undefined}
+      className={`relative shrink-0 w-20 lg:w-24 flex flex-col items-center gap-0.5 text-center lg:absolute lg:left-(--x) lg:top-(--y) lg:-translate-x-1/2 lg:-translate-y-1/2 transition-[opacity,scale] duration-300 ${isHolder ? "scale-110" : ""} ${p.is_out ? "opacity-40 grayscale" : ""}`}
       aria-label={`${nameOf(p)}${mine ? " (you)" : ""}${isHolder ? ", has the draft" : ""}${p.is_out ? ", out" : ""}, ${p.points} points`}>
-      <span className="relative">
+      <span className={`relative rounded-full ${isHolder ? "dl-holder" : ""}`}>
         <Avatar src={p.avatar_url} name={nameOf(p)} size={44}
-          className={`${isHolder ? "ring-4 ring-error ring-offset-2 ring-offset-surface-container-lowest" : ""} ${mine && !isHolder ? "ring-2 ring-primary" : ""}`} />
-        {isHolder && <span className="absolute -right-1 -bottom-1 rounded-full bg-error text-on-error p-0.5"><PenLine size={11} aria-hidden="true" /></span>}
+          className={`${seatAvatarClass} ${isHolder ? "ring-4 ring-error ring-offset-2 ring-offset-surface-container-lowest" : `ring-2 ring-(--seat) ${mine ? "ring-offset-2 ring-offset-surface-container-lowest" : ""}`}`} />
+        {isHolder && <span className="lg:hidden absolute -right-1 -bottom-1 rounded-full bg-error text-on-error p-0.5"><PenLine size={11} aria-hidden="true" /></span>}
         {isHost && <span className="absolute -left-1 -top-1 rounded-full bg-tertiary-container text-on-tertiary-container p-0.5" title="Host"><Crown size={10} aria-hidden="true" /></span>}
         {fx?.kind === "boom" && <span key={fx.key} className="dl-boom absolute inset-0 rounded-full bg-error" aria-hidden="true" />}
         <Bubbles reactions={reactions} />
@@ -95,7 +97,9 @@ function Seat({ p, me, isHolder, isHost, fx, reactions, style }: {
           </span>
         )}
       </span>
-      <span className="max-w-full truncate text-label-md font-semibold text-on-surface">{mine ? "You" : nameOf(p)}</span>
+      <span className="max-w-full truncate text-label-md font-semibold text-on-surface">
+        <span className="inline-block w-2 h-2 rounded-full bg-(--seat) mr-1 align-middle" aria-hidden="true" />{mine ? "You" : nameOf(p)}
+      </span>
       {p.guest && <span className="-mt-0.5 text-label-sm text-on-surface-variant">guest</span>}
       <span className="flex items-center gap-xs">
         {p.is_out ? <span className="text-label-sm font-bold text-error">Out</span> : <Extensions n={p.extensions} />}
@@ -121,18 +125,35 @@ export function SeatRing({ players, me, round, hostId, event, reactions, childre
     return null;
   };
   const n = seated.length;
+  const colors = playerColors(players.map((p) => p.user_id));
+  const angle = (i: number) => (-90 + (360 * i) / n) * (Math.PI / 180);
+  const hi = seated.findIndex((p) => p.user_id === round.holder_id);
+
+  // Phone: keep the holder's seat in view in the scrolling row.
+  const row = useRef<HTMLOListElement>(null);
+  useEffect(() => {
+    const ol = row.current;
+    const li = ol?.querySelector<HTMLElement>("[data-holder]");
+    if (!ol || !li || ol.scrollWidth <= ol.clientWidth) return;
+    ol.scrollTo({ left: li.offsetLeft - (ol.clientWidth - li.offsetWidth) / 2, behavior: "smooth" });
+  }, [round.holder_id]);
+
   return (
     <div className="relative flex flex-col gap-md lg:block lg:aspect-[16/10] lg:min-h-[430px]">
-      <ol className="flex gap-xs overflow-x-auto pt-md pb-xs -mx-md px-md lg:contents" aria-label="Players">
-        {seated.map((p, i) => {
-          const a = (-90 + (360 * i) / n) * (Math.PI / 180);
-          return (
-            <Seat key={p.user_id} p={p} me={me} isHolder={p.user_id === round.holder_id} isHost={p.user_id === hostId}
-              fx={fxFor(p.user_id)} reactions={reactions.filter((r) => r.user_id === p.user_id)}
-              style={{ "--x": `${50 + 44 * Math.cos(a)}%`, "--y": `${52 + 38 * Math.sin(a)}%` } as React.CSSProperties} />
-          );
-        })}
+      <ol ref={row} className="flex gap-xs overflow-x-auto pt-md pb-xs -mx-md px-md lg:contents" aria-label="Players">
+        {seated.map((p, i) => (
+          <Seat key={p.user_id} p={p} me={me} isHolder={p.user_id === round.holder_id} isHost={p.user_id === hostId}
+            fx={fxFor(p.user_id)} reactions={reactions.filter((r) => r.user_id === p.user_id)} color={colors.get(p.user_id)!}
+            style={{ "--x": `${50 + 44 * Math.cos(angle(i))}%`, "--y": `${52 + 38 * Math.sin(angle(i))}%` } as React.CSSProperties} />
+        ))}
       </ol>
+      {/* Laptop: the draft itself, sliding from seat to seat. */}
+      {hi >= 0 && (
+        <span aria-hidden="true" className="dl-token hidden lg:flex absolute z-10 -translate-x-1/2 -translate-y-1/2 h-9 w-9 items-center justify-center rounded-full bg-error text-on-error shadow-lg"
+          style={{ left: `${50 + 33 * Math.cos(angle(hi))}%`, top: `${52 + 27 * Math.sin(angle(hi))}%` }}>
+          <PenLine size={16} />
+        </span>
+      )}
       <div className="lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:w-[58%]">{children}</div>
     </div>
   );
@@ -226,6 +247,7 @@ export function AnswerBar({ roundId, myTurn, canPlay, actions, holderName, onTyp
     else setMsg(SAY[r.result] ?? null);
     if (r.result === "wrong" || r.result === "ambiguous" || r.result === "denied" || r.result === "taken") {
       shake();
+      sfx.wrong();
       if (r.result !== "taken" && r.reject_id) setAppeal({ id: r.reject_id, text: t, sent: false });
       // Stay in the box with the text, caret at the end, ready to fix and press Enter again.
       const el = input.current;

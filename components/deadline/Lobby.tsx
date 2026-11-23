@@ -7,6 +7,7 @@ import { MAX_PLAYERS } from "@/lib/deadline/config";
 import type { RoomActions, RoomState } from "@/lib/deadline/types";
 import { nameOf, WinsBadge } from "./bits";
 import { SubjectPicker } from "./SubjectPicker";
+import { playerColors, seatAvatarClass } from "./fx";
 
 /** Waiting room: the code to share, who's in (with their wins), and Start for the host. */
 export function Lobby({ state, actions, onInvite }: { state: RoomState; actions: Pick<RoomActions, "start" | "leave" | "listSubjects" | "setSubjects" | "kick">; onInvite?: () => void }) {
@@ -16,6 +17,7 @@ export function Lobby({ state, actions, onInvite }: { state: RoomState; actions:
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const host = players.find((p) => p.user_id === room.host_id);
+  const colors = playerColors(players.map((p) => p.user_id));
 
   async function copy() {
     const url = `${window.location.origin}/play/deadline/${room.code}`;
@@ -53,7 +55,8 @@ export function Lobby({ state, actions, onInvite }: { state: RoomState; actions:
         </h2>
         <ul className="grid grid-cols-2 sm:grid-cols-4 gap-sm">
           {players.map((p) => (
-            <li key={p.user_id} className="relative flex flex-col items-center gap-0.5 rounded-2xl border border-outline-variant bg-surface-container-lowest p-sm">
+            <li key={p.user_id} style={{ "--seat": colors.get(p.user_id) } as React.CSSProperties}
+              className="dl-in relative flex flex-col items-center gap-0.5 rounded-2xl border-2 border-(--seat)/40 bg-surface-container-lowest p-sm">
               {isHost && p.user_id !== me && (
                 <button type="button" aria-label={`Remove ${nameOf(p)} from the room`} title="Remove from room"
                   onClick={() => { if (confirm(`Remove ${nameOf(p)} from the room? They can't come back in.`)) void actions.kick(p.user_id); }}
@@ -62,7 +65,7 @@ export function Lobby({ state, actions, onInvite }: { state: RoomState; actions:
                 </button>
               )}
               <span className="relative">
-                <Avatar src={p.avatar_url} name={nameOf(p)} size={48} />
+                <Avatar src={p.avatar_url} name={nameOf(p)} size={48} className={`${seatAvatarClass} ring-2 ring-(--seat)`} />
                 {p.user_id === room.host_id && (
                   <span className="absolute -left-1 -top-1 rounded-full bg-tertiary-container text-on-tertiary-container p-0.5" title="Host"><Crown size={11} aria-hidden="true" /></span>
                 )}
@@ -74,7 +77,8 @@ export function Lobby({ state, actions, onInvite }: { state: RoomState; actions:
           ))}
           {Array.from({ length: Math.max(0, Math.min(2, MAX_PLAYERS - players.length)) }, (_, i) => (
             <li key={`empty-${i}`} className="rounded-2xl border border-dashed border-outline-variant p-sm flex items-center justify-center text-label-md text-on-surface-variant min-h-24">
-              Waiting…
+              <span className="sr-only">Waiting for a player</span>
+              <span className="dl-dots flex gap-1" aria-hidden="true"><span className="h-2 w-2 rounded-full bg-on-surface-variant" /><span className="h-2 w-2 rounded-full bg-on-surface-variant" /><span className="h-2 w-2 rounded-full bg-on-surface-variant" /></span>
             </li>
           ))}
         </ul>

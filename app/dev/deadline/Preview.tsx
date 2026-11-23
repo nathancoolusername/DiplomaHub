@@ -229,6 +229,8 @@ export function DeadlinePreview() {
     },
     setSubjects: async (subjects) => {
       if (engRef.current.state.room.status === "playing") return { ok: false, reason: "playing" };
+      // A real save takes a round trip: wait like one, so the picker is tested with lag.
+      await new Promise((r) => setTimeout(r, 400));
       setEng((e) => ({ ...e, state: { ...e.state, room: { ...e.state.room, settings: { ...e.state.room.settings, subjects } } } }));
       return { ok: true, prompts: PROMPTS.filter((p) => !subjects.length || subjects.includes(p.subject)).length };
     },

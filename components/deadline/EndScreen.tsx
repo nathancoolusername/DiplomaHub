@@ -9,6 +9,7 @@ import type { RoomActions, RoomState } from "@/lib/deadline/types";
 import { nameOf, Points, WinsBadge } from "./bits";
 import { GuestUpgrade } from "./Guest";
 import { SubjectPicker } from "./SubjectPicker";
+import { Confetti, playerColors, seatAvatarClass } from "./fx";
 
 /** The winner, everyone's place, the rarest answer, Play again and Save as squad. */
 export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<RoomActions, "start" | "leave" | "saveSquad" | "listSubjects" | "setSubjects"> }) {
@@ -26,6 +27,11 @@ export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<
     already_squad: "This room is already a squad's room.",
   };
 
+  const colors = playerColors(players.map((p) => p.user_id));
+  const podium = end ? [2, 1, 3].map((place) => end.places.find((pl) => pl.place === place)).filter((pl) => !!pl) : [];
+  const rest = end ? end.places.filter((pl) => pl.place > 3) : [];
+  const HEIGHT: Record<number, string> = { 1: "h-[5.5rem]", 2: "h-[3.75rem]", 3: "h-[2.75rem]" };
+
   async function saveSquad(e: React.FormEvent) {
     e.preventDefault();
     if (!squadName.trim()) return;
@@ -37,6 +43,7 @@ export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<
 
   return (
     <div className="flex flex-col items-center gap-lg text-center">
+      {winner && <Confetti seed={`${room.id}:${room.game_no}`} count={80} top="22%" />}
       <div className="dl-flash flex flex-col items-center gap-sm" style={{ animationFillMode: "backwards", animationDuration: "700ms" }}>
         <Trophy size={40} className="text-tertiary" aria-hidden="true" />
         {winner ? (
@@ -58,9 +65,28 @@ export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<
         </div>
       )}
 
-      {end && (
+      {podium.length > 1 && (
+        <ol className="flex items-end justify-center gap-sm w-full max-w-[24rem]" aria-label="Podium">
+          {podium.map((pl, i) => {
+            const p = byId.get(pl.user_id);
+            return (
+              <li key={pl.user_id} style={{ "--seat": colors.get(pl.user_id) } as React.CSSProperties} className="flex-1 flex flex-col items-center gap-xs min-w-0">
+                <Avatar src={p?.avatar_url} name={nameOf(p)} size={pl.place === 1 ? 48 : 40} className={`${seatAvatarClass} ring-2 ring-(--seat)`} />
+                <span className="max-w-full truncate text-label-md font-semibold text-on-surface">{pl.user_id === me ? "You" : nameOf(p)}</span>
+                <span className="text-label-sm tabular-nums text-on-surface-variant">{pl.points} pts</span>
+                <span className={`dl-rise w-full ${HEIGHT[pl.place]} rounded-t-xl bg-(--seat)/25 border-2 border-b-0 border-(--seat)/60 flex items-start justify-center pt-xs font-black text-headline-md text-on-surface`}
+                  style={{ animationDelay: `${[250, 0, 450][i]}ms` }}>
+                  {pl.place}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+
+      {end && (podium.length <= 1 || rest.length > 0) && (
         <ol className="w-full max-w-[24rem] flex flex-col gap-xs" aria-label="Results">
-          {end.places.map((pl) => {
+          {(podium.length > 1 ? rest : end.places).map((pl) => {
             const p = byId.get(pl.user_id);
             return (
               <li key={pl.user_id} className={`flex items-center gap-sm rounded-xl px-sm py-xs ${pl.user_id === me ? "bg-primary/10" : "bg-surface-container-lowest"}`}>
