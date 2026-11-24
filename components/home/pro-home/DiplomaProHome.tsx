@@ -100,6 +100,8 @@ export async function DiplomaProHome({
 
         <ResetBanner doneWeeks={doneWeeks} />
 
+        <GamesCard />
+
         <GettingStartedCard progress={gettingStarted} />
 
         <ReviewCard isPro={viewer.isPro} />
@@ -107,8 +109,6 @@ export async function DiplomaProHome({
         {standing && <RankCard standing={standing} />}
 
         <SquadsCard squads={squads} />
-
-        <GamesCard />
 
         <CodesCard stats={sharing} />
 
