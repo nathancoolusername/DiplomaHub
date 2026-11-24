@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
-import { CalendarDays, Clock, Crosshair, Library, ListChecks, Sparkles, TrendingUp, Users } from "lucide-react";
+import { CalendarDays, Clock, Crosshair, Flag, Library, ListChecks, Sparkles, Timer, TrendingUp, Users } from "lucide-react";
 import { BroAvatar } from "@/components/shared/BroAvatar";
 import { WaitlistForm } from "@/components/pro/WaitlistForm";
 import { getHomepageStats } from "@/app/lib/actions/site-stats";
@@ -48,16 +48,29 @@ export function Hero() {
               or try 3 questions ↓
             </a>
           </div>
-          <Link
-            href="/forty-five"
-            prefetch={false}
-            className="self-center lg:self-start inline-flex items-center gap-sm rounded-full border border-outline-variant bg-surface-container-lowest px-md py-xs text-label-md text-on-surface hover:border-primary"
-          >
-            <FortyFiveMark />
-            <span>
-              <span className="font-semibold">Forty-Five</span>{" "}· today&apos;s free IB puzzle →
-            </span>
-          </Link>
+          {/* The two daily games. */}
+          <div className="flex flex-wrap justify-center lg:justify-start gap-sm">
+            <Link
+              href="/forty-five"
+              prefetch={false}
+              className="inline-flex items-center gap-sm rounded-full border border-outline-variant bg-surface-container-lowest px-md py-xs text-label-md text-on-surface hover:border-primary"
+            >
+              <FortyFiveMark />
+              <span>
+                <span className="font-semibold">Forty-Five</span>{" "}· today&apos;s free IB puzzle →
+              </span>
+            </Link>
+            <Link
+              href="/flags"
+              prefetch={false}
+              className="inline-flex items-center gap-sm rounded-full border border-outline-variant bg-surface-container-lowest px-md py-xs text-label-md text-on-surface hover:border-primary"
+            >
+              <Flag size={14} className="text-secondary" aria-hidden="true" />
+              <span>
+                <span className="font-semibold">Flags</span>{" "}· today&apos;s 20-flag sprint →
+              </span>
+            </Link>
+          </div>
         </div>
         <SystemDemo subjects={subjects} />
       </div>
@@ -218,7 +231,7 @@ export async function LibrarySection() {
   );
 }
 
-/** Why come back next week: three habits, one line and one link each. */
+/** Why come back next week: the three games and Squads, one line and one link each. */
 export function StayOnTrack() {
   const items: { icon: ReactNode; iconBox?: string; name: string; body: string; href: string; cta: string }[] = [
     {
@@ -230,11 +243,20 @@ export function StayOnTrack() {
       cta: "Play today's puzzle",
     },
     {
-      icon: <CalendarDays size={20} />,
-      name: "Sunday Reset",
-      body: "Ten minutes on Sunday: last week's lost marks, this week's dates, three sessions that count.",
-      href: "/hub/reset",
-      cta: "Plan your week",
+      icon: <Flag size={20} />,
+      iconBox: "bg-secondary-container text-on-secondary-container",
+      name: "Flags",
+      body: "Type a country and its flag fills in. 20 flags a day, the same for everyone, or all 197 against the clock.",
+      href: "/flags",
+      cta: "Play today's sprint",
+    },
+    {
+      icon: <Timer size={20} />,
+      iconBox: "bg-error-container text-on-error-container",
+      name: "Deadline",
+      body: "The IB party game: name an answer before your deadline. Share a code and play with friends.",
+      href: "/play/deadline",
+      cta: "Start a game",
     },
     {
       icon: <Users size={20} />,
@@ -251,7 +273,7 @@ export function StayOnTrack() {
           <p className={eyebrow}>Stay on track</p>
           <h2 className={h2}>Reasons to come back next week.</h2>
         </div>
-        <ul className="grid md:grid-cols-3 gap-md">
+        <ul className="grid sm:grid-cols-2 lg:grid-cols-4 gap-md">
           {items.map((x) => (
             <li key={x.name} className={`${card} p-lg flex flex-col gap-sm`}>
               <span className={`w-11 h-11 rounded-2xl flex items-center justify-center ${x.iconBox ?? "bg-primary text-on-primary"}`} aria-hidden="true">

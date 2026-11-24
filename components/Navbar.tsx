@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, Timer, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { MidnightTip } from "./MidnightTip";
 import { StyleTip } from "./StyleTip";
-import { FortyFiveMark } from "./forty-five/FortyFiveMark";
 import { NewsToast } from "./NewsToast";
 
 // /hub is the only route with a loading.tsx, which makes it the one dynamic
@@ -18,16 +17,23 @@ import { NewsToast } from "./NewsToast";
 // still shows the loading skeleton; it just isn't fetched ahead of time.
 const NO_PREFETCH = new Set(["/hub"]);
 
-const navLinks = [
+// `also`: other routes that light up this item (Games covers every game).
+const navLinks: { label: string; href: string; also?: string[] }[] = [
   { label: "Home", href: "/" },
   { label: "Hub", href: "/hub" },
   { label: "Practice", href: "/practice" },
   { label: "Bro", href: "/bro" },
   { label: "Progress", href: "/progress" },
+  { label: "Games", href: "/games", also: ["/forty-five", "/play", "/flags"] },
   { label: "Resources", href: "/resources" },
   { label: "Articles", href: "/articles" },
   // Roadmap and About live in the footer.
 ];
+
+function isActiveLink(link: (typeof navLinks)[number], pathname: string): boolean {
+  if (link.href === "/") return pathname === "/";
+  return [link.href, ...(link.also ?? [])].some((h) => pathname === h || pathname.startsWith(`${h}/`));
+}
 
 export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
   const pathname = usePathname();
@@ -43,7 +49,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
             <Logo />
             <nav className="hidden lg:flex gap-md xl:gap-lg">
               {navLinks.map((link) => {
-                const isActive = link.href === "/" ? pathname === "/" : pathname === link.href || pathname.startsWith(`${link.href}/`);
+                const isActive = isActiveLink(link, pathname);
                 return (
                   <Link
                     key={link.href}
@@ -59,8 +65,6 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
                   </Link>
                 );
               })}
-              <FortyFiveLink active={pathname === "/forty-five"} />
-              <DeadlineLink active={pathname.startsWith("/play/deadline")} />
             </nav>
           </div>
 
@@ -88,7 +92,7 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
         {menuOpen && (
           <nav className="lg:hidden flex flex-col border-t border-outline-variant bg-surface">
             {navLinks.map((link) => {
-              const isActive = link.href === "/" ? pathname === "/" : pathname === link.href || pathname.startsWith(`${link.href}/`);
+              const isActive = isActiveLink(link, pathname);
               return (
                 <Link
                   key={link.href}
@@ -105,24 +109,6 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
                 </Link>
               );
             })}
-            <Link
-              href="/forty-five"
-              onClick={() => setMenuOpen(false)}
-              className={`px-lg py-md text-body-md font-semibold transition-colors flex items-center gap-sm ${
-                pathname === "/forty-five" ? "text-primary bg-surface-container-low" : "text-on-surface hover:text-primary hover:bg-surface-container-low"
-              }`}
-            >
-              <FortyFiveMark /> Forty-Five <span className="text-label-sm font-normal text-on-surface-variant">daily puzzle</span>
-            </Link>
-            <Link
-              href="/play/deadline"
-              onClick={() => setMenuOpen(false)}
-              className={`px-lg py-md text-body-md font-semibold transition-colors flex items-center gap-sm ${
-                pathname.startsWith("/play/deadline") ? "text-primary bg-surface-container-low" : "text-on-surface hover:text-primary hover:bg-surface-container-low"
-              }`}
-            >
-              <Timer size={14} className="text-error" aria-hidden="true" /> Deadline <span className="text-label-sm font-normal text-on-surface-variant">party game with friends</span>
-            </Link>
             {/* Phones only: the desktop bar has no room, and signed-in people also have it in the profile menu. */}
             <Link
               href="/codes"
@@ -141,41 +127,5 @@ export default function Navbar({ authSlot }: { authSlot: React.ReactNode }) {
         )}
       </header>
     </>
-  );
-}
-
-/** Highlighted link to the daily puzzle (desktop bar). */
-function FortyFiveLink({ active }: { active: boolean }) {
-  return (
-    <Link
-      href="/forty-five"
-      aria-label="Forty-Five"
-      title="Forty-Five: daily puzzle"
-      className={`-my-1 hidden lg:inline-flex items-center gap-xs whitespace-nowrap rounded-full border px-sm py-1 text-body-md font-semibold transition-colors ${
-        active ? "border-primary bg-primary-fixed text-primary" : "border-outline-variant text-on-surface hover:border-primary hover:text-primary"
-      }`}
-    >
-      <FortyFiveMark />
-      {/* Mark only on small laptops / iPad landscape, where the full label overflows the bar. */}
-      <span className="hidden xl:inline">Forty-Five</span>
-    </Link>
-  );
-}
-
-/** Highlighted link to the party game (desktop bar), next to Forty-Five. */
-function DeadlineLink({ active }: { active: boolean }) {
-  return (
-    <Link
-      href="/play/deadline"
-      aria-label="Deadline"
-      title="Deadline: party game with friends"
-      className={`-my-1 hidden lg:inline-flex items-center gap-xs whitespace-nowrap rounded-full border px-sm py-1 text-body-md font-semibold transition-colors ${
-        active ? "border-primary bg-primary-fixed text-primary" : "border-outline-variant text-on-surface hover:border-primary hover:text-primary"
-      }`}
-    >
-      <Timer size={14} className="text-error" aria-hidden="true" />
-      {/* Icon only on small laptops / iPad landscape, like Forty-Five. */}
-      <span className="hidden xl:inline">Deadline</span>
-    </Link>
   );
 }

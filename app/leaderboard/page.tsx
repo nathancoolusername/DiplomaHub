@@ -7,10 +7,11 @@ import { Avatar } from "@/components/avatar";
 import { HideToggle } from "@/components/leaderboard/HideToggle";
 import { FortyFiveBoard } from "@/components/leaderboard/FortyFiveBoard";
 import { DeadlineBoard } from "@/components/leaderboard/DeadlineBoard";
+import { FlagsBoard } from "@/components/leaderboard/FlagsBoard";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
-  description: "Who's practising most on DiplomaHub this week and of all time, who has shared the most, today's Forty-Five puzzle scores and the most Deadline wins.",
+  description: "Who's practising most on DiplomaHub this week and of all time, who has shared the most, today's Forty-Five puzzle scores, the most Deadline wins and the fastest Flags runs.",
   alternates: { canonical: "/leaderboard" },
 };
 
@@ -20,12 +21,13 @@ type Props = { searchParams: Promise<{ period?: string; page?: string }> };
 
 const MEDALS = ["bg-[#f5c542] text-[#3d2e00]", "bg-[#c9d1dc] text-[#25303d]", "bg-[#d99a5b] text-[#3a2105]"];
 
-type Board = LeaderboardPeriod | "contribution" | "forty-five" | "forty-five-all" | "deadline" | "deadline-all";
+type Board = LeaderboardPeriod | "contribution" | "forty-five" | "forty-five-all" | "deadline" | "deadline-all" | "flags" | "flags-all";
 const TABS: { id: Board; label: string }[] = [
   { id: "week", label: "Practice" },
   { id: "contribution", label: "Contribution" },
   { id: "forty-five", label: "Forty-Five" },
   { id: "deadline", label: "Deadline" },
+  { id: "flags", label: "Flags" },
 ];
 
 // Practice leaderboard: this week (resets Monday 00:00 UTC) or all time; and
@@ -34,11 +36,20 @@ const TABS: { id: Board; label: string }[] = [
 export default async function Leaderboard({ searchParams }: Props) {
   const sp = await searchParams;
   const tab: Board =
-    sp.period === "all" || sp.period === "contribution" || sp.period === "forty-five" || sp.period === "forty-five-all" || sp.period === "deadline" || sp.period === "deadline-all"
+    sp.period === "all" || sp.period === "contribution" || sp.period === "forty-five" || sp.period === "forty-five-all" || sp.period === "deadline" || sp.period === "deadline-all" || sp.period === "flags" || sp.period === "flags-all"
       ? sp.period
       : "week";
   if (tab === "deadline" || tab === "deadline-all")
     return <DeadlineBoard view={tab === "deadline" ? "week" : "all"} tabs={<BoardTabs current="deadline" />} href={(v) => boardHref(v === "week" ? "deadline" : "deadline-all")} />;
+  if (tab === "flags" || tab === "flags-all")
+    return (
+      <FlagsBoard
+        view={tab === "flags" ? "daily" : "all"}
+        page={Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1)}
+        tabs={<BoardTabs current="flags" />}
+        href={(v, n) => boardHref(v === "daily" ? "flags" : "flags-all", n)}
+      />
+    );
   if (tab === "contribution") return <ContributionBoard page={Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1)} />;
   if (tab === "forty-five" || tab === "forty-five-all")
     return (

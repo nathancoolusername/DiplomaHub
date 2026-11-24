@@ -14,7 +14,7 @@ import DashboardResources from "@/components/home/dashboard-resources";
 import { GettingStartedCard } from "./GettingStartedCard";
 import { ResetBanner } from "@/components/reset/ResetBanner";
 import { SquadsCard } from "./SquadsCard";
-import { DeadlineCard } from "./DeadlineCard";
+import { GamesCard } from "./GamesCard";
 import { RankCard } from "@/components/leaderboard/RankCard";
 import { MidnightPromo } from "./MidnightPromo";
 import { CodesCard } from "./CodesCard";
@@ -105,7 +105,7 @@ export async function DiplomaProHome({
 
         <SquadsCard squads={squads} />
 
-        <DeadlineCard />
+        <GamesCard />
 
         <CodesCard stats={sharing} />
 
