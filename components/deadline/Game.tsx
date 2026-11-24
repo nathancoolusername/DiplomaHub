@@ -272,6 +272,14 @@ export function AnswerBar({ roundId, myTurn, canPlay, actions, holderName, onTyp
   }
   return (
     <form onSubmit={submit} className="flex flex-col gap-xs">
+      {/* Whose turn, right where you type: loud when it's yours. */}
+      <p className="text-center" aria-hidden="true">
+        {myTurn ? (
+          <span className="inline-block rounded-full bg-error text-on-error px-md py-0.5 text-body-md font-black uppercase tracking-wide animate-pulse">Your turn, answer now!</span>
+        ) : (
+          <span className="text-label-md text-on-surface-variant">{holderName}&apos;s turn{text.trim() ? " · press Enter when it's yours" : ""}</span>
+        )}
+      </p>
       <div ref={row} className="flex items-center gap-xs">
         <label className="flex-1">
           <span className="sr-only">Your answer</span>
