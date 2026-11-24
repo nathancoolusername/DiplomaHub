@@ -111,7 +111,8 @@ function Seat({ p, me, isHolder, isHost, fx, reactions, color, style }: {
 }
 
 /**
- * Seats round the prompt on a laptop (an ellipse, first seat at the top),
+ * Seats round the prompt on a laptop (an ellipse with your own seat at the
+ * bottom, nearest your answer bar; watchers see the first seat at the top),
  * a scrolling row above it on a phone. The prompt card is the ring's centre.
  */
 export function SeatRing({ players, me, round, hostId, event, reactions, children }: {
@@ -126,7 +127,9 @@ export function SeatRing({ players, me, round, hostId, event, reactions, childre
   };
   const n = seated.length;
   const colors = playerColors(players.map((p) => p.user_id));
-  const angle = (i: number) => (-90 + (360 * i) / n) * (Math.PI / 180);
+  // Turned so your seat sits at the bottom; play order still runs clockwise.
+  const mine = seated.findIndex((p) => p.user_id === me);
+  const angle = (i: number) => (mine >= 0 ? 90 + (360 * (i - mine)) / n : -90 + (360 * i) / n) * (Math.PI / 180);
   const hi = seated.findIndex((p) => p.user_id === round.holder_id);
 
   // Phone: keep the holder's seat in view in the scrolling row.
