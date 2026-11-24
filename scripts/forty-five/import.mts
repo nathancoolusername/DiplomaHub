@@ -7,8 +7,9 @@
 // Runs the validator first and stops if it reports errors.
 // Upserts by slug. A puzzle that is still 'draft' is updated in place (its
 // groups replaced). One already 'approved' or 'rejected' is skipped, so a
-// re-import never undoes your review; pass --force to reset those to draft
-// (it also takes them off the calendar).
+// re-import never undoes your review; pass --force to reset those to draft.
+// --force never touches a scheduled puzzle (that would leave its day empty):
+// Reject / Unschedule it in Admin first, which refills the day.
 // Needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local
 // and migration 34 (forty_five_bank).
 
@@ -51,19 +52,20 @@ const puzzles: SourcePuzzle[] = files.flatMap((f) => {
   return Array.isArray(j) ? j : [j];
 });
 
-const existing = await sb.from("forty_five_puzzles").select("id, slug, status").in("slug", puzzles.map((p) => p.slug));
+const existing = await sb.from("forty_five_puzzles").select("id, slug, status, scheduled_for").in("slug", puzzles.map((p) => p.slug));
 if (existing.error) {
   console.error(`Couldn't read forty_five_puzzles: ${existing.error.message}`);
   if (/does not exist|schema cache/i.test(existing.error.message)) console.error("Run migration 34 (supabase/migrations/20261113120000_forty_five_bank.sql) first.");
   process.exit(1);
 }
-const bySlug = new Map(existing.data.map((r) => [r.slug as string, r as { id: string; slug: string; status: string }]));
+const bySlug = new Map(existing.data.map((r) => [r.slug as string, r as { id: string; slug: string; status: string; scheduled_for: string | null }]));
 
 const plan = { insert: [] as SourcePuzzle[], update: [] as SourcePuzzle[], reset: [] as SourcePuzzle[], skip: [] as string[] };
 for (const p of puzzles) {
   const row = bySlug.get(p.slug);
   if (!row) plan.insert.push(p);
   else if (row.status === "draft") plan.update.push(p);
+  else if (row.scheduled_for) plan.skip.push(`${p.slug} (scheduled ${row.scheduled_for}; pull it in Admin first)`);
   else if (force) plan.reset.push(p);
   else plan.skip.push(`${p.slug} (${row.status})`);
 }

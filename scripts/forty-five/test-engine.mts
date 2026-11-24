@@ -70,5 +70,45 @@ const first50 = order.slice(0, 50).filter((o) => o.mixedFinal).length;
 ok(first50 >= 39 && first50 <= 41, `about 80% Mixed finals early on (${first50}/50)`);
 const runEnd = order.findLastIndex((o) => o.mixedFinal) + 1;
 console.log(`schedule: ${order.filter((o) => o.mixedFinal).length} Mixed finals; 80% mix lasts ${runEnd} days`);
+// ── Calendar planning: no empty days (lib/forty-five/schedule.ts) ──────
+{
+  const { planCalendar, calendarGaps } = await import("../../lib/forty-five/schedule.ts");
+  const eq = (a: unknown, b: unknown, what: string) => ok(JSON.stringify(a) === JSON.stringify(b), `${what}: got ${JSON.stringify(a)}`);
+  const cal = [
+    { id: "a", date: "2026-11-23" },
+    { id: "c", date: "2026-11-25" },
+    { id: "d", date: "2026-11-26" },
+  ];
+  eq(calendarGaps(cal.map((c) => c.date), "2026-11-23", "2026-11-22"), ["2026-11-22", "2026-11-24"], "gaps from launch, past and future");
+  eq(calendarGaps(["2026-11-22"], "2026-11-24", "2026-11-22"), ["2026-11-23", "2026-11-24"], "an empty today counts as a gap");
+  eq(planCalendar(cal, [{ id: "q1" }, { id: "q2" }], "2026-11-23"), [
+    { id: "q1", from: null, to: "2026-11-24" },
+    { id: "q2", from: null, to: "2026-11-27" },
+  ], "queue fills the hole first, the rest goes after the end");
+  eq(planCalendar(cal, [], "2026-11-23"), [
+    { id: "c", from: "2026-11-25", to: "2026-11-24" },
+    { id: "d", from: "2026-11-26", to: "2026-11-25" },
+  ], "empty queue: later puzzles move up one day");
+  eq(planCalendar(cal, [], "2026-11-24"), [
+    { id: "c", from: "2026-11-25", to: "2026-11-24" },
+    { id: "d", from: "2026-11-26", to: "2026-11-25" },
+  ], "empty today gets tomorrow's puzzle");
+  eq(planCalendar([{ id: "p", date: "2026-11-20" }, ...cal], [], "2026-11-23").some((m) => m.id === "p" || m.id === "a"), false, "played and unchanged days never move");
+  eq(planCalendar([{ id: "a", date: "2026-11-23" }, { id: "e", date: "2026-11-27" }], [{ id: "q1" }], "2026-11-23"), [
+    { id: "q1", from: null, to: "2026-11-24" },
+    { id: "e", from: "2026-11-27", to: "2026-11-25" },
+  ], "multi-day hole: queue then move-up");
+  eq(planCalendar(cal.slice(0, 1), [], "2026-11-23"), [], "nothing to do");
+  // Applying in order never puts two puzzles on one day.
+  const taken = new Map(cal.map((c) => [c.date, c.id]));
+  let clash = false;
+  for (const m of planCalendar(cal, [{ id: "q1" }], "2026-11-23")) {
+    if (taken.has(m.to)) clash = true;
+    if (m.from) taken.delete(m.from);
+    taken.set(m.to, m.id);
+  }
+  ok(!clash, "plan applies without collisions");
+}
+
 console.log(`${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

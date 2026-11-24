@@ -49,6 +49,8 @@ const nextConfig = {
       },
     ],
   },
+  // pdf.js reads review drafts on the server (Ask Bro about a comment); load it from node_modules, not bundled.
+  serverExternalPackages: ["pdfjs-dist"],
   experimental: {
     serverActions: {
       bodySizeLimit: "20mb",

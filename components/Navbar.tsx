@@ -17,12 +17,12 @@ import { NewsToast } from "./NewsToast";
 // still shows the loading skeleton; it just isn't fetched ahead of time.
 const NO_PREFETCH = new Set(["/hub"]);
 
-// `also`: other routes that light up this item (Games covers every game).
+// `also`: other routes that light up this item (Pro covers Bro and reviews; Games covers every game).
 const navLinks: { label: string; href: string; also?: string[] }[] = [
   { label: "Home", href: "/" },
   { label: "Hub", href: "/hub" },
   { label: "Practice", href: "/practice" },
-  { label: "Bro", href: "/bro" },
+  { label: "Pro", href: "/pro", also: ["/bro", "/review"] },
   { label: "Progress", href: "/progress" },
   { label: "Games", href: "/games", also: ["/forty-five", "/play", "/flags"] },
   { label: "Resources", href: "/resources" },

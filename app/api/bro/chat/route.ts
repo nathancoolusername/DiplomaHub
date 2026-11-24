@@ -10,6 +10,7 @@ import { MEMORY_KINDS } from "@/lib/bro/memory-rules";
 import { addResult } from "@/lib/data/supabase/results";
 import { describeResult, RESULT_KINDS } from "@/lib/results";
 import { loadQuestionForBro, questionRef } from "@/lib/bro/question";
+import { loadReviewCommentForBro, reviewRef } from "@/lib/bro/review";
 import {
   runBuildSet,
   runRedoSet,
@@ -455,7 +456,7 @@ export async function DELETE(req: Request) {
 export async function POST(req: Request) {
   if (!sameOriginJson(req)) return fail("invalid", "Bad request.", 403);
   const t0 = Date.now();
-  let body: { message?: unknown; opener?: unknown; timeZone?: unknown; conversationId?: unknown; question?: unknown; warm?: unknown };
+  let body: { message?: unknown; opener?: unknown; timeZone?: unknown; conversationId?: unknown; question?: unknown; review?: unknown; warm?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -487,6 +488,9 @@ export async function POST(req: Request) {
   const qref = questionRef(body.question);
   const loaded = qref ? await loadQuestionForBro(userId, qref) : null;
   const questionBlock = loaded?.block ?? null;
+  // A coursework review comment ("Ask Bro" on the review page), loaded from their own draft.
+  const rref = reviewRef(body.review);
+  const reviewBlock = rref ? await loadReviewCommentForBro(rref) : null;
   // Only an id that's really one of their chats continues it (RLS); anything else starts a new chat.
   // With a question, only a chat about that same attempt: never a general chat or another set's.
   let asked = chatId(body.conversationId);
@@ -507,6 +511,7 @@ export async function POST(req: Request) {
         { type: "text", text: opener ? `(I opened you from this note you wrote on my Hub: "${opener}")\n\n${message}` : message },
         { type: "text", text: `(Sent ${sentAt}, the student's time.)` },
         ...(questionBlock ? [{ type: "text" as const, text: `[From DiplomaHub, not written by the student]\n${questionBlock}` }] : []),
+        ...(reviewBlock ? [{ type: "text" as const, text: `[From DiplomaHub, not written by the student]\n${reviewBlock}` }] : []),
       ],
     },
   ];

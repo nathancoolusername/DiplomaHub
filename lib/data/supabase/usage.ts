@@ -68,3 +68,14 @@ export async function consumeUsage(metric: UsageMetric): Promise<UsageResult> {
   const r = data as { allowed: boolean; used: number; cap: number | null; remaining: number | null };
   return { allowed: r.allowed, used: r.used, cap: r.cap, remaining: r.remaining };
 }
+
+/** Today's counted uses per metric (UTC day), for the Pro page's limits. */
+export async function getTodayUsage(): Promise<Record<UsageMetric, number>> {
+  const uid = await requireUserId();
+  const today = new Date().toISOString().slice(0, 10);
+  const { data, error } = await createAdminClient().from("usage_counters").select("metric, count").eq("user_id", uid).eq("day", today);
+  check(error);
+  const out: Record<UsageMetric, number> = { bro_message: 0, opus_escalation: 0, generated_question: 0 };
+  for (const r of data ?? []) out[r.metric as UsageMetric] = r.count as number;
+  return out;
+}
