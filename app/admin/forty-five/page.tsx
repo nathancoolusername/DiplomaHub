@@ -14,7 +14,7 @@ export default async function AdminFortyFivePage() {
       </>
     );
   }
-  const { puzzles, counts, scheduledUntil, today } = result.data;
+  const { puzzles, counts, scheduledUntil, today, emptyDays, pastEmptyDays } = result.data;
   const daysLeft = scheduledUntil ? Math.max(0, Math.round((Date.parse(scheduledUntil) - Date.parse(today)) / 86_400_000) + 1) : 0;
 
   return (
@@ -25,7 +25,7 @@ export default async function AdminFortyFivePage() {
         right={
           <div className="flex flex-wrap items-center gap-sm">
             <FortyFiveTabs current="puzzles" />
-            <ScheduleButton ready={counts.readyToSchedule} />
+            <ScheduleButton ready={counts.readyToSchedule} emptyDays={emptyDays.length} />
           </div>
         }
       />
@@ -35,6 +35,15 @@ export default async function AdminFortyFivePage() {
         <StatCard label="Approved, not scheduled" value={counts.readyToSchedule} />
         <StatCard label="Rejected" value={counts.rejected} />
       </StatGrid>
+      {emptyDays.length > 0 && (
+        <p role="alert" className="rounded-xl border border-error bg-error-container px-md py-sm text-body-md text-on-error-container">
+          {emptyDays.includes(today) ? "Today has no puzzle. " : ""}
+          Empty {emptyDays.length === 1 ? "day" : "days"}: {emptyDays.join(", ")}. Press &ldquo;{counts.readyToSchedule ? `Schedule ${counts.readyToSchedule} approved` : `Fill ${emptyDays.length} empty day${emptyDays.length === 1 ? "" : "s"}`}&rdquo;: approved puzzles fill them first, otherwise later puzzles move up a day.
+        </p>
+      )}
+      {pastEmptyDays.length > 0 && (
+        <p className="text-label-md text-on-surface-variant">Past days with no puzzle (gaps in the archive and in streaks): {pastEmptyDays.join(", ")}.</p>
+      )}
       <FortyFiveReview puzzles={puzzles} />
     </>
   );

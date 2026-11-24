@@ -44,7 +44,8 @@ export function AuthNav() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const userId = session?.user.id;
+      // Deadline guests (anonymous sign-ins) are signed out everywhere else.
+      const userId = session?.user.is_anonymous ? undefined : session?.user.id;
       if (!userId) {
         navCache = null;
         if (!cancelled) setUser(null);

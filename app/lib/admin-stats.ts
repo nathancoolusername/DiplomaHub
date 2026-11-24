@@ -184,9 +184,9 @@ export async function getSystemStats(days: number): Promise<Result<SystemStats>>
       "squad_shares",
       sb.from("squad_shares").select("code_id, resource_id, created_at, share_codes(type)").limit(20000) as never,
     ),
-    Promise.all(["sage", "tide", "orchid", "blossom", "ember"].map(async (a) => ({ label: a, count: await count(sb.from("users").select("id", { count: "exact", head: true }).eq("accent", a)) }))),
-    Promise.all(["dawn", "aurora", "dusk"].map(async (b) => ({ label: b, count: await count(sb.from("users").select("id", { count: "exact", head: true }).eq("backdrop", b)) }))),
-    count(sb.from("users").select("id", { count: "exact", head: true }).contains("dismissed_hints", ["style"])),
+    Promise.all(["sage", "tide", "orchid", "blossom", "ember"].map(async (a) => ({ label: a, count: await count(sb.from("dp_members").select("id", { count: "exact", head: true }).eq("accent", a)) }))),
+    Promise.all(["dawn", "aurora", "dusk"].map(async (b) => ({ label: b, count: await count(sb.from("dp_members").select("id", { count: "exact", head: true }).eq("backdrop", b)) }))),
+    count(sb.from("dp_members").select("id", { count: "exact", head: true }).contains("dismissed_hints", ["style"])),
     count(sb.from("pro_waitlist").select("id", { count: "exact", head: true }).eq("source", "homepage")),
   ]);
 

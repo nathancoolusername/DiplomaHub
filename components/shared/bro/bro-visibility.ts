@@ -11,9 +11,14 @@ import { useEffect, useSyncExternalStore } from "react";
 /** A practice question on screen that Bro should help with (owner-checked on the server). */
 export type BroQuestion = { attemptId: string; questionId: string; label: string };
 
+/** A comment from a coursework review (owner-checked and loaded on the server). */
+export type BroReviewRef = { draftId: string; comment: number };
+
 export type BroOpenRequest = {
   /** "Ask Bro" on one question (results, marking). */
   question?: BroQuestion;
+  /** "Ask Bro" on a coursework review comment. */
+  review?: BroReviewRef;
   /** Shown as Bro's first message, e.g. the weekly brief being discussed. */
   context?: string;
   /** Sent as the student's first message straight away, e.g. a prompt chip. */

@@ -18,7 +18,7 @@ const cspHeader = `
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https://gmfqdkbghbxdlxffwfca.supabase.co;
   font-src 'self';
-  connect-src 'self' https://gmfqdkbghbxdlxffwfca.supabase.co https://*.ingest.de.sentry.io https://*.ingest.sentry.io https://*.sentry.io;
+  connect-src 'self' https://gmfqdkbghbxdlxffwfca.supabase.co wss://gmfqdkbghbxdlxffwfca.supabase.co https://*.ingest.de.sentry.io https://*.ingest.sentry.io https://*.sentry.io;
   object-src 'none';
   base-uri 'self';
   form-action 'self';
@@ -49,6 +49,8 @@ const nextConfig = {
       },
     ],
   },
+  // pdf.js reads review drafts on the server (Ask Bro about a comment); load it from node_modules, not bundled.
+  serverExternalPackages: ["pdfjs-dist"],
   experimental: {
     serverActions: {
       bodySizeLimit: "20mb",

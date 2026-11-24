@@ -5,19 +5,34 @@ import { DiplomaBroMark } from "@/components/shared/bro/DiplomaBroIcon";
 import { BroAvatar } from "@/components/shared/BroAvatar";
 import { WaitlistForm } from "@/components/pro/WaitlistForm";
 import { links } from "@/lib/practice/links";
+import { DAILY_CAPS } from "@/lib/plans";
+import { REVIEWS_PER_MONTH } from "@/lib/review/labels";
+import { getCurrentUserId } from "@/app/lib/get-current-user";
+import { getBroConversations, getProStatus } from "@/lib/data";
+import { getTodayUsage } from "@/lib/data/supabase/usage";
+import { getReviewAllowance, getReviewProjects } from "@/lib/data/supabase/reviews";
+import { ProHub } from "@/components/pro/ProHub";
+import { LaunchCounter } from "@/components/pro/LaunchCounter";
+import { getCampaignJoined } from "@/lib/data/supabase/campaign";
 
 export const metadata: Metadata = {
   title: "DiplomaPro",
   description:
-    "DiplomaPro is coming soon: DiplomaBro on every page, help on the question in front of you, grounded in its markscheme, practice sets built for your weak spots and study plans around your tests. Join the waitlist.",
+    "DiplomaPro launches on 1 December: DiplomaBro on every page, IA, EE and TOK drafts reviewed against the official criteria, and a launch price that drops the more students join. Join the list.",
   alternates: { canonical: "/pro" },
 };
 
-// Static: no cookies or per-user data on the server (the form works out the
-// sign-in on the client), like the signed-out homepage. Everything under
-// "Ready on day one" is built; "After launch" is planned, not promised dates.
+// Students with DiplomaPro get the Pro hub (Bro, reviews, limits, plan; the
+// menu's "Pro" item). Everyone else gets this page: the form works out the
+// sign-in on the client. Everything under "Ready on day one" is built;
+// "After launch" is planned, not promised dates.
 
 const READY = [
+  {
+    Icon: FileText,
+    title: "IA, EE and TOK reviews",
+    text: "Upload a draft and Bro marks it against the official IB criteria like a moderator would, with comments pinned to your pages and your marks tracked from draft to draft. 6 reviews a month.",
+  },
   {
     Icon: BookOpenCheck,
     title: "Help on the question in front of you",
@@ -51,7 +66,6 @@ const READY = [
 ];
 
 const LATER = [
-  { Icon: FileText, title: "Essay and IA feedback", text: "Feedback against the IB criteria, with the points that would move your mark." },
   { Icon: Camera, title: "Grade work from a photo", text: "Photograph a paper and confirm the marks Bro proposes." },
   { Icon: Mic, title: "Talk to Bro and practise orals", text: "Speak your questions, and run a practice oral with written feedback after." },
 ];
@@ -65,6 +79,35 @@ const FREE_NOW = [
 ];
 
 const bubble = "rounded-2xl px-md py-sm text-body-md max-w-[85%]";
+
+/** Bro on a practice question: the question is attached, hints first, then it checks the student's own working. */
+function SampleQuestionChat() {
+  return (
+    <div className="rounded-3xl bg-surface-container-lowest border border-outline-variant p-md md:p-lg flex flex-col gap-sm" aria-label="Example: DiplomaBro helping with a practice question">
+      <div className="self-end max-w-[85%] rounded-xl border border-outline-variant bg-surface-container-low p-sm flex flex-col gap-0.5">
+        <p className="text-label-sm font-semibold text-on-surface-variant">Maths AA · Question 4 · 6 marks</p>
+        <p className="text-body-md text-on-surface">Find the coordinates of the stationary point of y = x·e⁻ˣ and show that it is a maximum.</p>
+      </div>
+      <p className={`${bubble} self-end bg-primary text-on-primary`}>I don&apos;t get how to start this one</p>
+      <div className="flex items-start gap-sm">
+        <BroAvatar size={28} className="shrink-0 mt-0.5" />
+        <div className="flex flex-col gap-sm min-w-0 flex-1">
+          <p className={`${bubble} bg-surface-container text-on-surface`}>
+            Stationary point means dy/dx = 0. y is a product, x times e⁻ˣ, so which rule do you need first? Try differentiating and send me what you get.
+          </p>
+        </div>
+      </div>
+      <p className={`${bubble} self-end bg-primary text-on-primary`}>product rule? dy/dx = e⁻ˣ − x·e⁻ˣ so x = 1</p>
+      <div className="flex items-start gap-sm">
+        <BroAvatar size={28} className="shrink-0 mt-0.5" />
+        <p className={`${bubble} bg-surface-container text-on-surface`}>
+          Exactly, that&apos;s your first two marks. Now the y-coordinate, and for &ldquo;show it&apos;s a maximum&rdquo; the markscheme wants the second derivative (or a sign
+          change) with a clear conclusion. What&apos;s d²y/dx² at x = 1?
+        </p>
+      </div>
+    </div>
+  );
+}
 
 /** A short, made-up exchange in the real chat style: what Bro does in one message. */
 function SampleChat() {
@@ -123,21 +166,36 @@ function FeatureList({ items, muted = false }: { items: { Icon: typeof Brain; ti
   );
 }
 
-export default function ProPage() {
+export default async function ProPage() {
+  const uid = await getCurrentUserId();
+  const joinedReady = getCampaignJoined().catch(() => 0);
+  if (uid) {
+    const status = await getProStatus().catch(() => null);
+    if (status?.isPro) {
+      const [usage, allowance, projects, chats] = await Promise.all([
+        getTodayUsage(),
+        getReviewAllowance().catch(() => null), // null until the reviews migration has run
+        getReviewProjects().catch(() => null),
+        getBroConversations(3).catch(() => []),
+      ]);
+      return <ProHub status={status} usage={usage} allowance={allowance} projects={projects} chats={chats} />;
+    }
+  }
+  const joined = await joinedReady;
   return (
     <div className="max-w-[960px] mx-auto px-md py-xl flex flex-col gap-xl">
       <header className="rounded-3xl bg-surface-container-lowest border border-outline-variant p-lg md:p-xl grid md:grid-cols-[1fr_auto] items-center gap-xl">
         <div className="flex flex-col gap-md">
           <span className="self-start inline-flex items-center gap-xs rounded-full bg-tertiary-container text-on-tertiary-container px-sm py-px text-label-sm font-bold uppercase tracking-wide">
-            Coming soon
+            Launching 1 December
           </span>
           <h1 className="font-serif font-bold text-headline-lg md:text-display-lg text-on-surface">
             DiplomaPro
           </h1>
-          <p className="text-headline-md font-serif text-on-surface">A study partner who knows the syllabus, your test dates and every mark you&apos;ve lost.</p>
+          <p className="text-headline-md font-serif text-on-surface">A study partner who knows your syllabus and your tests, and an examiner for your coursework.</p>
           <p className="text-body-lg text-on-surface-variant max-w-140">
-            Practice stays free. DiplomaPro adds DiplomaBro on every page: it helps with the question in front of you, builds practice from your weak spots and plans
-            your weeks around your tests. Join the waitlist and we&apos;ll email you the day it opens.
+            Practice stays free. DiplomaPro adds DiplomaBro on every page, which helps with the question in front of you and plans your weeks around your tests, and
+            reviews of your IA, EE and TOK drafts against the official IB criteria. Join the list to be first in on launch day and help bring the launch price down.
           </p>
           <WaitlistForm />
         </div>
@@ -164,12 +222,25 @@ export default function ProPage() {
         <SampleChat />
       </section>
 
+      <section className="grid md:grid-cols-[1.1fr_1fr] gap-lg items-center" aria-labelledby="question-heading">
+        <SampleQuestionChat />
+        <div className="flex flex-col gap-sm order-first md:order-last">
+          <h2 id="question-heading" className="font-serif font-bold text-headline-md text-on-surface">
+            Stuck on a question? Hints first
+          </h2>
+          <p className="text-body-lg text-on-surface-variant">
+            Tap Ask Bro in the middle of a set and it sees the question, your working and the markscheme. It nudges you to the next step instead of handing over the answer,
+            and tells you which marks your working has already earned.
+          </p>
+        </div>
+      </section>
+
       <section className="flex flex-col gap-md" aria-labelledby="ready-heading">
         <div className="flex flex-col gap-xs">
           <h2 id="ready-heading" className="font-serif font-bold text-headline-md text-on-surface">
             Ready on day one
           </h2>
-          <p className="text-body-md text-on-surface-variant">Built and being tested now. Bro works from each question&apos;s markscheme, gives hints before answers, and won&apos;t just do your work for you.</p>
+          <p className="text-body-md text-on-surface-variant">Built and in testing now. Bro works from the markscheme and the official criteria, gives hints before answers, and never writes your work for you.</p>
         </div>
         <FeatureList items={READY} />
         <div className="rounded-2xl bg-surface-container-lowest border border-outline-variant p-lg flex gap-md">
@@ -183,6 +254,21 @@ export default function ProPage() {
             </p>
           </div>
         </div>
+      </section>
+
+      <LaunchCounter initial={joined} />
+
+      <section className="flex flex-col gap-md" aria-labelledby="limits-heading">
+        <div className="flex flex-col gap-xs">
+          <h2 id="limits-heading" className="font-serif font-bold text-headline-md text-on-surface">
+            What you get
+          </h2>
+          <p className="text-body-md text-on-surface-variant">Generous enough for real use. Practice from the question bank never has a limit, with or without Pro.</p>
+        </div>
+        <ul className="grid gap-md sm:grid-cols-2">
+          <Limit value={`${DAILY_CAPS.bro_message.pro}`} unit="Bro messages a day" />
+          <Limit value={`${REVIEWS_PER_MONTH}`} unit="coursework reviews a month (any mix of IA, EE and TOK)" />
+        </ul>
       </section>
 
       <section className="flex flex-col gap-md" aria-labelledby="later-heading">
@@ -209,5 +295,14 @@ export default function ProPage() {
         </Link>
       </section>
     </div>
+  );
+}
+
+function Limit({ value, unit }: { value: string; unit: string }) {
+  return (
+    <li className="rounded-2xl bg-surface-container-lowest border border-outline-variant p-lg flex flex-col gap-xs">
+      <span className="font-serif font-bold text-display-lg text-primary tabular-nums leading-none">{value}</span>
+      <span className="text-body-md text-on-surface-variant">{unit}</span>
+    </li>
   );
 }

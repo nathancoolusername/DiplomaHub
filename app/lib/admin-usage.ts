@@ -70,7 +70,7 @@ export async function getUsageStats(days: number): Promise<Result<UsageStats>> {
   const load = async (table: string, userCol: string, tsCol: string): Promise<U[]> =>
     (await rows<Record<string, string | null>>(table, `${userCol}, ${tsCol}`, tsCol, span)).map((r) => ({ user_id: r[userCol], at: r[tsCol] ?? "" }));
 
-  const [users, days_, sets, attempts, hub, ff, ffGuests, squads, resets, results, bro, likes, saves, comments, requests, waitlist, subjects] =
+  const [users, days_, sets, attempts, hub, ff, ffGuests, dl, squads, resets, results, bro, likes, saves, comments, requests, waitlist, subjects] =
     await Promise.all([
       rows<{ id: string; created_at: string; is_guest: boolean | null }>("users", "id, created_at, is_guest", "created_at", span),
       rows<{ user_id: string; day: string }>("user_activity_days", "user_id, day", "day", span),
@@ -84,6 +84,7 @@ export async function getUsageStats(days: number): Promise<Result<UsageStats>> {
       load("hub_items", "owner_id", "created_at"),
       load("forty_five_plays", "user_id", "finished_at"),
       rows<{ created_at: string }>("forty_five_guest_finishes", "created_at", "created_at", span),
+      load("dl_round_answers", "user_id", "created_at"),
       load("squad_members", "user_id", "joined_at"),
       load("weekly_resets", "user_id", "done_at"),
       load("student_results", "user_id", "created_at"),
@@ -136,6 +137,7 @@ export async function getUsageStats(days: number): Promise<Result<UsageStats>> {
       list: ff,
       extra: ffGuests.filter((g) => within(g.created_at, days)).length,
     },
+    { table: "dl_round_answers", key: "dl", label: "Played Deadline", href: "/admin/deadline", list: dl },
     { table: "squad_members", key: "squads", label: "Joined a squad", href: "/admin/system", list: squads },
     { table: "weekly_resets", key: "reset", label: "Did a Sunday Reset", href: "/admin/system", list: resets },
     { table: "student_results", key: "progress", label: "Logged a result (Progress)", href: "/admin/hub", list: results },

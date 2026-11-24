@@ -9,11 +9,13 @@ import { SuggestionCard } from "@/components/shared/SuggestionCard";
 import { suggestionGridCols } from "@/components/shared/suggestion-grid";
 import { StrengthCarousel } from "@/components/shared/strength/StrengthCarousel";
 import { BroButton } from "@/components/shared/bro/BroButton";
+import { ReviewCard } from "./ReviewCard";
 import DashboardNextDays from "@/components/home/dashboard-next-days";
 import DashboardResources from "@/components/home/dashboard-resources";
 import { GettingStartedCard } from "./GettingStartedCard";
 import { ResetBanner } from "@/components/reset/ResetBanner";
 import { SquadsCard } from "./SquadsCard";
+import { GamesCard } from "./GamesCard";
 import { RankCard } from "@/components/leaderboard/RankCard";
 import { MidnightPromo } from "./MidnightPromo";
 import { CodesCard } from "./CodesCard";
@@ -100,9 +102,13 @@ export async function DiplomaProHome({
 
         <GettingStartedCard progress={gettingStarted} />
 
+        <ReviewCard isPro={viewer.isPro} />
+
         {standing && <RankCard standing={standing} />}
 
         <SquadsCard squads={squads} />
+
+        <GamesCard />
 
         <CodesCard stats={sharing} />
 

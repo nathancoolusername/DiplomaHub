@@ -40,7 +40,8 @@ export const FEATURES: Record<FeatureKey, FeaturePlan> = {
   bro_chat: { label: "Bro chat", free: no, pro: { allowed: true, limit: 200, period: "month" } },
   bro_auto_fill: { label: "Auto sets", free: no, pro: { allowed: true, limit: 60, period: "month" } },
   short_answer_review: { label: "Answer checks", free: no, pro: { allowed: true, limit: 40, period: "month" } },
-  essay_review: { label: "Essay reviews", free: no, pro: { allowed: true, limit: 8, period: "month" } },
+  // IA, EE and TOK reviews (/review): 6 a month in total, counted by dp_claim_review (migration 65).
+  essay_review: { label: "Coursework reviews", free: no, pro: { allowed: true, limit: 6, period: "month" } },
   photo_marking: { label: "Photo marking", free: no, pro: { allowed: true, limit: 10, period: "month" } },
   generate_more: { label: "Generate more", free: no, pro: { allowed: true, limit: 5, period: "month" } },
   scheduling: { label: "Scheduling", free: no, pro: unlimited },

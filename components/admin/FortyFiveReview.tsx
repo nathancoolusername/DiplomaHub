@@ -30,8 +30,8 @@ function formatDay(date: string) {
   return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
 }
 
-/** "Schedule approved": fills the next free days with approved, unscheduled daily puzzles. */
-export function ScheduleButton({ ready, demo = false }: { ready: number; demo?: boolean }) {
+/** "Schedule": fills empty days (queue first, else later puzzles move up), then the next free days. */
+export function ScheduleButton({ ready, emptyDays = 0, demo = false }: { ready: number; emptyDays?: number; demo?: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
@@ -39,13 +39,15 @@ export function ScheduleButton({ ready, demo = false }: { ready: number; demo?: 
     <div className="flex flex-col items-end gap-xs">
       <button
         type="button"
-        disabled={pending || ready === 0 || demo}
+        disabled={pending || (ready === 0 && emptyDays === 0) || demo}
         onClick={() =>
           start(async () => {
             const r = await scheduleFortyFive();
             if (!r.success) setMsg(r.error);
             else {
-              setMsg(r.data.scheduled ? `Scheduled ${r.data.scheduled}: ${formatDay(r.data.from!)} to ${formatDay(r.data.to!)}` : "Nothing to schedule");
+              const { placed, moved, from, to } = r.data;
+              const parts = [placed && `scheduled ${placed}`, moved && `moved ${moved} up a day`].filter(Boolean).join(", ");
+              setMsg(parts ? `${parts[0].toUpperCase()}${parts.slice(1)}: ${formatDay(from!)} to ${formatDay(to!)}` : "Nothing to schedule");
               router.refresh();
             }
           })
@@ -53,7 +55,7 @@ export function ScheduleButton({ ready, demo = false }: { ready: number; demo?: 
         className={`${BTN} bg-primary text-on-primary`}
       >
         <CalendarPlus size={16} aria-hidden="true" />
-        {pending ? "Scheduling…" : `Schedule ${ready} approved`}
+        {pending ? "Scheduling…" : ready === 0 && emptyDays > 0 ? `Fill ${emptyDays} empty day${emptyDays === 1 ? "" : "s"}` : `Schedule ${ready} approved`}
       </button>
       {msg && <p className="text-label-sm text-on-surface-variant">{msg}</p>}
     </div>
@@ -139,6 +141,12 @@ function PuzzleCard({ puzzle: p, demo }: { puzzle: AdminFortyFivePuzzle; demo: b
         router.refresh();
       }
     });
+
+  // Pulling a scheduled puzzle refills its day: the next approved one, or later days move up.
+  const pull = (fn: () => Promise<{ success: boolean; error?: string }>) => {
+    if (p.scheduledFor && !window.confirm(`Take #${p.number} off ${formatDay(p.scheduledFor)}? Its day is refilled straight away: the next approved puzzle goes there, or, if none is waiting, every later puzzle moves up a day (and its number drops by one).`)) return;
+    run(fn);
+  };
 
   const setGroup = (i: number, patch: Partial<SourceGroup>) => setDraft((d) => d.map((g, j) => (j === i ? { ...g, ...patch } : g)));
   const setWord = (i: number, w: number, value: string) =>
@@ -278,12 +286,12 @@ function PuzzleCard({ puzzle: p, demo }: { puzzle: AdminFortyFivePuzzle; demo: b
                 </button>
               )}
               {p.status !== "rejected" && (
-                <button type="button" disabled={pending} onClick={() => run(() => reviewFortyFive(p.id, "rejected", note))} className={`${BTN} border border-error text-error`}>
+                <button type="button" disabled={pending} onClick={() => pull(() => reviewFortyFive(p.id, "rejected", note))} className={`${BTN} border border-error text-error`}>
                   <X size={16} aria-hidden="true" /> Reject
                 </button>
               )}
               {p.status !== "draft" && (
-                <button type="button" disabled={pending} onClick={() => run(() => reviewFortyFive(p.id, "draft", note))} className={`${BTN} border border-outline-variant text-on-surface`}>
+                <button type="button" disabled={pending} onClick={() => pull(() => reviewFortyFive(p.id, "draft", note))} className={`${BTN} border border-outline-variant text-on-surface`}>
                   <RotateCcw size={16} aria-hidden="true" /> Back to draft
                 </button>
               )}
@@ -291,7 +299,7 @@ function PuzzleCard({ puzzle: p, demo }: { puzzle: AdminFortyFivePuzzle; demo: b
                 <Pencil size={16} aria-hidden="true" /> Edit
               </button>
               {p.scheduledFor && (
-                <button type="button" disabled={pending} onClick={() => run(() => unscheduleFortyFive(p.id))} className={`${BTN} border border-outline-variant text-on-surface`}>
+                <button type="button" disabled={pending} onClick={() => pull(() => unscheduleFortyFive(p.id))} className={`${BTN} border border-outline-variant text-on-surface`}>
                   Unschedule
                 </button>
               )}

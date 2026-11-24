@@ -38,6 +38,33 @@ export async function signUp(
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
+  // A Deadline guest (anonymous sign-in) signing up: turn the guest into this
+  // account instead of making a new one. Same user id, so their games and
+  // wins stay theirs. (Their email reaches public.users through the
+  // on_auth_user_email_changed trigger, migration 20261208120000.)
+  const {
+    data: { user: current },
+  } = await supabase.auth.getUser();
+  if (current?.is_anonymous) {
+    const { error: upgradeError } = await supabase.auth.updateUser({
+      email,
+      password,
+      data: { display_name: displayName.value, ib_year: ibYear.value },
+    });
+    if (upgradeError) {
+      return {
+        success: false,
+        error: /already|registered|exists/i.test(upgradeError.message)
+          ? "That email already has an account. Log in instead (your guest games stay with the guest)."
+          : upgradeError.message,
+      };
+    }
+    await supabase.from("users").update({ display_name: displayName.value, ib_year: ibYear.value }).eq("id", current.id);
+    // A fresh token, so the site sees a full account (not a guest) straight away.
+    await supabase.auth.refreshSession();
+    redirect(isSafeNext(formData.get("next") as string | null) ?? "/profile/edit");
+  }
+
   const { error } = await supabase.auth.signUp({
     email,
     password,

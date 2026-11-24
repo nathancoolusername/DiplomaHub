@@ -7,8 +7,8 @@ import { isAdmin } from "../admin";
 import type { ActionResult } from "../types";
 import { checkBank, checkPuzzle, type CheckResult } from "@/lib/forty-five/checks";
 import type { GroupSubject, SourceGroup, SourcePuzzle, SourceTrap, Subject } from "@/lib/forty-five/format";
-import { LAUNCH_DATE, utcToday, addDays } from "@/lib/forty-five/dates";
-import { hasMixedFinal, scheduleOrder } from "@/lib/forty-five/schedule";
+import { LAUNCH_DATE, utcToday } from "@/lib/forty-five/dates";
+import { calendarGaps, hasMixedFinal, planCalendar, scheduleOrder } from "@/lib/forty-five/schedule";
 
 // Admin → Forty-Five (migration 34). The puzzle tables are service-role only,
 // so everything here runs on the admin client after the admin check.
@@ -46,6 +46,9 @@ export type FortyFiveAdminData = {
   counts: Record<FortyFiveStatus, number> & { scheduled: number; readyToSchedule: number };
   /** Last scheduled date, or null. */
   scheduledUntil: string | null;
+  /** Days from today on with no puzzle (Schedule fills them), and past ones (archive gaps). */
+  emptyDays: string[];
+  pastEmptyDays: string[];
 };
 
 type PuzzleRow = {
@@ -101,6 +104,7 @@ export async function getFortyFiveAdminData(): Promise<ActionResult<FortyFiveAdm
   }));
   const count = (s: FortyFiveStatus) => puzzles.filter((p) => p.status === s).length;
   const scheduled = puzzles.filter((p) => p.scheduledFor).map((p) => p.scheduledFor!).sort();
+  const gaps = calendarGaps(scheduled, today, LAUNCH_DATE);
   return {
     success: true,
     data: {
@@ -114,6 +118,8 @@ export async function getFortyFiveAdminData(): Promise<ActionResult<FortyFiveAdm
         readyToSchedule: puzzles.filter((p) => p.status === "approved" && p.mode === "daily" && !p.scheduledFor && !p.check.errors.length).length,
       },
       scheduledUntil: scheduled.at(-1) ?? null,
+      emptyDays: gaps.filter((d) => d >= today),
+      pastEmptyDays: gaps.filter((d) => d < today),
     },
   };
 }
@@ -151,6 +157,13 @@ export async function reviewFortyFive(id: string, status: FortyFiveStatus, note?
     })
     .eq("id", id);
   if (error) return { success: false, error: error.message };
+  if (row.scheduled_for && status !== "approved") {
+    const filled = await fillCalendar(admin, id);
+    if (!filled.success) {
+      revalidatePath("/admin/forty-five");
+      return { success: false, error: `Pulled, but its day wasn't refilled: ${filled.error}` };
+    }
+  }
   revalidatePath("/admin/forty-five");
   return { success: true, data: null };
 }
@@ -184,14 +197,15 @@ export async function saveFortyFiveGroups(id: string, groups: SourceGroup[]): Pr
 }
 
 /**
- * Puts every approved, unscheduled daily puzzle on the next
- * free dates, from today (or launch day, if later), in scheduleOrder():
- * d-001 first, then 4 Mixed-final puzzles per other one. The number follows from
- * the date (migration 34: 2026-11-10 is #1). Puzzles with errors are skipped.
+ * Keeps the calendar whole from today (or launch day, if later) on. Empty days
+ * take approved, unscheduled daily puzzles in scheduleOrder() (d-001 first,
+ * then 4 Mixed-final puzzles per other one); when the queue runs out, later
+ * puzzles move up a day to close the gap. Leftover queue puzzles go after the
+ * last day. The number follows from the date (migration 34: 2026-11-10 is #1),
+ * so a puzzle that moves up gets a lower number; only unplayed ones ever move.
+ * Puzzles with errors are skipped. `skip` keeps a just-pulled puzzle out of the queue.
  */
-export async function scheduleFortyFive(): Promise<ActionResult<{ scheduled: number; from: string | null; to: string | null }>> {
-  const admin = await requireAdmin();
-  if (!admin) return { success: false, error: "Not authorised" };
+async function fillCalendar(admin: ReturnType<typeof createAdminClient>, skip?: string): Promise<ActionResult<{ placed: number; moved: number; from: string | null; to: string | null }>> {
   const { data, error } = await admin
     .from("forty_five_puzzles")
     .select("id, slug, mode, subject, status, scheduled_for, number, review_note, traps, forty_five_groups (difficulty, label, subject, words, explanation)")
@@ -200,28 +214,44 @@ export async function scheduleFortyFive(): Promise<ActionResult<{ scheduled: num
   if (error) return { success: false, error: error.message };
   const rows = (data ?? []) as unknown as PuzzleRow[];
 
-  const taken = new Set(rows.map((r) => r.scheduled_for).filter(Boolean) as string[]);
   const queue = scheduleOrder(
     rows
-      .filter((r) => r.status === "approved" && !r.scheduled_for && !checkPuzzle(toSource(r)).errors.length)
+      .filter((r) => r.id !== skip && r.status === "approved" && !r.scheduled_for && !checkPuzzle(toSource(r)).errors.length)
       .map((r) => ({ ...r, mixedFinal: hasMixedFinal(r.forty_five_groups) })),
   );
   const today = utcToday();
-  let day = today > LAUNCH_DATE ? today : LAUNCH_DATE;
-  const done: string[] = [];
-  for (const r of queue) {
-    while (taken.has(day)) day = addDays(day, 1);
-    // Guard on scheduled_for still being empty, in case another tab scheduled it.
-    const up = await admin.from("forty_five_puzzles").update({ scheduled_for: day, updated_at: new Date().toISOString() }).eq("id", r.id).is("scheduled_for", null).eq("status", "approved");
-    if (up.error) return { success: false, error: `${r.slug}: ${up.error.message} (${done.length} scheduled before this)` };
-    taken.add(day);
-    done.push(day);
+  const start = today > LAUNCH_DATE ? today : LAUNCH_DATE;
+  const plan = planCalendar(
+    rows.filter((r) => r.scheduled_for).map((r) => ({ id: r.id, date: r.scheduled_for! })),
+    queue,
+    start,
+  );
+  const slug = new Map(rows.map((r) => [r.id, r.slug]));
+  let placed = 0;
+  let moved = 0;
+  for (const m of plan) {
+    // Guard on the row still being where we planned it, in case another tab changed it.
+    const base = admin.from("forty_five_puzzles").update({ scheduled_for: m.to, updated_at: new Date().toISOString() }).eq("id", m.id).eq("status", "approved");
+    const up = await (m.from ? base.eq("scheduled_for", m.from) : base.is("scheduled_for", null)).select("id");
+    const done = placed + moved;
+    if (up.error) return { success: false, error: `${slug.get(m.id)}: ${up.error.message} (${done} changed before this; press Schedule again)` };
+    if (!up.data?.length) return { success: false, error: `${slug.get(m.id)} changed in another tab (${done} changed before this; press Schedule again)` };
+    if (m.from) moved++;
+    else placed++;
   }
-  revalidatePath("/admin/forty-five");
-  return { success: true, data: { scheduled: done.length, from: done[0] ?? null, to: done.at(-1) ?? null } };
+  return { success: true, data: { placed, moved, from: plan[0]?.to ?? null, to: plan.at(-1)?.to ?? null } };
 }
 
-/** Takes a future puzzle off the calendar (it stays approved). */
+/** "Schedule": fills every empty day from today on, then puts the rest of the queue after the last day. */
+export async function scheduleFortyFive(): Promise<ActionResult<{ placed: number; moved: number; from: string | null; to: string | null }>> {
+  const admin = await requireAdmin();
+  if (!admin) return { success: false, error: "Not authorised" };
+  const r = await fillCalendar(admin);
+  revalidatePath("/admin/forty-five");
+  return r;
+}
+
+/** Takes a future puzzle off the calendar (it stays approved); its day is refilled at once. */
 export async function unscheduleFortyFive(id: string): Promise<ActionResult<null>> {
   const admin = await requireAdmin();
   if (!admin) return { success: false, error: "Not authorised" };
@@ -230,7 +260,9 @@ export async function unscheduleFortyFive(id: string): Promise<ActionResult<null
   if (row.scheduled_for <= utcToday()) return { success: false, error: "Today's and past puzzles stay on the calendar." };
   const { error } = await admin.from("forty_five_puzzles").update({ scheduled_for: null, updated_at: new Date().toISOString() }).eq("id", id);
   if (error) return { success: false, error: error.message };
+  const filled = await fillCalendar(admin, id);
   revalidatePath("/admin/forty-five");
+  if (!filled.success) return { success: false, error: `Unscheduled, but its day wasn't refilled: ${filled.error}` };
   return { success: true, data: null };
 }
 

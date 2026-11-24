@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { BroOpenRequest, BroQuestion } from "./bro-visibility";
+import type { BroOpenRequest, BroQuestion, BroReviewRef } from "./bro-visibility";
 import { readCards, type BroCard } from "@/lib/bro/cards";
 
 // The chat itself, shared by the Bro bar (BroBar) and the full page (/bro).
@@ -162,6 +162,8 @@ export function useBroChat(request: BroOpenRequest | null = null, attemptId: str
   const abortRef = useRef<AbortController | null>(null);
   const stoppedRef = useRef(false);
   const lastQuestionRef = useRef<BroQuestion | null>(null);
+  // A review comment Bro was opened on: sent with every message in that chat, so Bro keeps the pages.
+  const reviewRefRef = useRef<BroReviewRef | null>(null);
   // Read inside send without making it change on every chat switch.
   const chatRef = useRef<string | null>(null);
   chatRef.current = conversationId;
@@ -173,10 +175,12 @@ export function useBroChat(request: BroOpenRequest | null = null, attemptId: str
   useEffect(() => warmBro(), []);
 
   const send = useCallback(
-    async (text: string, opener?: string, question?: BroQuestion | null) => {
+    async (text: string, opener?: string, question?: BroQuestion | null, review?: BroReviewRef | null) => {
       const trimmed = text.trim();
       if (!trimmed || abortRef.current) return;
       lastQuestionRef.current = question ?? null;
+      if (review) reviewRefRef.current = review;
+      const reviewNow = review ?? reviewRefRef.current;
       setPhase("thinking");
       // Never just dots: a status from the first moment, replaced as Bro moves along.
       setMessages((m) => [...m, { role: "user", text: trimmed }, { role: "bro", text: "", status: question ? "Reading the question…" : "Reading your message…" }]);
@@ -217,6 +221,8 @@ export function useBroChat(request: BroOpenRequest | null = null, attemptId: str
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             // The question on screen goes by reference; the server loads it from the student's own attempt.
             question: question ? { attemptId: question.attemptId, questionId: question.questionId } : undefined,
+            // A review comment, also by reference: loaded from the student's own draft.
+            review: reviewNow ? { draftId: reviewNow.draftId, comment: reviewNow.comment } : undefined,
           }),
           signal: controller.signal,
         });
@@ -323,12 +329,13 @@ export function useBroChat(request: BroOpenRequest | null = null, attemptId: str
       } finally {
         setLoaded(true);
       }
-      if (request?.prompt) void send(request.prompt, request.context, request.question);
+      if (request?.prompt) void send(request.prompt, request.context, request.question, request.review);
     })();
   }, [request, send, cached, mode, forAttempt]);
 
   /** Clears the screen for a new chat; the old one stays in the list. */
   const newChat = useCallback(() => {
+    reviewRefRef.current = null;
     abortRef.current?.abort();
     setConversationId(null);
     setMessages([]);
@@ -336,6 +343,7 @@ export function useBroChat(request: BroOpenRequest | null = null, attemptId: str
 
   /** Opens one of the student's past chats. */
   const openChat = useCallback(async (id: string) => {
+    reviewRefRef.current = null;
     abortRef.current?.abort();
     setConversationId(id);
     setMessages([]);

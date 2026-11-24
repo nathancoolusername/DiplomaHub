@@ -33,6 +33,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   // after clicking the logo) until a full reload.
   if (request.headers.get("next-router-prefetch")) {
     requestHeaders.delete("x-verified-user-id");
+    requestHeaders.delete("x-verified-guest-id");
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
@@ -71,18 +72,23 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   // verifying the session again. This header is always overwritten here,
   // after this point, so nothing a client sends can spoof it — proxy.ts
   // runs first on every matched request.
-  if (data?.claims.sub) {
-    requestHeaders.set("x-verified-user-id", data.claims.sub);
-  } else {
-    requestHeaders.delete("x-verified-user-id");
-  }
+  //
+  // Deadline guests (Supabase anonymous sign-ins) get their own header: the
+  // rest of the site reads only x-verified-user-id, so to everything but
+  // Deadline a guest is signed out (no Hub, practice, profile, dashboard).
+  const sub = data?.claims.sub ?? null;
+  const isGuest = !!sub && data?.claims.is_anonymous === true;
+  const userId = isGuest ? null : sub;
+  requestHeaders.delete("x-verified-user-id");
+  requestHeaders.delete("x-verified-guest-id");
+  if (userId) requestHeaders.set("x-verified-user-id", userId);
+  if (isGuest) requestHeaders.set("x-verified-guest-id", sub!);
 
   // The signed-out homepage at `/` is static and served from the CDN, so a
   // verified session gets the signed-in dashboard instead via a rewrite —
   // the browser still shows `/`. Only a verified sub counts: an expired or
   // forged cookie falls through to the static page like any visitor.
-  const showDashboard =
-    !!data?.claims.sub && request.nextUrl.pathname === "/";
+  const showDashboard = !!userId && request.nextUrl.pathname === "/";
   let response: NextResponse;
   if (showDashboard) {
     const dashboard = request.nextUrl.clone(); // keeps the query string
@@ -102,7 +108,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   // background via waitUntil so this never adds latency to the response,
   // and the cookie means the write only happens ~once/day/user regardless
   // of how many pages they view.
-  if (data?.claims.sub && !request.cookies.has(LAST_ACTIVE_COOKIE)) {
+  if (userId && !request.cookies.has(LAST_ACTIVE_COOKIE)) {
     response.cookies.set(LAST_ACTIVE_COOKIE, "1", {
       maxAge: LAST_ACTIVE_COOKIE_MAX_AGE,
       path: "/",
@@ -112,7 +118,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
         supabase
           .from("users")
           .update({ last_active_at: new Date().toISOString() })
-          .eq("id", data.claims.sub),
+          .eq("id", userId),
       ).then(
         () => {},
         () => {},

@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "Redeem a code", robots: { index: fal
 // and back). Redeeming is still the student's click.
 export default async function JoinPage({ params }: { params: Promise<{ code: string }> }) {
   const code = decodeURIComponent((await params).code).trim().toUpperCase();
+  if (/^[A-Z0-9]{4}$/.test(normalizeCode(code))) redirect(`/play/deadline/${normalizeCode(code)}`); // a Deadline room
   if (!/^[A-Z0-9]{5,16}$/.test(normalizeCode(code))) redirect("/codes");
   if (!(await getCurrentUserId())) redirect(`/login?next=${encodeURIComponent(`/codes?c=${normalizeCode(code)}`)}`);
   redirect(`/codes?c=${normalizeCode(code)}`);

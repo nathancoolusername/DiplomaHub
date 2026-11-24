@@ -41,7 +41,7 @@ export async function getAdminStats(): Promise<ActionResult<AdminStats>> {
     { count: unpublishedArticles },
     { count: unpublishedResources },
   ] = await Promise.all([
-    ctx.admin.from("users").select("*", { count: "exact", head: true }),
+    ctx.admin.from("dp_members").select("*", { count: "exact", head: true }),
     supabase.from("resources").select("*", { count: "exact", head: true }),
     supabase.from("articles").select("*", { count: "exact", head: true }),
     supabase.from("discussions").select("*", { count: "exact", head: true }),
@@ -155,7 +155,7 @@ export async function getAdminAnalytics(): Promise<ActionResult<AdminAnalytics>>
     { count: activeUsers7d },
     { count: activeUsers30d },
   ] = await Promise.all([
-    ctx.admin.from("users").select("created_at").gte("created_at", sinceIso),
+    ctx.admin.from("dp_members").select("created_at").gte("created_at", sinceIso),
     supabase
       .from("resources")
       .select("created_at")
@@ -174,11 +174,11 @@ export async function getAdminAnalytics(): Promise<ActionResult<AdminAnalytics>>
     supabase.from("resources").select("label:type_tag"),
     supabase.from("resources").select("download_count, like_count"),
     ctx.admin
-      .from("users")
+      .from("dp_members")
       .select("*", { count: "exact", head: true })
       .gte("last_active_at", since7d.toISOString()),
     ctx.admin
-      .from("users")
+      .from("dp_members")
       .select("*", { count: "exact", head: true })
       .gte("last_active_at", since30d.toISOString()),
   ]);
@@ -265,13 +265,13 @@ export async function getAdminHubAnalytics(): Promise<
     { data: itemTypeRows },
     { data: studyLogRows },
   ] = await Promise.all([
-    admin.from("users").select("*", { count: "exact", head: true }),
+    admin.from("dp_members").select("*", { count: "exact", head: true }),
     admin
-      .from("users")
+      .from("dp_members")
       .select("*", { count: "exact", head: true })
       .not("hub_onboarded_at", "is", null),
     admin
-      .from("users")
+      .from("dp_members")
       .select("hub_onboarded_at")
       .gte("hub_onboarded_at", since.toISOString()),
     admin.from("hub_items").select("*", { count: "exact", head: true }),
@@ -360,7 +360,7 @@ export async function getUsersPage(filters: {
   const search = filters.search?.trim();
 
   let query = ctx.admin
-    .from("users")
+    .from("dp_members")
     .select(
       "id, display_name, email, points, is_pro, pro_expires_at, author_trust_score, ib_year, avatar_url, created_at",
       { count: "exact" },

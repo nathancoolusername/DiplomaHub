@@ -30,7 +30,8 @@ export function RedeemBox({ initialCode = "" }: { initialCode?: string }) {
 
   const code = normalizeCode(value);
   const bad = lookalikes(value);
-  const canSubmit = code.length >= 5 && bad.length === 0 && !busy;
+  // 4 characters is a Deadline room: Redeem takes you to it.
+  const canSubmit = code.length >= 4 && bad.length === 0 && !busy;
 
   const finish = (r: RedeemResult) => {
     setResult(r);
@@ -42,6 +43,7 @@ export function RedeemBox({ initialCode = "" }: { initialCode?: string }) {
 
   const redeem = () => {
     if (!canSubmit) return;
+    if (code.length === 4) return router.push(`/play/deadline/${code}?via=code`);
     setHubSet(null);
     start(async () => {
       const r = await redeemCodeAction(code);

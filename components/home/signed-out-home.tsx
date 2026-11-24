@@ -1,3 +1,4 @@
+import DeadlineTeaser from "./signed-out/DeadlineTeaser";
 import { FinalCta, Hero, LibrarySection, Loop, ProSection, Stats, StayOnTrack, TryIt } from "./system/sections";
 
 // The signed-out homepage, led by practice (what students use most). Everything here is
@@ -13,6 +14,7 @@ export default function SignedOutHome() {
       <Loop />
       <LibrarySection />
       <StayOnTrack />
+      <DeadlineTeaser />
       <ProSection />
       <FinalCta />
     </div>
