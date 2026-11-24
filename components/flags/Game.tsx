@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Copy, Flag, Play, RotateCcw, Timer, Trophy } from "lucide-react";
-import { BY_CODE, CONTINENTS, flagSrc, type Continent } from "@/lib/flags/countries";
+import { BY_CODE, flagSrc } from "@/lib/flags/countries";
 import { FLAGS, type Mode } from "@/lib/flags/config";
 import { match } from "@/lib/flags/match";
 import { formatTime, type Answer } from "@/lib/flags/engine";
@@ -17,7 +17,17 @@ import type { BoardRow, FlagBoard, RunResult, RunStart } from "@/lib/flags/types
 type Phase = "intro" | "loading" | "playing" | "done";
 type Local = { correct: number; total: number; seconds: number };
 /** A run in progress (or a finished guest sprint), as this browser remembers it. */
-type Saved = { runId: string | null; startedAt: string; offset: number; answers: Answer[]; done?: Local };
+/** `order`: the grid order for an all-flags run (shuffled per run, kept across a refresh). */
+type Saved = { runId: string | null; startedAt: string; offset: number; answers: Answer[]; done?: Local; order?: string[] };
+
+function shuffle<T>(xs: readonly T[]): T[] {
+  const a = [...xs];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 const read = (key: string): Saved | null => {
   try {
@@ -69,6 +79,18 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
   const mode: Mode = board.mode;
   const capMs = FLAGS.capSeconds[mode] * 1000;
   const total = board.codes.length;
+  // The sprint is the same board for everyone; all flags comes in a new random order every run.
+  const [order, setOrder] = useState<string[]>(board.codes);
+  /** A saved run's order if it's a real shuffle of this board, else a fresh one. */
+  const orderFor = useCallback(
+    (saved: Saved | null): string[] => {
+      if (mode !== "all") return board.codes;
+      const o = saved?.order;
+      const same = o && o.length === board.codes.length && new Set(o).size === o.length && o.every((c) => BY_CODE.has(c));
+      return same ? o : shuffle(board.codes);
+    },
+    [mode, board.codes],
+  );
   // Where this browser keeps the run: one per sprint day; one live all-flags run.
   // Per account, so two people sharing a browser never see each other's run.
   const who = userId ?? "guest";
@@ -98,7 +120,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
   const elapsed = useCallback(() => (run.current ? Date.now() + run.current.offset - Date.parse(run.current.startedAt) : 0), []);
 
   const named = useMemo(() => new Set(answers.map((a) => a.code)), [answers]);
-  const current = focus && !named.has(focus) ? focus : nextOpen(board.codes, null, named);
+  const current = focus && !named.has(focus) ? focus : nextOpen(order, null, named);
   const currentRef = useRef<string | null>(null);
   useEffect(() => {
     currentRef.current = current;
@@ -157,6 +179,11 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
   // ── Starting / resuming ───────────────────────────────────────────────
   const begin = useCallback(
     (saved: Saved) => {
+      const o = orderFor(saved);
+      saved = { ...saved, order: mode === "all" ? o : undefined };
+      write(key, saved);
+      setOrder(o);
+      setFocus(null);
       run.current = saved;
       answersRef.current = saved.answers;
       setAnswers(saved.answers);
@@ -181,7 +208,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
       setPhase("playing");
       setTimeout(() => inputRef.current?.focus(), 50);
     },
-    [capMs, finish, saveResult],
+    [capMs, finish, saveResult, orderFor, mode, key],
   );
 
   const start = useCallback(async () => {
@@ -198,9 +225,10 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
       const offset = Date.parse(r.serverNow) - Date.now();
       const mine = read(key);
       const answers = mine?.runId === r.runId ? mine.answers : r.result ? r.result.named.map((code) => ({ code, ms: 0 })) : [];
-      const saved: Saved = { runId: r.runId, startedAt: r.startedAt, offset, answers };
+      const saved: Saved = { runId: r.runId, startedAt: r.startedAt, offset, answers, order: mine?.runId === r.runId ? mine.order : undefined };
       if (r.result) {
         // Already finished (today's sprint on another device, or a double tab).
+        setOrder(orderFor(saved));
         run.current = saved;
         answersRef.current = answers;
         setAnswers(answers);
@@ -218,7 +246,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
       setPhase("intro");
       setError((e as Error).message === "signed_out" ? "Your session ended. Log in again to play for the leaderboard." : "Couldn't start the run. Try again in a moment.");
     }
-  }, [begin, key, mode, signedIn]);
+  }, [begin, key, mode, orderFor, signedIn]);
 
   // Pick up where this browser left off (a refresh, or today's sprint already played).
   useEffect(() => {
@@ -259,16 +287,16 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
       setInput("");
       setLast(code);
       // Naming the ringed flag moves the ring on to the next one still to name.
-      if (code === currentRef.current) setFocus(nextOpen(board.codes, code, new Set(next.map((a) => a.code))));
+      if (code === currentRef.current) setFocus(nextOpen(order, code, new Set(next.map((a) => a.code))));
       write(key, { ...run.current, answers: next });
       if (next.length === total) finish();
     },
-    [board.codes, elapsed, finish, key, total],
+    [order, elapsed, finish, key, total],
   );
 
   /** Skip: move the ring to the next (or previous) flag still to name. */
   const move = (step: 1 | -1) => {
-    setFocus(nextOpen(board.codes, current, named, step));
+    setFocus(nextOpen(order, current, named, step));
     inputRef.current?.focus();
   };
 
@@ -297,13 +325,6 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
 
   // ── Bits of UI ────────────────────────────────────────────────────────
   const lastName = last ? BY_CODE.get(last)?.name : null;
-  const groups: { continent: Continent | null; codes: string[] }[] = useMemo(
-    () =>
-      mode === "all"
-        ? CONTINENTS.map((continent) => ({ continent, codes: board.codes.filter((c) => BY_CODE.get(c)?.continent === continent) }))
-        : [{ continent: null, codes: board.codes }],
-    [mode, board.codes],
-  );
 
   const share = async () => {
     if (!local) return;
@@ -486,37 +507,12 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
             )}
             </span>
           </div>
-          {mode === "all" && (
-            <nav aria-label="Jump to continent" className="flex gap-xs overflow-x-auto -mx-1 px-1 pb-0.5">
-              {groups.map((g) => {
-                const left = g.codes.filter((c) => !named.has(c)).length;
-                return (
-                  <a
-                    key={g.continent}
-                    href={`#flags-${g.continent?.replace(/\s/g, "-").toLowerCase()}`}
-                    className="shrink-0 rounded-full border border-outline-variant px-sm py-0.5 text-label-sm font-semibold text-on-surface-variant hover:border-primary hover:text-primary"
-                  >
-                    {g.continent} <span className="tabular-nums">{left ? left : "✓"}</span>
-                  </a>
-                );
-              })}
-            </nav>
-          )}
         </div>
       )}
 
-      {groups.map((g) => (
-        <section key={g.continent ?? "board"} id={g.continent ? `flags-${g.continent.replace(/\s/g, "-").toLowerCase()}` : undefined} className="scroll-mt-48 flex flex-col gap-sm">
-          {g.continent && (
-            <h2 className="font-serif font-bold text-headline-md text-on-surface">
-              {g.continent}{" "}
-              <span className="text-label-md font-normal text-on-surface-variant tabular-nums">
-                {g.codes.filter((c) => named.has(c)).length}/{g.codes.length}
-              </span>
-            </h2>
-          )}
+      <section className="flex flex-col gap-sm" aria-label="Flags">
           <ul className={`grid gap-sm ${mode === "daily" ? "grid-cols-4 md:grid-cols-5" : "grid-cols-4 sm:grid-cols-6 lg:grid-cols-8"}`}>
-            {g.codes.map((code) => {
+            {order.map((code) => {
               const got = named.has(code);
               const show = got || done;
               const ringed = !done && code === current;
@@ -555,8 +551,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
               );
             })}
           </ul>
-        </section>
-      ))}
+      </section>
     </div>
   );
 }
