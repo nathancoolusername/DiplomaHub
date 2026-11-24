@@ -77,7 +77,9 @@ export type SubmitResult =
   | { result: "ok"; answer: string; points: number; bonus: number }
   | { result: "wrong" | "ambiguous" | "denied"; reject_id: number | null }
   | { result: "taken"; answer: string }
-  | { result: "not_your_turn" | "too_late" | "rate_limited" | "not_playing" };
+  | { result: "not_your_turn" | "too_late" | "rate_limited" | "not_playing" }
+  /** The request itself failed (network): nothing was sent to the game. */
+  | { result: "error" };
 
 export type ChatMessage = { id: string; user_id: string; body: string; created_at: string };
 export type Reaction = { id: string; user_id: string; emoji: string };

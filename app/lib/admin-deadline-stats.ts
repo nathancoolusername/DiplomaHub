@@ -52,8 +52,8 @@ export async function getDeadlineWaiting(): Promise<{ review: number; reports: n
   if (!admin) return { review: 0, reports: 0 };
   try {
     const [rej, rep] = await Promise.all([
-      all<{ prompt_id: string; norm_text: string }>((f, t) => admin.from("dl_answer_rejects").select("prompt_id, norm_text").eq("status", "new").range(f, t)),
-      all<{ message_id: string }>((f, t) => admin.from("dl_message_reports").select("message_id").range(f, t)),
+      all<{ prompt_id: string; norm_text: string }>((f, t) => admin.from("dl_answer_rejects").select("prompt_id, norm_text").eq("status", "new").order("id").range(f, t)),
+      all<{ message_id: string }>((f, t) => admin.from("dl_message_reports").select("message_id").order("id").range(f, t)),
     ]);
     return { review: new Set(rej.map((r) => `${r.prompt_id}|${r.norm_text}`)).size, reports: new Set(rep.map((r) => r.message_id)).size };
   } catch {
@@ -83,16 +83,16 @@ export async function getDeadlineAnalytics(range: Range): Promise<Result<Deadlin
   try {
     const [games, events, rounds, log, rejects, prompts] = await Promise.all([
       all<{ id: string; squad_id: string | null; players: number; started_at: string; ended_at: string | null; end_reason: string | null; overtime: boolean; play_again_no: number; messages: number; reactions: number }>(
-        (f, t) => admin.from("dl_games").select("id, squad_id, players, started_at, ended_at, end_reason, overtime, play_again_no, messages, reactions").gte("started_at", since).range(f, t)),
-      all<{ kind: string; data: Record<string, unknown> }>((f, t) => admin.from("dl_events").select("kind, data").gte("created_at", since).range(f, t)),
-      all<{ prompt_id: string; answers: number; end_reason: string }>((f, t) => admin.from("dl_prompt_rounds").select("prompt_id, answers, end_reason").gte("started_at", since).range(f, t)),
-      all<{ matched_by: string; ms_taken: number; points: number }>((f, t) => admin.from("dl_answer_log").select("matched_by, ms_taken, points").gte("created_at", since).range(f, t)),
-      all<{ appealed: boolean }>((f, t) => admin.from("dl_answer_rejects").select("appealed").gte("created_at", since).range(f, t)),
-      all<{ id: string; slug: string; text: string }>((f, t) => admin.from("dl_prompts").select("id, slug, text").range(f, t)),
+        (f, t) => admin.from("dl_games").select("id, squad_id, players, started_at, ended_at, end_reason, overtime, play_again_no, messages, reactions").gte("started_at", since).order("id").range(f, t)),
+      all<{ kind: string; data: Record<string, unknown> }>((f, t) => admin.from("dl_events").select("kind, data").gte("created_at", since).order("id").range(f, t)),
+      all<{ prompt_id: string; answers: number; end_reason: string }>((f, t) => admin.from("dl_prompt_rounds").select("prompt_id, answers, end_reason").gte("started_at", since).order("id").range(f, t)),
+      all<{ matched_by: string; ms_taken: number; points: number }>((f, t) => admin.from("dl_answer_log").select("matched_by, ms_taken, points").gte("created_at", since).order("id").range(f, t)),
+      all<{ appealed: boolean }>((f, t) => admin.from("dl_answer_rejects").select("appealed").gte("created_at", since).order("id").range(f, t)),
+      all<{ id: string; slug: string; text: string }>((f, t) => admin.from("dl_prompts").select("id, slug, text").order("id").range(f, t)),
     ]);
     const finished = games.filter((g) => g.end_reason === "won");
     const players = new Set(
-      (await all<{ user_id: string }>((f, t) => admin.from("dl_game_players").select("user_id").in("game_id", games.length ? games.map((g) => g.id) : ["00000000-0000-0000-0000-000000000000"]).range(f, t)))
+      (await all<{ user_id: string }>((f, t) => admin.from("dl_game_players").select("user_id").in("game_id", games.length ? games.map((g) => g.id) : ["00000000-0000-0000-0000-000000000000"]).order("game_id").order("user_id").range(f, t)))
         .map((p) => p.user_id),
     ).size;
     const pct = (n: number) => (games.length ? Math.round((100 * n) / games.length) : null);
@@ -168,17 +168,17 @@ export async function getDeadlineReview(): Promise<Result<ReviewPrompt[]>> {
   try {
     const [rejects, accepted] = await Promise.all([
       all<{ prompt_id: string; user_id: string | null; raw_text: string; norm_text: string; reason: string; appealed: boolean; created_at: string }>(
-        (f, t) => admin.from("dl_answer_rejects").select("prompt_id, user_id, raw_text, norm_text, reason, appealed, created_at").eq("status", "new").range(f, t)),
+        (f, t) => admin.from("dl_answer_rejects").select("prompt_id, user_id, raw_text, norm_text, reason, appealed, created_at").eq("status", "new").order("id").range(f, t)),
       all<{ prompt_id: string; raw_text: string; canonical_then: string; matched_by: string; created_at: string }>(
-        (f, t) => admin.from("dl_answer_log").select("prompt_id, raw_text, canonical_then, matched_by, created_at").neq("matched_by", "exact").range(f, t)),
+        (f, t) => admin.from("dl_answer_log").select("prompt_id, raw_text, canonical_then, matched_by, created_at").neq("matched_by", "exact").order("id").range(f, t)),
     ]);
     const ids = [...new Set([...rejects.map((r) => r.prompt_id), ...accepted.map((a) => a.prompt_id)])];
     if (!ids.length) return { ok: true, data: [] };
     const [prompts, answers, forms] = await Promise.all([
       all<{ id: string; slug: string; text: string; active: boolean; deny_forms: string[]; extra: Record<string, unknown> }>(
-        (f, t) => admin.from("dl_prompts").select("id, slug, text, active, deny_forms, extra").in("id", ids).range(f, t)),
-      all<{ prompt_id: string; canonical: string; aliases: string[] }>((f, t) => admin.from("dl_prompt_answers").select("prompt_id, canonical, aliases").in("prompt_id", ids).range(f, t)),
-      all<{ prompt_id: string; form: string }>((f, t) => admin.from("dl_answer_forms").select("prompt_id, form").in("prompt_id", ids).range(f, t)),
+        (f, t) => admin.from("dl_prompts").select("id, slug, text, active, deny_forms, extra").in("id", ids).order("id").range(f, t)),
+      all<{ prompt_id: string; canonical: string; aliases: string[] }>((f, t) => admin.from("dl_prompt_answers").select("prompt_id, canonical, aliases").in("prompt_id", ids).order("id").range(f, t)),
+      all<{ prompt_id: string; form: string }>((f, t) => admin.from("dl_answer_forms").select("prompt_id, form").in("prompt_id", ids).order("answer_id").order("form").range(f, t)),
     ]);
     const out: ReviewPrompt[] = [];
     for (const p of prompts) {
@@ -194,7 +194,8 @@ export async function getDeadlineReview(): Promise<Result<ReviewPrompt[]>> {
         const sq = squash(norm);
         const closest = ans
           .map((a) => ({ c: a.canonical, d: Math.min(...[a.canonical, ...(a.aliases ?? [])].map((x) => levenshtein(squash(x), sq))) }))
-          .sort((a, b) => a.d - b.d).slice(0, 3).map((x) => x.c);
+          .sort((a, b) => a.d - b.d).map((x) => x.c)
+          .filter((c, i, list) => list.indexOf(c) === i).slice(0, 3);
         return {
           norm, raw: raws[0]?.label ?? norm, count: rs.length, players: new Set(rs.map((r) => r.user_id)).size,
           appealed: rs.filter((r) => r.appealed).length, reasons: [...new Set(rs.map((r) => r.reason))],
@@ -241,13 +242,13 @@ export async function getDeadlineReports(): Promise<Result<ReportedMessage[]>> {
   if (!admin) return { ok: false, error: "Not authorised" };
   try {
     const reports = await all<{ message_id: string; reporter_id: string | null; author_id: string | null; reason: string | null; body_snapshot: string; created_at: string }>(
-      (f, t) => admin.from("dl_message_reports").select("message_id, reporter_id, author_id, reason, body_snapshot, created_at").order("created_at", { ascending: false }).range(f, t));
+      (f, t) => admin.from("dl_message_reports").select("message_id, reporter_id, author_id, reason, body_snapshot, created_at").order("created_at", { ascending: false }).order("id").range(f, t));
     if (!reports.length) return { ok: true, data: [] };
     const msgIds = [...new Set(reports.map((r) => r.message_id))];
     const people = [...new Set(reports.flatMap((r) => [r.reporter_id, r.author_id]).filter(Boolean))] as string[];
     const [msgs, names] = await Promise.all([
-      all<{ id: string; hidden: boolean }>((f, t) => admin.from("dl_room_messages").select("id, hidden").in("id", msgIds).range(f, t)),
-      all<{ id: string; display_name: string | null }>((f, t) => admin.from("public_profiles").select("id, display_name").in("id", people.length ? people : ["00000000-0000-0000-0000-000000000000"]).range(f, t)),
+      all<{ id: string; hidden: boolean }>((f, t) => admin.from("dl_room_messages").select("id, hidden").in("id", msgIds).order("id").range(f, t)),
+      all<{ id: string; display_name: string | null }>((f, t) => admin.from("public_profiles").select("id, display_name").in("id", people.length ? people : ["00000000-0000-0000-0000-000000000000"]).order("id").range(f, t)),
     ]);
     const name = (id: string | null) => (id ? names.find((n) => n.id === id)?.display_name ?? "Someone" : "Deleted account");
     const byAuthor = new Map<string, Set<string>>();

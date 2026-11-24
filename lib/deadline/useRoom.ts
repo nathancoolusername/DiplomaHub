@@ -204,10 +204,13 @@ export function useRoom(code: string, initial: RoomState) {
     const room = () => stateRef.current.room.id;
     return {
       submit: async (text) => {
-        const { data, error } = await supabase.rpc("submit_answer", { p_room: room(), p_text: text });
-        if (error) return { result: "not_playing" };
+        // One quick retry: a dropped request used to fail silently mid-turn.
+        let { data, error } = await supabase.rpc("submit_answer", { p_room: room(), p_text: text });
+        if (error) ({ data, error } = await supabase.rpc("submit_answer", { p_room: room(), p_text: text }));
+        if (error) return { result: "error" };
         const r = data as SubmitResult;
-        if (r.result === "ok" || r.result === "too_late") void refetch();
+        // not_your_turn: this phone's view of the turn may be stale, so catch up.
+        if (r.result === "ok" || r.result === "too_late" || r.result === "not_your_turn") void refetch();
         return r;
       },
       appeal: async (rejectId) => { await supabase.rpc("appeal_answer", { p_reject: rejectId }); },

@@ -183,6 +183,7 @@ const SAY: Partial<Record<SubmitResult["result"], string>> = {
   not_your_turn: "Not your turn yet.",
   too_late: "Too late!",
   rate_limited: "Slow down.",
+  error: "Didn't send. Check your connection and try again.",
 };
 
 /**
@@ -212,6 +213,13 @@ export function AnswerBar({ roundId, myTurn, canPlay, actions, holderName, onTyp
     setAppeal(null);
   }
 
+  // The turn arrives: an old "Not your turn yet." / "Too late!" no longer applies.
+  const [seenTurn, setSeenTurn] = useState(myTurn);
+  if (seenTurn !== myTurn) {
+    setSeenTurn(myTurn);
+    if (myTurn) setMsg(null);
+  }
+
   // Your turn: the answer bar gets the keyboard and shares what's already
   // typed. Turn over: share nothing (only the holder's typing is ever shown).
   useEffect(() => {
@@ -232,6 +240,7 @@ export function AnswerBar({ roundId, myTurn, canPlay, actions, holderName, onTyp
     e.preventDefault();
     const t = text.trim();
     input.current?.focus({ preventScroll: true });
+    // Out of turn: no message, the answer stays typed so Enter sends it once the draft arrives.
     if (!t || !myTurn || busy) return;
     setBusy(true);
     const r = await actions.submit(t);
