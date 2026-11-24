@@ -91,7 +91,7 @@ function advance(e: Engine, success: boolean): Engine {
   let reason: string | null = null;
   if (success) {
     if (r.answers.length >= total) reason = "exhausted";
-    else if (r.fail_count === 0 && e.turns >= 3 * active(s).length) reason = "cleared";
+    else if (r.fail_count === 0 && e.turns >= 5 * active(s).length) reason = "cleared";
     else if (r.failed_by && next === r.failed_by) reason = "back_to_failer";
   } else if (r.fail_count >= 2) reason = "second_fail";
   if (reason) return openRound(e, next);
