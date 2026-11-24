@@ -49,7 +49,7 @@ function tone(freq: number, at: number, dur: number, { type = "sine", vol = 0.12
   o.stop(t + dur + 0.02);
 }
 
-// Only five moments make a sound (Nathan's call: anything more is noise).
+// Only six moments make a sound (Nathan's call: anything more is noise).
 export const sfx = {
   /** The draft passes on (a right answer): a quick swoosh up. */
   pass: () => tone(520, 0, 0.14, { type: "triangle", vol: 0.07, to: 1040 }),
@@ -65,6 +65,8 @@ export const sfx = {
     tone(180, 0, 0.32, { type: "sawtooth", vol: 0.07, to: 90 });
     if (out) tone(120, 0.3, 0.5, { type: "sawtooth", vol: 0.06, to: 55 });
   },
+  /** The draft reaches you: a clear two-note "ding-ding", louder than the rest. */
+  yourTurn: () => { tone(987.77, 0, 0.16, { vol: 0.14 }); tone(1318.51, 0.13, 0.28, { vol: 0.14 }); },
   /** A wrong or taken answer on your turn. */
   wrong: () => tone(260, 0, 0.12, { type: "square", vol: 0.04, to: 200 }),
 };

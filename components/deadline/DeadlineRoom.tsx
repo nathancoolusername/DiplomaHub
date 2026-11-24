@@ -115,9 +115,11 @@ export function DeadlineRoom({ state, offset, messages, reactions, actions, onEv
   useEffect(() => {
     if (!myTurn) return;
     try { navigator.vibrate?.(150); } catch {}
+    // Just after the pass/miss sound that handed you the draft, so both are heard.
+    const t = setTimeout(sfx.yourTurn, 250);
     const before = document.title;
     document.title = `🔴 Your turn! · ${before}`;
-    return () => { document.title = before; };
+    return () => { clearTimeout(t); document.title = before; };
   }, [myTurn, round?.turn_started_at]);
 
   const chat = (
