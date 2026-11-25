@@ -20,6 +20,7 @@ ok(ALL_CODES.every((c) => /^[a-z]{2}$/.test(c)), "country codes are 2 letters");
 ok(TERRITORIES.length === 58 && HARD_CODES.length === 255, `hard mode is 255 (got ${HARD_CODES.length})`);
 for (const c of ["aq-bat", "bq-bo", "bq-se", "bq-sa", "wf", "pm", "bl", "ic", "pt-ac", "pt-ma", "gf", "md-tr", "ge-so", "ge-ab"]) ok(BY_CODE.get(c)?.territory === true, `${c} is a hard-mode territory`);
 ok(!fs.readFileSync("public/flags/gf.svg", "utf8").includes("flag-icons"), "gf.svg is French Guiana's own flag, not flag-icons' French flag");
+ok(!fs.readFileSync("public/flags/sh-ta.svg", "utf8").includes("flag-icons"), "sh-ta.svg is Tristan da Cunha's flag from Commons (flag-icons' copy shows a Saint Helena shield)");
 ok(match("Canaries", hard).code === "ic" && match("Azores", hard).code === "pt-ac" && match("Transnistria", hard).code === "md-tr" && match("French Guyana", hard).code === "gf", "new hard-mode spellings");
 ok(!BY_CODE.has("mf"), "Saint Martin (French side) left out: no flag of its own");
 ok(!fs.readFileSync("public/flags/wf.svg", "utf8").includes("flag-icons"), "wf.svg is the local flag from Commons, not flag-icons' French flag");

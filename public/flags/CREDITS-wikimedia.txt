@@ -20,3 +20,4 @@ md-tr.svg   Transnistria                  File:Flag of Transnistria (state).svg 
 ge-so.svg   South Ossetia                 File:Flag of South Ossetia.svg                     Public domain
 ge-ab.svg   Abkhazia                      File:Flag of the Republic of Abkhazia.svg          Public domain (User:Achim1999)
 The CC BY-SA file above (pt-ma.svg), as cropped here, is shared under the same licence.
+sh-ta.svg   Tristan da Cunha              File:Flag of Tristan da Cunha.svg                  Public domain (replaces flag-icons' sh-ta, which showed a Saint Helena shield; coordinates rounded to 1 decimal to shrink the file)

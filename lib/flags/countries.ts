@@ -330,9 +330,10 @@ export const ALL_CODES: string[] = COUNTRIES.map((c) => c.code);
 
 /**
  * Flags from Wikimedia Commons, not flag-icons (public/flags/CREDITS-wikimedia.txt).
- * flag-icons draws wf, pm, bl and gf as the French flag, so copy-svgs must never overwrite these.
+ * flag-icons draws wf, pm, bl and gf as the French flag, and sh-ta with a Saint Helena shield,
+ * so copy-svgs must never overwrite these.
  */
-export const COMMONS_FLAGS: ReadonlySet<string> = new Set(["aq-bat", "bq-bo", "bq-se", "bq-sa", "wf", "pm", "bl", "pt-ac", "pt-ma", "gf", "md-tr", "ge-so", "ge-ab"]);
+export const COMMONS_FLAGS: ReadonlySet<string> = new Set(["aq-bat", "bq-bo", "bq-se", "bq-sa", "wf", "pm", "bl", "pt-ac", "pt-ma", "gf", "md-tr", "ge-so", "ge-ab", "sh-ta"]);
 
 /** Hard mode: every country and territory. */
 export const HARD_CODES: string[] = EVERY_PLACE.map((c) => c.code);
