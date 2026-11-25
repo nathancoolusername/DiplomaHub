@@ -233,11 +233,12 @@ export const COUNTRIES: Country[] = CONTINENTS.flatMap((continent) =>
 );
 
 /**
- * Hard mode's extras: territories, dependencies and the UK's home nations
- * with a flag of their own (official, or the local flag where that's what
- * people fly: Wallis and Futuna, Saint Pierre and Miquelon, Saint Barthélemy).
- * Left out on purpose: territories that only fly their country's flag
- * (Réunion, Guadeloupe and the other French departments, Saint Martin,
+ * Hard mode's extras: territories, dependencies, autonomous regions, the UK's
+ * home nations and three breakaway states (Transnistria, South Ossetia,
+ * Abkhazia), each with a flag of its own (official, or the local flag where
+ * that's what people fly: Wallis and Futuna, Saint Pierre and Miquelon, Saint
+ * Barthélemy, French Guiana). Left out on purpose: territories that only fly
+ * their country's flag (Réunion, Guadeloupe, Mayotte, Saint Martin,
  * Svalbard, Bouvet, US Minor Outlying Islands, Heard Island), Diego Garcia
  * (same flag as BIOT), Antarctica and Northern Ireland (no official flag),
  * regions (Catalonia, the Canaries…) and organisations (EU, UN…).
@@ -249,6 +250,8 @@ const TERRITORY_DATA: Record<Continent, Row[]> = {
     ["sh-hl", "Saint Helena", 3],
     ["sh-ac", "Ascension Island", 3, "Ascension"],
     ["sh-ta", "Tristan da Cunha", 3, "Tristan"],
+    ["ic", "Canary Islands", 3, "Canaries", "Canarias", "Islas Canarias"],
+    ["pt-ma", "Madeira", 3],
     ["tf", "French Southern and Antarctic Lands", 3, "French Southern Territories", "TAAF"],
     ["aq-bat", "British Antarctic Territory", 3, "BAT"],
   ],
@@ -257,12 +260,16 @@ const TERRITORY_DATA: Record<Continent, Row[]> = {
     ["mo", "Macau", 3, "Macao"],
     ["cx", "Christmas Island", 3],
     ["cc", "Cocos (Keeling) Islands", 3, "Cocos Islands", "Keeling Islands", "Cocos"],
+    ["ge-so", "South Ossetia", 3, "Ossetia"],
   ],
   Europe: [
     ["gb-eng", "England", 3],
     ["gb-sct", "Scotland", 3],
     ["gb-wls", "Wales", 3, "Cymru"],
     ["ax", "Åland Islands", 3, "Aland", "Åland"],
+    ["pt-ac", "Azores", 3, "Açores", "Azores Islands"],
+    ["md-tr", "Transnistria", 3, "Pridnestrovie", "Transdniestria", "Trans-Dniester"],
+    ["ge-ab", "Abkhazia", 3],
     ["fo", "Faroe Islands", 3, "Faroes", "Faeroe Islands", "Faroe"],
     ["gi", "Gibraltar", 3],
     ["gg", "Guernsey", 3],
@@ -292,6 +299,7 @@ const TERRITORY_DATA: Record<Continent, Row[]> = {
   "South America": [
     ["fk", "Falkland Islands", 3, "Falklands"],
     ["gs", "South Georgia and the South Sandwich Islands", 3, "South Georgia"],
+    ["gf", "French Guiana", 3, "Guyane", "French Guyana"],
   ],
   Oceania: [
     ["as", "American Samoa", 3],
@@ -322,9 +330,9 @@ export const ALL_CODES: string[] = COUNTRIES.map((c) => c.code);
 
 /**
  * Flags from Wikimedia Commons, not flag-icons (public/flags/CREDITS-wikimedia.txt).
- * flag-icons draws wf, pm and bl as the French flag, so copy-svgs must never overwrite these.
+ * flag-icons draws wf, pm, bl and gf as the French flag, so copy-svgs must never overwrite these.
  */
-export const COMMONS_FLAGS: ReadonlySet<string> = new Set(["aq-bat", "bq-bo", "bq-se", "bq-sa", "wf", "pm", "bl"]);
+export const COMMONS_FLAGS: ReadonlySet<string> = new Set(["aq-bat", "bq-bo", "bq-se", "bq-sa", "wf", "pm", "bl", "pt-ac", "pt-ma", "gf", "md-tr", "ge-so", "ge-ab"]);
 
 /** Hard mode: every country and territory. */
 export const HARD_CODES: string[] = EVERY_PLACE.map((c) => c.code);

@@ -4,16 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { LogOut, RotateCcw, Trophy, Users } from "lucide-react";
 import { Avatar } from "@/components/avatar";
-import { TIERS } from "@/lib/deadline/config";
+import { FLAGS_SUBJECT, TIERS } from "@/lib/deadline/config";
 import type { RoomActions, RoomState } from "@/lib/deadline/types";
 import { nameOf, Points, WinsBadge } from "./bits";
 import { GuestUpgrade } from "./Guest";
 import { SubjectPicker } from "./SubjectPicker";
 import { PlayerMenu } from "./PlayerMenu";
+import { FlagsResult } from "./FlagsResult";
 import { Confetti, playerColors, seatAvatarClass } from "./fx";
 
 /** The winner, everyone's place, the rarest answer, Play again and Save as squad. */
-export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<RoomActions, "start" | "leave" | "saveSquad" | "listSubjects" | "setSubjects" | "kick" | "mute"> }) {
+export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<RoomActions, "start" | "leave" | "saveSquad" | "listSubjects" | "setSubjects" | "kick" | "mute" | "flagsSummary"> }) {
   const { room, players, me, end } = state;
   const byId = new Map(players.map((p) => [p.user_id, p]));
   const winner = end?.winner_id ? byId.get(end.winner_id) : null;
@@ -57,6 +58,8 @@ export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<
           <h2 className="font-serif font-bold text-headline-lg text-on-surface">Game over</h2>
         )}
       </div>
+
+      {(room.settings.subjects ?? []).length === 1 && room.settings.subjects?.[0] === FLAGS_SUBJECT && <FlagsResult gameNo={room.game_no} actions={actions} />}
 
       {end?.rarest && (
         <div className="rounded-2xl border-2 bg-surface-container-lowest px-lg py-sm" style={{ borderColor: TIERS[end.rarest.points]?.color }}>

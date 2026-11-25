@@ -6,7 +6,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { createClient } from "@/app/lib/supabase/client";
 import { GRACE_MS } from "./config";
 import { clockOffset, turnEndsAt } from "./clock";
-import type { ChatMessage, Reaction, RoomActions, RoomState, SubmitResult, TypingStore } from "./types";
+import type { ChatMessage, FlagsSummary, Reaction, RoomActions, RoomState, SubmitResult, TypingStore } from "./types";
 
 // A live Deadline room (migration 56), straight from the browser to Supabase:
 //  - state: get_room_state, refetched whenever the room's private channel
@@ -242,6 +242,11 @@ export function useRoom(code: string, initial: RoomState) {
         if (error) return { ok: false, reason: "error" };
         void refetch();
         return data as { ok: boolean; reason?: string };
+      },
+      flagsSummary: async () => {
+        const { data, error } = await supabase.rpc("flags_game_summary", { p_room: room() });
+        const d = data as ({ ok: boolean } & FlagsSummary) | null;
+        return error || !d?.ok ? null : { seconds: d.seconds, shown: d.shown, total: d.total, missed: d.missed ?? [] };
       },
       listSubjects: async () => {
         const { data } = await supabase.rpc("deadline_subjects");

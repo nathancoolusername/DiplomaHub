@@ -11,3 +11,12 @@ bl.svg      Saint Barthélemy (local)      File:Flag of Saint Barthélemy (local
 
 The CC BY-SA files above (bq-se.svg, bq-sa.svg), as cropped here, are shared under the same licence.
 Source pages: https://commons.wikimedia.org/wiki/File:<file name above>
+
+Added 2026-11-25 (hard mode):
+pt-ac.svg   Azores                        File:Flag of the Azores.svg                        Public domain (Tonyjeff)
+pt-ma.svg   Madeira                       File:Flag of Madeira.svg                           CC BY-SA 1.0, original Brian Boru, vector Nuno Tavares  https://creativecommons.org/licenses/by-sa/1.0
+gf.svg      French Guiana (regional)      File:Flag of French Guiana.svg                     Public domain (Madden)
+md-tr.svg   Transnistria                  File:Flag of Transnistria (state).svg              Public domain
+ge-so.svg   South Ossetia                 File:Flag of South Ossetia.svg                     Public domain
+ge-ab.svg   Abkhazia                      File:Flag of the Republic of Abkhazia.svg          Public domain (User:Achim1999)
+The CC BY-SA file above (pt-ma.svg), as cropped here, is shared under the same licence.
