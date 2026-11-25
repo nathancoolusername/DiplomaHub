@@ -46,7 +46,10 @@ function lobby(n: number, meHost: boolean): RoomState {
   };
 }
 
-type Engine = { state: RoomState; used: number[]; promptIdx: number; turns: number };
+/** startedAt/endedAt/missed: Flags mode's end-screen summary (flagsSummary). */
+type Engine = { state: RoomState; used: number[]; promptIdx: number; turns: number; startedAt?: number; endedAt?: number; missed?: string[] };
+const isFlag = (i: number) => PROMPTS[i]?.subject === "flags";
+const FLAG_IDX = PROMPTS.map((_, i) => i).filter(isFlag);
 const active = (s: RoomState) => s.players.filter((p) => p.seat !== null && !p.is_out);
 function nextHolder(s: RoomState, after: string) {
   const seats = active(s).sort((a, b) => a.seat! - b.seat!);
@@ -69,8 +72,10 @@ function openRound(e: Engine, holder: string, overtimeForce = false): Engine {
   return { ...e, used: [...e.used, idx], promptIdx: idx, turns: 0, state: { ...e.state, round } };
 }
 function endGame(e: Engine): Engine {
+  e = { ...e, endedAt: Date.now() };
   const s = e.state;
-  const winner = active(s)[0]?.user_id ?? null;
+  // Like dl_end_game: the player still in with the most points.
+  const winner = [...active(s)].sort((a, b) => b.points - a.points)[0]?.user_id ?? null;
   const seated = s.players.filter((p) => p.seat !== null);
   const places = [...seated].sort((a, b) => (a.user_id === winner ? -1 : b.user_id === winner ? 1 : b.points - a.points)).map((p, i) => ({ user_id: p.user_id, place: i + 1, points: p.points }));
   const all = s.round ? s.round.answers : [];
@@ -92,13 +97,25 @@ function advance(e: Engine, success: boolean): Engine {
   if (active(s).length <= 1) return endGame(e);
   const next = nextHolder(s, r.holder_id);
   const total = PROMPTS[e.promptIdx].answers.length;
+  const flag = isFlag(e.promptIdx);
   let reason: string | null = null;
   if (success) {
     if (r.answers.length >= total) reason = "exhausted";
     else if (r.fail_count === 0 && e.turns >= 5 * active(s).length) reason = "cleared";
     else if (r.failed_by && next === r.failed_by) reason = "back_to_failer";
+  } else if (flag) {
+    // A flag goes round: it changes once everyone still in has had a go.
+    if (next === r.failed_by || r.fail_count >= active(s).length) reason = "back_to_failer";
   } else if (r.fail_count >= 2) reason = "second_fail";
-  if (reason) return openRound(e, next);
+  if (reason) {
+    if (flag) {
+      const missed = !r.answers.length && r.fail_count > 0 ? [...(e.missed ?? []), PROMPTS[e.promptIdx].text.slice(5)] : (e.missed ?? []);
+      e = { ...e, missed };
+      // Every flag shown this game: the game ends (most points wins).
+      if (FLAG_IDX.every((i) => e.used.includes(i))) return endGame(e);
+    }
+    return openRound(e, next);
+  }
   return { ...e, state: { ...s, round: { ...r, holder_id: next, turn_started_at: iso() } } };
 }
 function timeout(e: Engine): Engine {
@@ -200,7 +217,7 @@ export function DeadlinePreview() {
       if (e.state.players.length < 2) return { ok: false, reason: "need_two" };
       const order = [...e.state.players].sort(() => Math.random() - 0.5);
       const players = e.state.players.map((p) => ({ ...p, seat: order.findIndex((o) => o.user_id === p.user_id), extensions: START_EXTENSIONS, points: 0, is_out: false }));
-      const started: Engine = { ...e, used: [], state: { ...e.state, players, end: null, room: { ...e.state.room, status: "playing", game_no: e.state.room.game_no + 1, last_event: { type: "started", at: iso() } }, round: null } };
+      const started: Engine = { ...e, used: [], startedAt: Date.now(), endedAt: undefined, missed: [], state: { ...e.state, players, end: null, room: { ...e.state.room, status: "playing", game_no: e.state.room.game_no + 1, last_event: { type: "started", at: iso() } }, round: null } };
       setEng(openRound(started, order[0].user_id));
       return { ok: true };
     },
@@ -237,6 +254,16 @@ export function DeadlinePreview() {
       await new Promise((r) => setTimeout(r, 400));
       setEng((e) => ({ ...e, state: { ...e.state, room: { ...e.state.room, settings: { ...e.state.room.settings, subjects } } } }));
       return { ok: true, prompts: PROMPTS.filter((p) => !subjects.length || subjects.includes(p.subject)).length };
+    },
+    flagsSummary: async () => {
+      const e = engRef.current;
+      if (!e.startedAt) return null;
+      return {
+        seconds: Math.round(((e.endedAt ?? Date.now()) - e.startedAt) / 1000),
+        shown: FLAG_IDX.filter((i) => e.used.includes(i)).length,
+        total: FLAG_IDX.length,
+        missed: e.missed ?? [],
+      };
     },
     saveSquad: async (name) => {
       setEng((e) => ({ ...e, state: { ...e.state, room: { ...e.state.room, saved_squad: { id: "sq", name, code: "K7MPXR", member: true } } } }));

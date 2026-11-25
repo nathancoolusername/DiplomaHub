@@ -101,7 +101,11 @@ export type RoomActions = {
   listSubjects: () => Promise<{ subject: string; prompts: number }[]>;
   /** Host: tick subjects (empty = Mixed). */
   setSubjects: (subjects: string[]) => Promise<{ ok: boolean; reason?: string; prompts?: number }>;
+  /** Flags mode, end screen: the game's length, flags shown of total, and the flags nobody named (codes). */
+  flagsSummary: () => Promise<FlagsSummary | null>;
 };
+
+export type FlagsSummary = { seconds: number; shown: number; total: number; missed: string[] };
 
 /** What players are typing right now (user id → text), as a tiny store so a
  *  stream of keystrokes re-renders only the line that shows them. */
