@@ -626,8 +626,15 @@ html.theme-vt-midnight::view-transition-new(root) {
 }
 @media (min-width: 1024px) { [data-myturn] { border-radius: 1.5rem; } }
 .dl-chip { animation: dl-chip 300ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+/* A new prompt: the card pops in with a quick glow (Deadline). */
+@keyframes dl-newprompt {
+  0% { transform: scale(0.94); box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 55%, transparent); }
+  35% { transform: scale(1.03); box-shadow: 0 0 0 10px color-mix(in srgb, var(--color-primary) 30%, transparent); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+}
+.dl-newprompt { animation: dl-newprompt 550ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @media (prefers-reduced-motion: reduce) {
-  .dl-clock[data-hot="true"], .dl-shake, .dl-boom, .dl-chip, .dl-holder, .dl-in, .dl-rise, .dl-dots > span { animation: none; }
+  .dl-clock[data-hot="true"], .dl-shake, .dl-boom, .dl-chip, .dl-newprompt, .dl-holder, .dl-in, .dl-rise, .dl-dots > span { animation: none; }
   .dl-confetti { display: none; }
   .dl-token { transition: none; }
   .dl-burst, .dl-vignette { animation: dl-still 1.2s linear both; }

@@ -25,8 +25,13 @@ export const REACTIONS = ["😂", "💀", "🔥", "👏", "😭", "😮", "🫡"
 export const SUBJECT_LABELS: Record<string, string> = {
   mixed: "IB general", biology: "Biology", chemistry: "Chemistry", physics: "Physics", math: "Maths", geography: "Geography",
   history: "History", economics: "Economics", psychology: "Psychology", "computer science": "Computer Science", business: "Business",
-  tok: "TOK", ess: "ESS", english: "English",
+  tok: "TOK", ess: "ESS", english: "English", flags: "Flags",
 };
+/** Flags mode: each prompt is one flag ("flag:<code>"); a mode of its own, never in Mixed. */
+export const FLAGS_SUBJECT = "flags";
+/** The flag code when a prompt is a flag, else null. */
+export const flagCodeOf = (subject: string, prompt: string): string | null =>
+  subject === FLAGS_SUBJECT && /^flag:[a-z]{2}(-[a-z]{2,3})?$/.test(prompt) ? prompt.slice(5) : null;
 export const subjectLabel = (s: string) => SUBJECT_LABELS[s] ?? s.replace(/\b\w/g, (c) => c.toUpperCase());
 /** Below this many prompts, the picker suggests ticking more (the game starts repeating sooner). */
 export const FEW_PROMPTS = 12;

@@ -1,9 +1,9 @@
 import "server-only";
 
 import { createAdminClient } from "@/app/lib/supabase/admin";
-import { ALL_CODES } from "./countries.ts";
-import { FLAGS, type Mode } from "./config.ts";
-import { dailyCodes, gameDay } from "./daily.ts";
+import { ALL_CODES, HARD_CODES } from "./countries.ts";
+import { FLAGS, type FreeMode, type Mode } from "./config.ts";
+import { dailyCodes, gameDay, utcToday } from "./daily.ts";
 import { checkRun, type Answer } from "./engine.ts";
 import type { BoardRow, RunResult, RunStart } from "./types.ts";
 
@@ -28,7 +28,9 @@ type RunRow = {
 };
 const RUN_COLS = "id, user_id, mode, day, started_at, finished_at, correct, total, answers, counts_for_leaderboard";
 
-const boardFor = (run: Pick<RunRow, "mode" | "day">) => (run.mode === "daily" ? dailyCodes(run.day!) : ALL_CODES);
+const CODES: Record<FreeMode, string[]> = { all: ALL_CODES, hard: HARD_CODES };
+const BEST_VIEW: Record<FreeMode, string> = { all: "flag_all_best", hard: "flag_hard_best" };
+const boardFor = (run: Pick<RunRow, "mode" | "day">) => (run.mode === "daily" ? dailyCodes(run.day!) : CODES[run.mode]);
 const secondsOf = (run: RunRow) => {
   const elapsed = run.finished_at ? Date.parse(run.finished_at) - Date.parse(run.started_at) : 0;
   return checkRun(run.mode, boardFor(run), run.answers ?? [], elapsed).seconds;
@@ -44,6 +46,9 @@ export async function startRun(userId: string, mode: Mode): Promise<RunStart> {
   let row: RunRow | null = null;
   if (mode === "daily") {
     const day = gameDay();
+    // FLAGS_TODAY (dev only) previews another day's board. Dev shares the live
+    // database, so never save a sprint for a day that isn't really today.
+    if (day !== utcToday()) throw new Error(`flags: FLAGS_TODAY=${day} is a preview; sprint runs aren't saved`);
     const ins = await sb
       .from("flag_runs")
       .upsert({ user_id: userId, mode, day, total: dailyCodes(day).length, counts_for_leaderboard: false }, { onConflict: "user_id,day", ignoreDuplicates: true });
@@ -56,20 +61,20 @@ export async function startRun(userId: string, mode: Mode): Promise<RunStart> {
       .from("flag_runs")
       .select(RUN_COLS)
       .eq("user_id", userId)
-      .eq("mode", "all")
+      .eq("mode", mode)
       .is("finished_at", null)
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle();
     if (error) throw new Error(error.message);
     const open = data as RunRow | null;
-    const live = open && Date.now() - Date.parse(open.started_at) < FLAGS.capSeconds.all * 1000 + FLAGS.graceMs;
+    const live = open && Date.now() - Date.parse(open.started_at) < FLAGS.capSeconds[mode] * 1000 + FLAGS.graceMs;
     if (live) row = open;
     else {
       // Abandoned runs never count; clear them so they don't pile up.
-      const del = await sb.from("flag_runs").delete().eq("user_id", userId).eq("mode", "all").is("finished_at", null);
+      const del = await sb.from("flag_runs").delete().eq("user_id", userId).eq("mode", mode).is("finished_at", null);
       if (del.error) throw new Error(del.error.message);
-      const ins = await sb.from("flag_runs").insert({ user_id: userId, mode, total: ALL_CODES.length }).select(RUN_COLS).single();
+      const ins = await sb.from("flag_runs").insert({ user_id: userId, mode, total: CODES[mode].length }).select(RUN_COLS).single();
       if (ins.error) throw new Error(ins.error.message);
       row = ins.data as RunRow;
     }
@@ -121,7 +126,7 @@ async function resultOf(row: RunRow): Promise<RunResult> {
   const seconds = secondsOf(row);
   const correct = row.correct ?? 0;
   const [top, rank] = await Promise.all([
-    row.mode === "daily" ? getDailyBoard(row.day!, 10, 0, row.user_id).then((b) => b.rows) : getAllBoard(10, 0, row.user_id).then((b) => b.rows),
+    row.mode === "daily" ? getDailyBoard(row.day!, 10, 0, row.user_id).then((b) => b.rows) : getBestBoard(row.mode, 10, 0, row.user_id).then((b) => b.rows),
     row.counts_for_leaderboard ? rankOf(row.user_id, row.mode, row.day, correct, seconds) : Promise.resolve(null),
   ]);
   return { correct, total: row.total, seconds, counted: row.counts_for_leaderboard, named: (row.answers ?? []).map((a) => a.code), rank, top };
@@ -154,9 +159,10 @@ export async function getDailyBoard(day: string, limit: number, offset: number, 
   return { total: count ?? 0, rows: toRows((data ?? []) as ScoreRow[], offset, meId) };
 }
 
-export async function getAllBoard(limit: number, offset: number, meId: string | null): Promise<{ total: number; rows: BoardRow[] }> {
+/** Best run per student for a replayable mode (all flags, or hard). */
+export async function getBestBoard(mode: FreeMode, limit: number, offset: number, meId: string | null): Promise<{ total: number; rows: BoardRow[] }> {
   const { data, error, count } = await admin()
-    .from("flag_all_best")
+    .from(BEST_VIEW[mode])
     .select("user_id, display_name, correct, total, seconds", { count: "exact" })
     .order("correct", { ascending: false })
     .order("seconds", { ascending: true })
@@ -170,7 +176,7 @@ async function rankOf(userId: string, mode: Mode, day: string | null, correct: n
   const sb = admin();
   const { data: me } = await sb.from("users").select("hide_from_leaderboard").eq("id", userId).maybeSingle();
   if (me?.hide_from_leaderboard) return null;
-  const view = mode === "daily" ? "flag_daily_scores" : "flag_all_best";
+  const view = mode === "daily" ? "flag_daily_scores" : BEST_VIEW[mode];
   let q = sb.from(view).select("user_id", { count: "exact", head: true }).or(`correct.gt.${correct},and(correct.eq.${correct},seconds.lt.${seconds})`);
   if (mode === "daily") q = q.eq("day", day!);
   const { count, error } = await q;

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getCurrentUserId } from "@/app/lib/get-current-user";
-import { ALL_CODES, COUNTRIES } from "@/lib/flags/countries";
+import { ALL_CODES, COUNTRIES, HARD_CODES, TERRITORIES } from "@/lib/flags/countries";
 import { dailyCodes, gameDay, nextResetAt, sprintNumber } from "@/lib/flags/daily";
 import { FLAGS } from "@/lib/flags/config";
 import type { FlagBoard } from "@/lib/flags/types";
@@ -9,36 +9,39 @@ import { Game } from "@/components/flags/Game";
 
 export const metadata: Metadata = {
   title: "Flags: name every flag against the clock",
-  description: "A daily sprint of 20 flags, the same for everyone, or all 197 in fifteen minutes. Type a country and its flag fills in.",
+  description: "A daily sprint of 20 flags, the same for everyone, all 197 in fifteen minutes, or hard mode with every territory too. Type a country and its flag fills in.",
   alternates: { canonical: "/flags" },
   openGraph: { title: "Flags · DiplomaHub", description: "20 flags a day, or all 197 against the clock. Free.", url: "/flags" },
 };
 
 type Props = { searchParams: Promise<{ mode?: string }> };
 
-// The flag game: ?mode=all for every flag, otherwise today's sprint. The
+// The flag game: ?mode=all for every country, ?mode=hard for countries and
+// territories, otherwise today's sprint. The
 // board is worked out here (the sprint from the UTC date and a server seed)
 // and the game runs in the browser; signed-in runs are timed and checked by
 // app/api/flags/*.
 export default async function FlagsPage({ searchParams }: Props) {
-  const mode = (await searchParams).mode === "all" ? "all" : "daily";
+  const asked = (await searchParams).mode;
+  const mode = asked === "all" || asked === "hard" ? asked : "daily";
   const userId = await getCurrentUserId();
   const day = gameDay();
   const board: FlagBoard =
     mode === "daily"
       ? { mode, codes: dailyCodes(day), day, number: sprintNumber(day), nextResetAt: nextResetAt().toISOString() }
-      : { mode, codes: ALL_CODES, day: null, number: null, nextResetAt: null };
+      : { mode, codes: mode === "hard" ? HARD_CODES : ALL_CODES, day: null, number: null, nextResetAt: null };
 
   return (
     <div className="max-w-[1040px] mx-auto px-sm sm:px-md py-lg md:py-xl flex flex-col gap-lg">
       <header className="flex flex-col items-center gap-sm text-center">
-        <p className="text-label-md font-semibold text-primary uppercase tracking-wide">{mode === "daily" ? `Daily sprint #${board.number}` : "All flags"}</p>
+        <p className="text-label-md font-semibold text-primary uppercase tracking-wide">{mode === "daily" ? `Daily sprint #${board.number}` : mode === "hard" ? "Hard mode" : "All flags"}</p>
         <h1 className="font-serif font-bold text-headline-lg md:text-display-lg text-on-surface">Flags</h1>
         <nav aria-label="Mode" className="inline-flex gap-0.5 rounded-xl bg-surface-container p-0.5">
           {(
             [
               ["daily", "Daily sprint", "/flags"],
               ["all", `All ${ALL_CODES.length}`, "/flags?mode=all"],
+              ["hard", `Hard ${HARD_CODES.length}`, "/flags?mode=hard"],
             ] as const
           ).map(([m, label, href]) => (
             <Link
@@ -67,6 +70,10 @@ export default async function FlagsPage({ searchParams }: Props) {
             flags first, then fastest. A new sprint at 00:00 UTC.
           </li>
           <li>All flags: every one of the {COUNTRIES.length}, {FLAGS.capSeconds.all / 60} minutes, play as often as you like. Your best run is on the leaderboard.</li>
+          <li>
+            Hard mode: all {COUNTRIES.length} plus {TERRITORIES.length} territories with flags of their own (Greenland, Hong Kong, the Falklands, Scotland…), {FLAGS.capSeconds.hard / 60}{" "}
+            minutes. Territories that fly their country&apos;s flag, like Réunion, aren&apos;t in it.
+          </li>
           <li>
             The {COUNTRIES.length}: the 193 UN members, the two UN observer states (Vatican City and Palestine), Kosovo and Taiwan.
           </li>

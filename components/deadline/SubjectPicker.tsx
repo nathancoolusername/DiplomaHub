@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Flame } from "lucide-react";
-import { FEW_PROMPTS, subjectLabel } from "@/lib/deadline/config";
+import { Check, Flag, Flame } from "lucide-react";
+import { FEW_PROMPTS, FLAGS_SUBJECT, subjectLabel } from "@/lib/deadline/config";
 import type { RoomActions } from "@/lib/deadline/types";
 
 /**
  * Which subjects the prompts come from. The host ticks one or more (none =
  * Mixed: every subject, the harder game); everyone else sees the choice.
+ * Flags is a mode of its own: a flag each turn, name the country. Ticking it
+ * unticks the rest, and ticking anything else unticks it.
  */
 // The list barely changes: keep it between Lobby and End screen so the chips
 // don't pop in again every game.
@@ -43,7 +45,10 @@ export function SubjectPicker({ chosen: confirmed, isHost, actions }: {
   const chosen = draft ?? confirmed;
 
   const mixed = chosen.length === 0;
-  const total = mixed ? list?.reduce((n, s) => n + s.prompts, 0) ?? 0 : list?.filter((s) => chosen.includes(s.subject)).reduce((n, s) => n + s.prompts, 0) ?? 0;
+  const flagsOnly = chosen.length === 1 && chosen[0] === FLAGS_SUBJECT;
+  const total = mixed
+    ? list?.filter((s) => s.subject !== FLAGS_SUBJECT).reduce((n, s) => n + s.prompts, 0) ?? 0
+    : list?.filter((s) => chosen.includes(s.subject)).reduce((n, s) => n + s.prompts, 0) ?? 0;
 
   async function set(next: string[]) {
     if (!isHost) return;
@@ -60,7 +65,7 @@ export function SubjectPicker({ chosen: confirmed, isHost, actions }: {
         if (!r.ok) {
           queued.current = null;
           setDraft(null);
-          setError(r.reason === "playing" ? "You can change subjects between games." : "Couldn't change the subjects.");
+          setError(r.reason === "playing" ? "You can change subjects between games." : r.reason === "flags_alone" ? "Flags is played on its own." : "Couldn't change the subjects.");
           break;
         }
       }
@@ -69,13 +74,18 @@ export function SubjectPicker({ chosen: confirmed, isHost, actions }: {
       setSettled((x) => x + 1);
     }
   }
-  const toggle = (s: string) => set(chosen.includes(s) ? chosen.filter((x) => x !== s) : [...chosen, s]);
+  const toggle = (s: string) => {
+    if (chosen.includes(s)) return set(chosen.filter((x) => x !== s));
+    // Flags is its own mode: it replaces the other subjects, and they replace it.
+    if (s === FLAGS_SUBJECT) return set([FLAGS_SUBJECT]);
+    return set([...chosen.filter((x) => x !== FLAGS_SUBJECT), s]);
+  };
 
   if (!isHost) {
     return (
       <p className="text-body-md text-on-surface-variant">
         Prompts from:{" "}
-        <strong className="text-on-surface">{mixed ? "Mixed (every subject)" : chosen.map(subjectLabel).join(", ")}</strong>
+        <strong className="text-on-surface">{mixed ? "Mixed (every subject)" : flagsOnly ? "Flags (name the country)" : chosen.map(subjectLabel).join(", ")}</strong>
         {mixed && <span className="ml-xs inline-flex items-center gap-0.5 rounded-full bg-error/10 text-error px-sm text-label-sm font-semibold align-middle"><Flame size={11} aria-hidden="true" />Harder</span>}
       </p>
     );
@@ -100,6 +110,7 @@ export function SubjectPicker({ chosen: confirmed, isHost, actions }: {
           return (
             <button key={s.subject} type="button" aria-pressed={on} onClick={() => toggle(s.subject)} className={chip(on)}>
               <Check size={14} aria-hidden="true" className={on ? "" : "opacity-0"} />
+              {s.subject === FLAGS_SUBJECT && <Flag size={13} aria-hidden="true" />}
               {subjectLabel(s.subject)}
               <span className={`text-label-sm tabular-nums ${on ? "text-on-primary/80" : "text-on-surface-variant"}`}>{s.prompts}</span>
             </button>
@@ -108,7 +119,9 @@ export function SubjectPicker({ chosen: confirmed, isHost, actions }: {
       </div>
       <p className="text-label-md text-on-surface-variant min-h-[2lh]">
         {mixed
-          ? "Mixed draws from every subject: the hardest game. Tick subjects to play only those."
+          ? "Mixed draws from every IB subject: the hardest game. Tick subjects to play only those, or Flags for a flag each turn."
+          : flagsOnly
+            ? `Flags: a flag each turn, name the country before your deadline. ${total} flags, on their own.`
           : total < FEW_PROMPTS
             ? `Only ${total} prompt${total === 1 ? "" : "s"}: they'll repeat sooner. Tick more for a longer game.`
             : `${total} prompts. Tick or untick to change.`}

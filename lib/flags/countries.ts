@@ -1,6 +1,7 @@
 // Flags: the 197 countries. The 193 UN members, the 2 UN observer states
-// (Vatican City, Palestine), Kosovo and Taiwan. Images are flag-icons SVGs
-// in public/flags/{code}.svg (scripts/flags/copy-svgs.mts).
+// (Vatican City, Palestine), Kosovo and Taiwan. Hard mode adds TERRITORIES
+// below. Images are flag-icons SVGs in public/flags/{code}.svg
+// (scripts/flags/copy-svgs.mts).
 //
 // tier: 1 = most people know it, 2 = medium, 3 = hard. The daily sprint mixes
 // them (lib/flags/daily.ts). Aliases are other names people really type;
@@ -9,7 +10,7 @@
 
 export type Continent = "Africa" | "Asia" | "Europe" | "North America" | "South America" | "Oceania";
 export type Tier = 1 | 2 | 3;
-export type Country = { code: string; name: string; continent: Continent; tier: Tier; aliases: string[] };
+export type Country = { code: string; name: string; continent: Continent; tier: Tier; aliases: string[]; territory?: boolean };
 
 export const CONTINENTS: Continent[] = ["Europe", "Asia", "Africa", "North America", "South America", "Oceania"];
 
@@ -231,9 +232,101 @@ export const COUNTRIES: Country[] = CONTINENTS.flatMap((continent) =>
   DATA[continent].map(([code, name, tier, ...aliases]) => ({ code, name, continent, tier, aliases })),
 );
 
-export const BY_CODE: ReadonlyMap<string, Country> = new Map(COUNTRIES.map((c) => [c.code, c]));
+/**
+ * Hard mode's extras: territories, dependencies and the UK's home nations
+ * with a flag of their own (official, or the local flag where that's what
+ * people fly: Wallis and Futuna, Saint Pierre and Miquelon, Saint Barthélemy).
+ * Left out on purpose: territories that only fly their country's flag
+ * (Réunion, Guadeloupe and the other French departments, Saint Martin,
+ * Svalbard, Bouvet, US Minor Outlying Islands, Heard Island), Diego Garcia
+ * (same flag as BIOT), Antarctica and Northern Ireland (no official flag),
+ * regions (Catalonia, the Canaries…) and organisations (EU, UN…).
+ */
+const TERRITORY_DATA: Record<Continent, Row[]> = {
+  Africa: [
+    ["eh", "Western Sahara", 3],
+    ["io", "British Indian Ocean Territory", 3, "BIOT", "Chagos Islands", "Chagos"],
+    ["sh-hl", "Saint Helena", 3],
+    ["sh-ac", "Ascension Island", 3, "Ascension"],
+    ["sh-ta", "Tristan da Cunha", 3, "Tristan"],
+    ["tf", "French Southern and Antarctic Lands", 3, "French Southern Territories", "TAAF"],
+    ["aq-bat", "British Antarctic Territory", 3, "BAT"],
+  ],
+  Asia: [
+    ["hk", "Hong Kong", 3],
+    ["mo", "Macau", 3, "Macao"],
+    ["cx", "Christmas Island", 3],
+    ["cc", "Cocos (Keeling) Islands", 3, "Cocos Islands", "Keeling Islands", "Cocos"],
+  ],
+  Europe: [
+    ["gb-eng", "England", 3],
+    ["gb-sct", "Scotland", 3],
+    ["gb-wls", "Wales", 3, "Cymru"],
+    ["ax", "Åland Islands", 3, "Aland", "Åland"],
+    ["fo", "Faroe Islands", 3, "Faroes", "Faeroe Islands", "Faroe"],
+    ["gi", "Gibraltar", 3],
+    ["gg", "Guernsey", 3],
+    ["je", "Jersey", 3],
+    ["im", "Isle of Man", 3],
+  ],
+  "North America": [
+    ["gl", "Greenland", 3],
+    ["bm", "Bermuda", 3],
+    ["pr", "Puerto Rico", 3],
+    ["ai", "Anguilla", 3],
+    ["aw", "Aruba", 3],
+    ["cw", "Curaçao", 3],
+    ["sx", "Sint Maarten", 3, "Saint Maarten"],
+    ["ky", "Cayman Islands", 3, "Caymans", "Cayman"],
+    ["ms", "Montserrat", 3],
+    ["tc", "Turks and Caicos Islands", 3, "Turks and Caicos"],
+    ["vg", "British Virgin Islands", 3, "BVI"],
+    ["vi", "US Virgin Islands", 3, "USVI", "United States Virgin Islands", "American Virgin Islands"],
+    ["mq", "Martinique", 3],
+    ["bq-bo", "Bonaire", 3],
+    ["bq-se", "Sint Eustatius", 3, "Saint Eustatius", "Statia"],
+    ["bq-sa", "Saba", 3],
+    ["pm", "Saint Pierre and Miquelon", 3, "Saint-Pierre and Miquelon", "Saint Pierre", "Miquelon"],
+    ["bl", "Saint Barthélemy", 3, "Saint Barths", "Saint Barts", "Saint Barth"],
+  ],
+  "South America": [
+    ["fk", "Falkland Islands", 3, "Falklands"],
+    ["gs", "South Georgia and the South Sandwich Islands", 3, "South Georgia"],
+  ],
+  Oceania: [
+    ["as", "American Samoa", 3],
+    ["gu", "Guam", 3],
+    ["mp", "Northern Mariana Islands", 3, "Northern Marianas"],
+    ["ck", "Cook Islands", 3],
+    ["nu", "Niue", 3],
+    ["tk", "Tokelau", 3],
+    ["nf", "Norfolk Island", 3],
+    ["pn", "Pitcairn Islands", 3, "Pitcairn"],
+    ["pf", "French Polynesia", 3, "Tahiti"],
+    ["nc", "New Caledonia", 3],
+    ["wf", "Wallis and Futuna", 3, "Wallis & Futuna"],
+  ],
+};
 
-/** Every code, in grid order (continent, then A–Z as listed). */
+export const TERRITORIES: Country[] = CONTINENTS.flatMap((continent) =>
+  TERRITORY_DATA[continent].map(([code, name, tier, ...aliases]) => ({ code, name, continent, tier, aliases, territory: true })),
+);
+
+/** Countries and territories: everything a name can match. */
+export const EVERY_PLACE: Country[] = [...COUNTRIES, ...TERRITORIES];
+
+export const BY_CODE: ReadonlyMap<string, Country> = new Map(EVERY_PLACE.map((c) => [c.code, c]));
+
+/** Every country code, in grid order (continent, then A–Z as listed). */
 export const ALL_CODES: string[] = COUNTRIES.map((c) => c.code);
+
+/**
+ * Flags from Wikimedia Commons, not flag-icons (public/flags/CREDITS-wikimedia.txt).
+ * flag-icons draws wf, pm and bl as the French flag, so copy-svgs must never overwrite these.
+ */
+export const COMMONS_FLAGS: ReadonlySet<string> = new Set(["aq-bat", "bq-bo", "bq-se", "bq-sa", "wf", "pm", "bl"]);
+
+/** Hard mode: every country and territory. */
+export const HARD_CODES: string[] = EVERY_PLACE.map((c) => c.code);
 
 export const flagSrc = (code: string) => `/flags/${code}.svg`;

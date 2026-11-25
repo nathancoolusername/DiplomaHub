@@ -1,12 +1,16 @@
 // Copies the flag SVGs Flags uses (4x3) from an unpacked flag-icons package
-// into public/flags, plus its MIT licence. Only our 197 codes, nothing else.
+// into public/flags, plus its MIT licence. Only our codes (countries and
+// hard mode's territories), nothing else.
 //
 //   npm pack flag-icons@7.6.0 && tar xzf flag-icons-7.6.0.tgz
 //   node --experimental-strip-types scripts/flags/copy-svgs.mts path/to/package
 
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ALL_CODES } from "../../lib/flags/countries.ts";
+import { COMMONS_FLAGS, HARD_CODES } from "../../lib/flags/countries.ts";
+
+// Commons flags are added by hand (public/flags/CREDITS-wikimedia.txt), never from flag-icons.
+const ALL_CODES = HARD_CODES.filter((c) => !COMMONS_FLAGS.has(c));
 
 const pkg = process.argv[2];
 if (!pkg || !existsSync(join(pkg, "flags", "4x3"))) {

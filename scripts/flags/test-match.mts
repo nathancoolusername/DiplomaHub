@@ -2,7 +2,7 @@
 //   node --experimental-strip-types scripts/flags/test-match.mts
 
 import fs from "node:fs";
-import { ALL_CODES, BY_CODE, COUNTRIES } from "../../lib/flags/countries.ts";
+import { ALL_CODES, BY_CODE, COUNTRIES, EVERY_PLACE, HARD_CODES, TERRITORIES } from "../../lib/flags/countries.ts";
 import { match, NAMES, normalize } from "../../lib/flags/match.ts";
 import { dailyCodes, sprintNumber } from "../../lib/flags/daily.ts";
 import { checkRun } from "../../lib/flags/engine.ts";
@@ -11,21 +11,36 @@ import { FLAGS } from "../../lib/flags/config.ts";
 let passed = 0, failed = 0;
 const ok = (c: boolean, n: string) => (c ? passed++ : (failed++, console.log(`FAIL ${n}`)));
 const all = new Set(ALL_CODES);
+const hard = new Set(HARD_CODES);
 
 // Data
 ok(COUNTRIES.length === 197, `197 countries (got ${COUNTRIES.length})`);
 ok(new Set(ALL_CODES).size === ALL_CODES.length, "codes unique");
-ok(ALL_CODES.every((c) => /^[a-z]{2}$/.test(c)), "codes are 2 letters");
-for (const c of ALL_CODES) ok(fs.existsSync(`public/flags/${c}.svg`), `svg for ${c}`);
+ok(ALL_CODES.every((c) => /^[a-z]{2}$/.test(c)), "country codes are 2 letters");
+ok(TERRITORIES.length === 51 && HARD_CODES.length === 248, `hard mode is 248 (got ${HARD_CODES.length})`);
+for (const c of ["aq-bat", "bq-bo", "bq-se", "bq-sa", "wf", "pm", "bl"]) ok(BY_CODE.get(c)?.territory === true, `${c} is a hard-mode territory`);
+ok(!BY_CODE.has("mf"), "Saint Martin (French side) left out: no flag of its own");
+ok(!fs.readFileSync("public/flags/wf.svg", "utf8").includes("flag-icons"), "wf.svg is the local flag from Commons, not flag-icons' French flag");
+ok(new Set(HARD_CODES).size === HARD_CODES.length, "hard codes unique");
+ok(HARD_CODES.every((c) => /^[a-z]{2}(-[a-z]{2,3})?$/.test(c) && c.length <= 6), "hard codes fit the API (≤ 6 chars)");
+for (const c of HARD_CODES) ok(fs.existsSync(`public/flags/${c}.svg`), `svg for ${c}`);
+for (const c of ["re", "gp", "mq", "sj", "bq", "um", "hm", "gb-nir"]) ok(c === "mq" ? BY_CODE.has(c) : !BY_CODE.has(c), `${c} ${c === "mq" ? "in (own flag)" : "left out"}`);
+ok(match("Statia", hard).code === "bq-se" && match("St Barths", hard).code === "bl" && match("Wallis & Futuna", hard).code === "wf", "new territory spellings");
 ok(BY_CODE.has("tw") && BY_CODE.has("xk") && BY_CODE.has("ps") && BY_CODE.has("va"), "Taiwan, Kosovo, Palestine, Vatican included");
 for (const t of [1, 2, 3]) ok(COUNTRIES.filter((c) => c.tier === t).length >= FLAGS.dailyMix[t as 1 | 2 | 3] * 3, `tier ${t} has enough for the sprint`);
 
-// Every name and alias finds its own country
-for (const c of COUNTRIES)
+// Every name and alias finds its own country (or territory, in hard mode)
+for (const c of EVERY_PLACE)
   for (const n of [c.name, ...c.aliases]) {
-    const m = match(n, all);
+    const m = match(n, hard);
     ok(m.code === c.code, `"${n}" → ${c.code} (got ${m.code})`);
   }
+// Territories never match outside hard mode, and the sprint is countries only
+ok(match("Greenland", all).code === null && match("Scotland", all).code === null, "territories don't count in all flags");
+ok(match("Greenland", hard).code === "gl" && match("England", hard).code === "gb-eng", "territories count in hard mode");
+ok(match("Virgin Islands", hard).code === null, "plain 'Virgin Islands' is ambiguous: no match");
+ok(match("St Helena", hard).code === "sh-hl" && match("curacao", hard).code === "cw" && match("macao", hard).code === "mo", "territory spellings");
+ok((match("Samoa", hard) as { wait: boolean }).wait === false, "Samoa doesn't wait (American Samoa doesn't start with it)");
 
 // Normalising
 ok(normalize("Côte d'Ivoire") === "cotedivoire", "accents and apostrophes");
@@ -59,7 +74,7 @@ ok(match("france", new Set(ALL_CODES.filter((c) => c !== "fr"))).code === null, 
 // Daily sprint
 const d1 = dailyCodes("2026-11-25");
 ok(d1.length === 20 && new Set(d1).size === 20, "20 different flags");
-ok(d1.every((c) => all.has(c)), "all real codes");
+ok(d1.every((c) => all.has(c)), "sprint is countries only");
 ok(JSON.stringify(d1) === JSON.stringify(dailyCodes("2026-11-25")), "same every time");
 ok(JSON.stringify(d1) !== JSON.stringify(dailyCodes("2026-11-26")), "changes by day");
 for (const t of [1, 2, 3] as const) ok(d1.filter((c) => BY_CODE.get(c)!.tier === t).length === FLAGS.dailyMix[t], `tier ${t} count`);
