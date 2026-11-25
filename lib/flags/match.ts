@@ -1,7 +1,7 @@
 // Flags: turning what someone typed into a country. Used by the game (instant
 // feedback) and the server (re-checking a finished run's answers).
 
-import { COUNTRIES } from "./countries.ts";
+import { EVERY_PLACE } from "./countries.ts";
 
 /**
  * "Côte d'Ivoire" → "cotedivoire", "St. Lucia" → "saintlucia",
@@ -25,7 +25,7 @@ export function normalize(text: string): string {
 /** Every accepted spelling (normalised) → its country code. */
 export const NAMES: ReadonlyMap<string, string> = (() => {
   const m = new Map<string, string>();
-  for (const c of COUNTRIES)
+  for (const c of EVERY_PLACE)
     for (const n of [c.name, ...c.aliases]) {
       const k = normalize(n);
       const had = m.get(k);

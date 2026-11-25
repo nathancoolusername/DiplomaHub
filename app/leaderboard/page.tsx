@@ -21,7 +21,7 @@ type Props = { searchParams: Promise<{ period?: string; page?: string }> };
 
 const MEDALS = ["bg-[#f5c542] text-[#3d2e00]", "bg-[#c9d1dc] text-[#25303d]", "bg-[#d99a5b] text-[#3a2105]"];
 
-type Board = LeaderboardPeriod | "contribution" | "forty-five" | "forty-five-all" | "deadline" | "deadline-all" | "flags" | "flags-all";
+type Board = LeaderboardPeriod | "contribution" | "forty-five" | "forty-five-all" | "deadline" | "deadline-all" | "flags" | "flags-all" | "flags-hard";
 const TABS: { id: Board; label: string }[] = [
   { id: "week", label: "Practice" },
   { id: "contribution", label: "Contribution" },
@@ -36,18 +36,18 @@ const TABS: { id: Board; label: string }[] = [
 export default async function Leaderboard({ searchParams }: Props) {
   const sp = await searchParams;
   const tab: Board =
-    sp.period === "all" || sp.period === "contribution" || sp.period === "forty-five" || sp.period === "forty-five-all" || sp.period === "deadline" || sp.period === "deadline-all" || sp.period === "flags" || sp.period === "flags-all"
+    sp.period === "all" || sp.period === "contribution" || sp.period === "forty-five" || sp.period === "forty-five-all" || sp.period === "deadline" || sp.period === "deadline-all" || sp.period === "flags" || sp.period === "flags-all" || sp.period === "flags-hard"
       ? sp.period
       : "week";
   if (tab === "deadline" || tab === "deadline-all")
     return <DeadlineBoard view={tab === "deadline" ? "week" : "all"} tabs={<BoardTabs current="deadline" />} href={(v) => boardHref(v === "week" ? "deadline" : "deadline-all")} />;
-  if (tab === "flags" || tab === "flags-all")
+  if (tab === "flags" || tab === "flags-all" || tab === "flags-hard")
     return (
       <FlagsBoard
-        view={tab === "flags" ? "daily" : "all"}
+        view={tab === "flags" ? "daily" : tab === "flags-hard" ? "hard" : "all"}
         page={Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1)}
         tabs={<BoardTabs current="flags" />}
-        href={(v, n) => boardHref(v === "daily" ? "flags" : "flags-all", n)}
+        href={(v, n) => boardHref(v === "daily" ? "flags" : v === "hard" ? "flags-hard" : "flags-all", n)}
       />
     );
   if (tab === "contribution") return <ContributionBoard page={Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1)} />;

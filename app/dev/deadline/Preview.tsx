@@ -15,6 +15,9 @@ const PROMPTS: { text: string; subject: string; answers: [string, number][] }[] 
   { text: "Name a breakfast food", subject: "food", answers: [["Toast", 1], ["Cereal", 1], ["Pancakes", 1], ["Porridge", 2], ["Croissant", 2], ["Bagel", 3], ["Shakshuka", 5], ["Congee", 6]] },
   { text: "Name an ice cream flavour", subject: "food", answers: [["Vanilla", 1], ["Chocolate", 1], ["Strawberry", 1], ["Mint", 2], ["Pistachio", 3], ["Rum raisin", 5], ["Ube", 7]] },
   { text: "Name a dog breed", subject: "animals", answers: [["Labrador", 1], ["Poodle", 1], ["Beagle", 2], ["Dachshund", 3], ["Corgi", 2], ["Husky", 2], ["Vizsla", 6], ["Basenji", 7]] },
+  // Flags mode: one flag, one answer (the real ones come from content/deadline/flags.json).
+  ...([["jp", "Japan", 1], ["br", "Brazil", 1], ["ke", "Kenya", 1], ["bt", "Bhutan", 3], ["kz", "Kazakhstan", 3], ["ki", "Kiribati", 5]] as const)
+    .map(([c, n, r]) => ({ text: `flag:${c}`, subject: "flags", answers: [[n, r]] as [string, number][] })),
 ];
 const ME = "me";
 const BOTS = [["b1", "Maya", 12], ["b2", "Leo", 3], ["b3", "Aarav", 0], ["b4", "Sofia", 27], ["b5", "Jonas", 1]] as const;
@@ -52,7 +55,8 @@ function nextHolder(s: RoomState, after: string) {
 }
 function openRound(e: Engine, holder: string, overtimeForce = false): Engine {
   const subjects = e.state.room.settings.subjects ?? [];
-  const pool = PROMPTS.map((_, i) => i).filter((i) => !subjects.length || subjects.includes(PROMPTS[i].subject));
+  // Mixed (none ticked) never draws a flag: Flags is a mode of its own.
+  const pool = PROMPTS.map((_, i) => i).filter((i) => (subjects.length ? subjects.includes(PROMPTS[i].subject) : PROMPTS[i].subject !== "flags"));
   const unused = pool.filter((i) => !e.used.includes(i));
   const idx = unused.length ? unused[Math.floor(Math.random() * unused.length)] : pool[Math.floor(Math.random() * pool.length)];
   const overtime = overtimeForce || unused.length < 3;

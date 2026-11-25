@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TIERS } from "@/lib/deadline/config";
 import { sfx } from "@/lib/deadline/sound";
 import { LogOut } from "lucide-react";
@@ -57,13 +57,13 @@ export function DeadlineRoom({ state, offset, messages, reactions, actions, onEv
   const holder = playing ? players.find((p) => p.user_id === round!.holder_id) : undefined;
   const vh = usePhoneViewportHeight();
 
-  // A flash when the game starts, the prompt changes, Overtime starts, and
-  // when the draft reaches you (the new prompt's flash says "Your turn!" too).
+  // A flash when the game starts, the prompt changes, and when the draft
+  // reaches you (the new prompt's flash says "Your turn!" too).
   const [seenRound, setSeenRound] = useState(round?.id ?? null);
   const [flash, setFlash] = useState<{ key: string; text: string } | null>(null);
   if ((round?.id ?? null) !== seenRound) {
     setSeenRound(round?.id ?? null);
-    if (round) setFlash({ key: round.id, text: !seenRound ? "Go!" : round.overtime ? "Overtime!" : myTurn ? "Your turn!" : "New prompt" });
+    if (round) setFlash({ key: round.id, text: !seenRound ? "Go!" : myTurn ? "Your turn!" : round.subject === "flags" ? "New flag" : "New prompt" });
   }
 
   // Phone chat sheet: closed by default, closes itself when your turn starts.
@@ -111,12 +111,27 @@ export function DeadlineRoom({ state, offset, messages, reactions, actions, onEv
     if (moment.bonus) { const t = setTimeout(sfx.extension, 350); return () => clearTimeout(t); }
   }, [moment]);
 
+  // A new prompt (or the game starting): a chime, just after the pass/miss
+  // sound, so a switch is heard as well as seen. Not on page load.
+  const lastRound = useRef(round?.id ?? null);
+  const promptAt = useRef(0);
+  useEffect(() => {
+    const id = round?.id ?? null;
+    if (id === lastRound.current) return;
+    lastRound.current = id;
+    if (!id) return;
+    promptAt.current = Date.now();
+    const t = setTimeout(sfx.newPrompt, 180);
+    return () => clearTimeout(t);
+  }, [round?.id]);
+
   // The draft reaches you: shown as a flash, plus a buzz (Android) and the tab title.
   useEffect(() => {
     if (!myTurn) return;
     try { navigator.vibrate?.(150); } catch {}
-    // Just after the pass/miss sound that handed you the draft, so both are heard.
-    const t = setTimeout(sfx.yourTurn, 250);
+    // After the pass/miss sound that handed you the draft (and the new-prompt
+    // chime, when there is one), so each is heard.
+    const t = setTimeout(sfx.yourTurn, Date.now() - promptAt.current < 400 ? 620 : 250);
     const before = document.title;
     document.title = `🔴 Your turn! · ${before}`;
     return () => { clearTimeout(t); document.title = before; };
@@ -152,15 +167,18 @@ export function DeadlineRoom({ state, offset, messages, reactions, actions, onEv
               {/* m-auto: centred on a tall phone, still scrolls on a short one */}
               <div className="m-auto w-full flex flex-col gap-md py-sm lg:m-0 lg:py-0">
               <div className="relative">
-                <SeatRing players={players} me={me} round={round} hostId={room.host_id} event={room.last_event} reactions={reactions}>
+                <SeatRing players={players} me={me} round={round} hostId={room.host_id} event={room.last_event} reactions={reactions} actions={actions}>
                   <div className="relative">
                     <div key={moment?.kind === "miss" ? moment.key : "clock"} className={moment?.kind === "miss" ? "dl-shake" : ""}>
-                      <PromptClock round={round} offset={offset} mine={myTurn} holderName={nameOf(holder)} typing={typing} />
+                      {/* A new prompt pops and glows at once, so the switch is seen even mid-typing. */}
+                      <div key={round.id} className="dl-newprompt rounded-[1.25rem]">
+                        <PromptClock round={round} offset={offset} mine={myTurn} holderName={nameOf(holder)} typing={typing} />
+                      </div>
                     </div>
                     {/* On the clock's edges, so the prompt itself stays readable. */}
                     {flash && (
                       <span className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 z-20 whitespace-nowrap" aria-hidden="true">
-                        <span key={flash.key} className={`dl-flash block rounded-full px-lg py-xs font-black shadow-lg ${flash.text === "Go!" ? "bg-primary text-on-primary text-headline-lg px-xl" : flash.text === "Overtime!" || flash.text === "Your turn!" ? "bg-error text-on-error text-headline-md" : "bg-inverse-surface text-inverse-on-surface text-headline-md"}`}>
+                        <span key={flash.key} className={`dl-flash block rounded-full px-lg py-xs font-black shadow-lg ${flash.text === "Go!" ? "bg-primary text-on-primary text-headline-lg px-xl" : flash.text === "Your turn!" ? "bg-error text-on-error text-headline-md" : "bg-inverse-surface text-inverse-on-surface text-headline-md"}`}>
                           {flash.text}
                         </span>
                       </span>

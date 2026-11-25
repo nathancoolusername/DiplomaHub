@@ -84,7 +84,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
   /** A saved run's order if it's a real shuffle of this board, else a fresh one. */
   const orderFor = useCallback(
     (saved: Saved | null): string[] => {
-      if (mode !== "all") return board.codes;
+      if (mode === "daily") return board.codes;
       const o = saved?.order;
       const same = o && o.length === board.codes.length && new Set(o).size === o.length && o.every((c) => BY_CODE.has(c));
       return same ? o : shuffle(board.codes);
@@ -94,7 +94,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
   // Where this browser keeps the run: one per sprint day; one live all-flags run.
   // Per account, so two people sharing a browser never see each other's run.
   const who = userId ?? "guest";
-  const key = mode === "daily" ? `flags:daily:${board.day}:${who}` : `flags:all:${who}`;
+  const key = mode === "daily" ? `flags:daily:${board.day}:${who}` : `flags:${mode}:${who}`;
 
   const [phase, setPhase] = useState<Phase>("intro");
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -143,7 +143,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
         setResult(res);
         setTop(res.top);
         setLocal({ correct: res.correct, total: res.total, seconds: res.seconds });
-        if (mode === "all") write(key, null);
+        if (mode !== "daily") write(key, null);
         else write(key, { ...r, done: { correct: res.correct, total: res.total, seconds: res.seconds } });
       } catch (e) {
         if ((e as Error).message === "no_run") {
@@ -172,7 +172,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
     setPhase("done");
     setConfirmGiveUp(false);
     // A guest all-flags run isn't kept once it's over; a sprint is (one a day).
-    write(key, mode === "all" && !signedIn ? null : { ...r, done });
+    write(key, mode !== "daily" && !signedIn ? null : { ...r, done });
     void saveResult(r);
   }, [elapsed, key, mode, saveResult, signedIn, total]);
 
@@ -180,7 +180,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
   const begin = useCallback(
     (saved: Saved) => {
       const o = orderFor(saved);
-      saved = { ...saved, order: mode === "all" ? o : undefined };
+      saved = { ...saved, order: mode !== "daily" ? o : undefined };
       write(key, saved);
       setOrder(o);
       setFocus(null);
@@ -258,7 +258,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
         // Signed in, ask the server, which may have finished it already.
         if (signedIn && saved.runId && !saved.done) void start();
         else begin(saved);
-      } else if (mode === "all") write(key, null);
+      } else if (mode !== "daily") write(key, null);
       else begin(saved); // a sprint past its cap: end it with what was named
     }, 0);
     return () => clearTimeout(t);
@@ -352,10 +352,18 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
         <span className="w-14 h-14 rounded-2xl bg-secondary-container text-on-secondary-container flex items-center justify-center" aria-hidden="true">
           <Flag size={26} />
         </span>
-        <h2 className="font-serif font-bold text-headline-md text-on-surface">{mode === "daily" ? `${total} flags, ${FLAGS.capSeconds.daily / 60} minutes` : `All ${total} flags, ${FLAGS.capSeconds.all / 60} minutes`}</h2>
+        <h2 className="font-serif font-bold text-headline-md text-on-surface">{mode === "daily"
+            ? `${total} flags, ${FLAGS.capSeconds.daily / 60} minutes`
+            : mode === "hard"
+              ? `Hard mode: ${total} flags, ${FLAGS.capSeconds.hard / 60} minutes`
+              : `All ${total} flags, ${FLAGS.capSeconds.all / 60} minutes`}</h2>
         <p className="max-w-[46ch] text-body-md text-on-surface-variant">
           Type a country&apos;s name and its flag fills in, in any order. Spelling counts, accents don&apos;t.{" "}
-          {mode === "daily" ? "Everyone gets the same flags today. Fastest full board wins." : "Most flags wins; the faster run breaks a tie."}
+          {mode === "daily"
+            ? "Everyone gets the same flags today. Fastest full board wins."
+            : mode === "hard"
+              ? "Every country plus territories like Greenland, Hong Kong and Scotland. Most flags wins; the faster run breaks a tie."
+              : "Most flags wins; the faster run breaks a tie."}
         </p>
         {mode === "daily" && <p className="text-label-md text-on-surface-variant">One go a day. The clock starts when you press Start.</p>}
         <button
@@ -385,7 +393,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
     <div className="flex flex-col gap-lg">
       {done && local ? (
         <section className="rounded-3xl border border-outline-variant bg-surface-container-lowest p-lg md:p-xl flex flex-col items-center gap-sm text-center" aria-live="polite">
-          <p className="text-label-md font-semibold text-primary uppercase tracking-wide">{mode === "daily" ? `Flags #${board.number}` : "All flags"}</p>
+          <p className="text-label-md font-semibold text-primary uppercase tracking-wide">{mode === "daily" ? `Flags #${board.number}` : mode === "hard" ? "Hard mode" : "All flags"}</p>
           <p className="font-serif font-bold text-display-lg text-on-surface tabular-nums">
             {local.correct}/{local.total}
           </p>
@@ -434,7 +442,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
           )}
           {top && top.length > 0 && (
             <div className="w-full max-w-[420px] mt-sm text-left">
-              <p className="text-label-md font-semibold text-on-surface mb-xs">{mode === "daily" ? "Today's top 10" : "Best all-flags runs"}</p>
+              <p className="text-label-md font-semibold text-on-surface mb-xs">{mode === "daily" ? "Today's top 10" : mode === "hard" ? "Best hard-mode runs" : "Best all-flags runs"}</p>
               <ol className="rounded-2xl border border-outline-variant divide-y divide-outline-variant overflow-hidden">
                 {top.map((r) => (
                   <li key={`${r.rank}-${r.name}`} className={`flex items-center gap-sm px-md py-xs text-body-md ${r.isMe ? "bg-primary-fixed/40" : ""}`}>
@@ -447,7 +455,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
                   </li>
                 ))}
               </ol>
-              <Link href={`/leaderboard?period=${mode === "daily" ? "flags" : "flags-all"}`} className="mt-xs inline-block text-label-md font-semibold text-primary hover:underline">
+              <Link href={`/leaderboard?period=${mode === "daily" ? "flags" : `flags-${mode}`}`} className="mt-xs inline-block text-label-md font-semibold text-primary hover:underline">
                 Full leaderboard →
               </Link>
             </div>

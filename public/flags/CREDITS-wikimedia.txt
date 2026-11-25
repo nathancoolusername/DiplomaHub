@@ -1,0 +1,13 @@
+Flags not in flag-icons, from Wikimedia Commons, cropped to 4:3
+(viewBox only; nothing else changed). Hard mode in the Flags game.
+
+aq-bat.svg  British Antarctic Territory   File:Flag of the British Antarctic Territory.svg   Public domain (vector version: Masur)
+bq-bo.svg   Bonaire                       File:Flag of Bonaire.svg                           Public domain (Mike Rohsopht)
+bq-se.svg   Sint Eustatius                File:Flag of Sint Eustatius.svg                    CC BY-SA 4.0, User:Andrwsc  https://creativecommons.org/licenses/by-sa/4.0
+bq-sa.svg   Saba                          File:Flag of Saba.svg                              CC BY-SA 3.0, Wikimedia Commons contributors  https://creativecommons.org/licenses/by-sa/3.0
+wf.svg      Wallis and Futuna (local)     File:Flag of Wallis and Futuna.svg                 Public domain
+pm.svg      Saint Pierre and Miquelon     File:Flag of Saint-Pierre and Miquelon.svg         Public domain (André Paturel)
+bl.svg      Saint Barthélemy (local)      File:Flag of Saint Barthélemy (local).svg          CC BY 2.5, arms from User:Manassas  https://creativecommons.org/licenses/by/2.5
+
+The CC BY-SA files above (bq-se.svg, bq-sa.svg), as cropped here, are shared under the same licence.
+Source pages: https://commons.wikimedia.org/wiki/File:<file name above>

@@ -6,8 +6,8 @@ export type Answer = { code: string; ms: number };
 
 export const isAnswerList = (x: unknown): x is Answer[] =>
   Array.isArray(x) &&
-  x.length <= 250 &&
-  x.every((a) => !!a && typeof a === "object" && typeof (a as Answer).code === "string" && (a as Answer).code.length <= 3 && Number.isInteger((a as Answer).ms) && (a as Answer).ms >= 0);
+  x.length <= 260 &&
+  x.every((a) => !!a && typeof a === "object" && typeof (a as Answer).code === "string" && (a as Answer).code.length <= 6 && Number.isInteger((a as Answer).ms) && (a as Answer).ms >= 0);
 
 export type Checked = {
   /** Answers kept: on the board, each country once, in time order, none after the cap. */

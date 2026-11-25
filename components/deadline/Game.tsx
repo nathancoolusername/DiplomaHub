@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Crown, PenLine, ThumbsUp } from "lucide-react";
 import { Avatar } from "@/components/avatar";
-import { TIERS } from "@/lib/deadline/config";
+import { flagCodeOf, subjectLabel, TIERS } from "@/lib/deadline/config";
 import { sfx } from "@/lib/deadline/sound";
 import { turnProgress } from "@/lib/deadline/clock";
 import type { Reaction, RoomActions, RoomEvent, RoomPlayer, RoomRound, SubmitResult, TypingStore } from "@/lib/deadline/types";
 import { Extensions, nameOf, Points, WinsBadge } from "./bits";
 import { Bubbles } from "./Reactions";
+import { PlayerMenu } from "./PlayerMenu";
 import { playerColors, seatAvatarClass } from "./fx";
 
 /** The prompt, inside the clock: the border closes in and the tint deepens. No number. */
@@ -51,18 +52,30 @@ export function PromptClock({ round, offset, mine, holderName, typing = NO_TYPIN
     return () => cancelAnimationFrame(raf);
   }, [round, offset]);
 
+  const flag = flagCodeOf(round.subject, round.prompt);
   return (
     <div ref={ref} data-mine={mine} className={`dl-clock px-lg py-lg md:py-xl flex flex-col items-center text-center gap-sm ${className}`}>
       <div className="flex flex-wrap items-center justify-center gap-xs text-label-sm uppercase tracking-wide text-on-surface-variant">
-        <span>{round.subject === "mixed" ? "Mixed" : round.subject}</span>
+        <span>{round.subject === "mixed" ? "Mixed" : subjectLabel(round.subject)}</span>
         <span aria-hidden="true">·</span>
-        <span>Prompt {round.prompt_no}</span>
-        {round.overtime && <span className="rounded-full bg-error text-on-error px-sm py-0.5 font-bold normal-case tracking-normal">Overtime</span>}
+        <span>{flag ? "Flag" : "Prompt"} {round.prompt_no}</span>
       </div>
-      <h2 className="font-serif font-bold text-headline-md md:text-[2rem] md:leading-tight text-on-surface text-balance">{round.prompt}</h2>
+      {flag ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element -- static SVG from public/flags */}
+          <img key={flag} src={`/flags/${flag}.svg`} alt="A flag: name its country" className="dl-chip w-40 md:w-56 aspect-[4/3] object-cover rounded-lg border border-outline-variant shadow-md" />
+          <h2 className="font-serif font-bold text-headline-md text-on-surface">Name the country</h2>
+        </>
+      ) : (
+        <h2 className="font-serif font-bold text-headline-md md:text-[2rem] md:leading-tight text-on-surface text-balance">{round.prompt}</h2>
+      )}
       <p className={`text-body-md font-semibold ${mine ? "text-error" : "text-on-surface-variant"}`} aria-live="polite">
         {mine ? "Your turn!" : `${holderName} has the draft`}
-        {round.fail_count > 0 && <span className="font-normal text-on-surface-variant"> · one more miss and the prompt changes</span>}
+        {round.fail_count > 0 && (
+          <span className="font-normal text-on-surface-variant">
+            {flag ? " · nobody's got it yet: it goes round once" : " · one more miss and the prompt changes"}
+          </span>
+        )}
       </p>
       {!mine && <HolderTyping store={typing} holderId={round.holder_id} holderName={holderName} />}
     </div>
@@ -72,8 +85,10 @@ export function PromptClock({ round, offset, mine, holderName, typing = NO_TYPIN
 type Fx = { key: string; kind: "points" | "boom" | "out" | "bonus"; points?: number; bonus?: number };
 
 /** One seat: avatar, name, extensions, points, wins, plus pops and reactions. */
-function Seat({ p, me, isHolder, isHost, fx, reactions, color, style }: {
+function Seat({ p, me, isHolder, isHost, fx, reactions, color, style, amHost, actions }: {
   p: RoomPlayer; me: string; isHolder: boolean; isHost: boolean; fx: Fx | null; reactions: Reaction[]; color: string; style?: React.CSSProperties;
+  /** The viewer is the host: other players' icons open Mute / Remove. */
+  amHost: boolean; actions: Pick<RoomActions, "kick" | "mute">;
 }) {
   const mine = p.user_id === me;
   return (
@@ -81,8 +96,10 @@ function Seat({ p, me, isHolder, isHost, fx, reactions, color, style }: {
       className={`relative shrink-0 w-20 lg:w-24 flex flex-col items-center gap-0.5 text-center lg:absolute lg:left-(--x) lg:top-(--y) lg:-translate-x-1/2 lg:-translate-y-1/2 transition-[opacity,scale] duration-300 ${isHolder ? "scale-110" : ""} ${p.is_out ? "opacity-40 grayscale" : ""}`}
       aria-label={`${nameOf(p)}${mine ? " (you)" : ""}${isHolder ? ", has the draft" : ""}${p.is_out ? ", out" : ""}, ${p.points} points`}>
       <span className={`relative rounded-full ${isHolder ? "dl-holder" : ""}`}>
-        <Avatar src={p.avatar_url} name={nameOf(p)} size={44}
-          className={`${seatAvatarClass} ${isHolder ? "ring-4 ring-error ring-offset-2 ring-offset-surface-container-lowest" : `ring-2 ring-(--seat) ${mine ? "ring-offset-2 ring-offset-surface-container-lowest" : ""}`}`} />
+        <PlayerMenu player={p} enabled={amHost && !mine} actions={actions}>
+          <Avatar src={p.avatar_url} name={nameOf(p)} size={44}
+            className={`${seatAvatarClass} ${isHolder ? "ring-4 ring-error ring-offset-2 ring-offset-surface-container-lowest" : `ring-2 ring-(--seat) ${mine ? "ring-offset-2 ring-offset-surface-container-lowest" : ""}`}`} />
+        </PlayerMenu>
         {isHolder && <span className="lg:hidden absolute -right-1 -bottom-1 rounded-full bg-error text-on-error p-0.5"><PenLine size={11} aria-hidden="true" /></span>}
         {isHost && <span className="absolute -left-1 -top-1 rounded-full bg-tertiary-container text-on-tertiary-container p-0.5" title="Host"><Crown size={10} aria-hidden="true" /></span>}
         {fx?.kind === "boom" && <span key={fx.key} className="dl-boom absolute inset-0 rounded-full bg-error" aria-hidden="true" />}
@@ -115,8 +132,9 @@ function Seat({ p, me, isHolder, isHost, fx, reactions, color, style }: {
  * bottom, nearest your answer bar; watchers see the first seat at the top),
  * a scrolling row above it on a phone. The prompt card is the ring's centre.
  */
-export function SeatRing({ players, me, round, hostId, event, reactions, children }: {
-  players: RoomPlayer[]; me: string; round: RoomRound; hostId: string; event: RoomEvent | null; reactions: Reaction[]; children: React.ReactNode;
+export function SeatRing({ players, me, round, hostId, event, reactions, actions, children }: {
+  players: RoomPlayer[]; me: string; round: RoomRound; hostId: string; event: RoomEvent | null; reactions: Reaction[];
+  actions: Pick<RoomActions, "kick" | "mute">; children: React.ReactNode;
 }) {
   const seated = players.filter((p) => p.seat !== null).sort((a, b) => a.seat! - b.seat!);
   const fxFor = (uid: string): Fx | null => {
@@ -147,6 +165,7 @@ export function SeatRing({ players, me, round, hostId, event, reactions, childre
         {seated.map((p, i) => (
           <Seat key={p.user_id} p={p} me={me} isHolder={p.user_id === round.holder_id} isHost={p.user_id === hostId}
             fx={fxFor(p.user_id)} reactions={reactions.filter((r) => r.user_id === p.user_id)} color={colors.get(p.user_id)!}
+            amHost={hostId === me} actions={actions}
             style={{ "--x": `${50 + 44 * Math.cos(angle(i))}%`, "--y": `${52 + 38 * Math.sin(angle(i))}%` } as React.CSSProperties} />
         ))}
       </ol>
