@@ -42,7 +42,9 @@ export type RoomEvent =
   | { type: "started"; at: string }
   | { type: "answer"; user_id: string; answer: string; points: number; bonus: number; at: string }
   | { type: "timeout"; user_id: string; out: boolean; at: string }
-  | { type: "joined" | "left" | "kicked"; user_id: string; at: string };
+  | { type: "joined" | "left" | "kicked"; user_id: string; at: string }
+  /** The host stopped the game (no winner, nothing counts). */
+  | { type: "stopped"; user_id: string; at: string };
 
 export type RoomEnd = {
   winner_id: string | null;
@@ -90,6 +92,8 @@ export type RoomActions = {
   appeal: (rejectId: number) => Promise<void>;
   start: () => Promise<{ ok: boolean; reason?: string }>;
   leave: () => Promise<void>;
+  /** Host: stop the game that's running (no winner, it doesn't count). */
+  stop: () => Promise<{ ok: boolean; reason?: string }>;
   sendChat: (body: string) => Promise<{ ok: boolean; reason?: string }>;
   react: (emoji: string) => Promise<void>;
   report: (messageId: string) => Promise<void>;

@@ -222,6 +222,19 @@ export function DeadlinePreview() {
       return { ok: true };
     },
     leave: async () => { setEng({ state: lobby(n, meHost), used: [], promptIdx: 0, turns: 0 }); },
+    stop: async () => {
+      const e = engRef.current;
+      if (e.state.room.host_id !== ME) return { ok: false, reason: "not_host" };
+      if (e.state.room.status !== "playing") return { ok: false, reason: "not_playing" };
+      // Like stop_game: no winner, places by who's still in, then points.
+      const s = e.state;
+      const places = s.players.filter((p) => p.seat !== null)
+        .sort((a, b) => Number(a.is_out) - Number(b.is_out) || b.points - a.points)
+        .map((p, i) => ({ user_id: p.user_id, place: i + 1, points: p.points }));
+      setEng({ ...e, endedAt: Date.now(), state: { ...s, round: null, end: { winner_id: null, counts_for_wins: false, rarest: null, places },
+        room: { ...s.room, status: "finished", last_event: { type: "stopped", user_id: ME, at: iso() } } } });
+      return { ok: true };
+    },
     sendChat: async (body) => {
       const last = messages.filter((m) => m.user_id === ME).at(-1);
       if (last && Date.now() - Date.parse(last.created_at) < 1000) return { ok: false, reason: "slow_down" };

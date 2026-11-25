@@ -224,6 +224,12 @@ export function useRoom(code: string, initial: RoomState) {
         await supabase.rpc("leave_room", { p_room: room() });
         router.push("/play/deadline");
       },
+      stop: async () => {
+        const { data, error } = await supabase.rpc("stop_game", { p_room: room() });
+        if (error) return { ok: false, reason: "error" };
+        void refetch();
+        return data as { ok: boolean; reason?: string };
+      },
       sendChat: async (body) => {
         const { data, error } = await supabase.rpc("send_room_message", { p_room: room(), p_body: body });
         if (error) return { ok: false };

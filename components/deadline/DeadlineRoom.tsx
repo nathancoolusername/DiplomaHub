@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { TIERS } from "@/lib/deadline/config";
 import { sfx } from "@/lib/deadline/sound";
-import { LogOut } from "lucide-react";
+import { LogOut, Square } from "lucide-react";
 import type { ChatMessage, Reaction, RoomActions, RoomState, TypingStore } from "@/lib/deadline/types";
 import { nameOf } from "./bits";
 import { ChatButton, ChatPanel, ChatSheet } from "./Chat";
@@ -142,6 +142,18 @@ export function DeadlineRoom({ state, offset, messages, reactions, actions, onEv
   );
   const react = (e: string) => void actions.react(e);
 
+  // Mid-game, leaving puts you out and stopping ends it for everyone: ask first.
+  const stillIn = !!meP && meP.seat !== null && !meP.is_out;
+  const leaveGame = () => {
+    if (stillIn && !confirm("Leave the game? You'll be out of this one.")) return;
+    void actions.leave();
+  };
+  const stopGame = async () => {
+    if (!confirm("Stop the game for everyone? There's no winner and it won't count.")) return;
+    const r = await actions.stop();
+    if (!r.ok && r.reason !== "not_playing") alert("Couldn't stop the game. Try again.");
+  };
+
   return (
     <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-lg lg:items-start">
       {/* ── The room ── */}
@@ -154,14 +166,34 @@ export function DeadlineRoom({ state, offset, messages, reactions, actions, onEv
       >
         {playing && round ? (
           <>
-            {/* Phone top bar: room, leave, chat */}
+            {/* Phone top bar: leave (and stop, for the host), room, chat */}
             <div className="flex items-center justify-between gap-sm py-sm lg:hidden">
-              <button type="button" onClick={() => void actions.leave()} aria-label="Leave the game" className="p-sm -ml-sm text-on-surface-variant cursor-pointer"><LogOut size={18} /></button>
+              <span className="flex items-center -ml-sm">
+                <button type="button" onClick={leaveGame} aria-label="Leave the game" title="Leave the game" className="p-sm text-on-surface-variant hover:text-error cursor-pointer"><LogOut size={18} /></button>
+                {isHost && (
+                  <button type="button" onClick={() => void stopGame()} aria-label="Stop the game for everyone" title="Stop the game"
+                    className="inline-flex items-center gap-xs rounded-full px-sm py-xs text-label-md font-semibold text-error cursor-pointer">
+                    <Square size={13} fill="currentColor" aria-hidden="true" />Stop
+                  </button>
+                )}
+              </span>
               <span className="flex items-center gap-xs">
                 <span className="font-mono font-bold tracking-widest text-on-surface-variant">{room.code}</span>
                 <SoundToggle />
               </span>
               <ChatButton unread={unread} onClick={() => { setSheet(true); onEvent?.("chat_opened"); }} />
+            </div>
+            {/* Laptop: leave (and stop, for the host) above the table */}
+            <div className="hidden lg:flex items-center justify-between gap-sm">
+              <button type="button" onClick={leaveGame} className="inline-flex items-center gap-xs text-label-md text-on-surface-variant hover:text-error cursor-pointer">
+                <LogOut size={14} aria-hidden="true" />Leave game
+              </button>
+              {isHost && (
+                <button type="button" onClick={() => void stopGame()}
+                  className="inline-flex items-center gap-xs rounded-full border border-outline-variant px-sm py-xs text-label-md font-semibold text-error hover:bg-error-container cursor-pointer">
+                  <Square size={12} fill="currentColor" aria-hidden="true" />Stop game
+                </button>
+              )}
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto flex flex-col lg:overflow-visible">
               {/* m-auto: centred on a tall phone, still scrolls on a short one */}

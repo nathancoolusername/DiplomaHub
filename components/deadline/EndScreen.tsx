@@ -19,6 +19,7 @@ export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<
   const byId = new Map(players.map((p) => [p.user_id, p]));
   const winner = end?.winner_id ? byId.get(end.winner_id) : null;
   const isHost = room.host_id === me;
+  const stopped = room.last_event?.type === "stopped" ? room.last_event : null;
   const [again, setAgain] = useState(false);
   const [squadName, setSquadName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -55,7 +56,10 @@ export function EndScreen({ state, actions }: { state: RoomState; actions: Pick<
             <WinsBadge wins={winner.wins} className="text-label-md px-sm" />
           </>
         ) : (
-          <h2 className="font-serif font-bold text-headline-lg text-on-surface">Game over</h2>
+          <>
+            <h2 className="font-serif font-bold text-headline-lg text-on-surface">{stopped ? "Game stopped" : "Game over"}</h2>
+            {stopped && <p className="text-body-md text-on-surface-variant">{stopped.user_id === me ? "You stopped the game." : "The host stopped the game."} No winner this time, and it doesn't count.</p>}
+          </>
         )}
       </div>
 
