@@ -45,10 +45,24 @@ const write = (key: string, v: Saved | null) => {
 };
 
 async function post<T>(url: string, body: unknown): Promise<T> {
-  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  if (!r.ok) throw new Error(((await r.json().catch(() => ({}))) as { error?: string }).error ?? "error");
+  let r: Response;
+  try {
+    r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  } catch {
+    throw new Error("offline");
+  }
+  if (!r.ok) throw new Error(((await r.json().catch(() => ({}))) as { error?: string }).error ?? `http_${r.status}`);
   return (await r.json()) as T;
 }
+
+/** Why a run didn't save, in words (the server's reason, so a player can say what they saw). */
+const SAVE_ERRORS: Record<string, string> = {
+  signed_out: "You've been signed out, so your run couldn't be saved. Log in again (in a new tab), then press Try again.",
+  offline: "No connection: your run couldn't be sent. Check your internet, then press Try again.",
+  rate_limited: "Too many tries in a minute. Wait a moment, then press Try again.",
+  forbidden: "Your browser blocked the save. Reload the page and your run will be sent again.",
+  bad_request: "Your run couldn't be read by the server. Reload the page and it will be sent again.",
+};
 
 function shareText(board: FlagBoard, named: Set<string>, local: Local, url: string): string {
   const squares = board.codes.map((c) => (named.has(c) ? "🟩" : "⬛"));
@@ -106,7 +120,8 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
   const [local, setLocal] = useState<Local | null>(null);
   const [result, setResult] = useState<RunResult | null>(null);
   const [top, setTop] = useState<BoardRow[] | null>(null);
-  const [saveError, setSaveError] = useState(false);
+  /** Why the last save failed (the server's reason), or null. */
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmGiveUp, setConfirmGiveUp] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -137,7 +152,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
           .catch(() => {});
         return;
       }
-      setSaveError(false);
+      setSaveError(null);
       try {
         const res = await post<RunResult>("/api/flags/finish", { runId: r.runId, answers: r.answers });
         setResult(res);
@@ -156,7 +171,8 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
           setPhase("intro");
           return;
         }
-        setSaveError(true);
+        console.error("flags: run not saved", (e as Error).message);
+        setSaveError((e as Error).message || "error");
       }
     },
     [signedIn, mode, key],
@@ -191,7 +207,7 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
       setResult(null);
       setTop(null);
       setLocal(null);
-      setSaveError(false);
+      setSaveError(null);
       if (saved.done) {
         finishing.current = true;
         setLocal(saved.done);
@@ -408,7 +424,12 @@ export function Game({ board, userId }: { board: FlagBoard; userId: string | nul
           {result && !result.counted && result.correct > 0 && <p className="text-label-md text-on-surface-variant">This run doesn&apos;t count for the leaderboard: it was faster than anyone can type.</p>}
           {saveError && (
             <p className="text-label-md text-error">
-              Couldn&apos;t save your run.{" "}
+              {SAVE_ERRORS[saveError] ?? `Couldn't save your run (server error: ${saveError}).`}{" "}
+              {saveError === "signed_out" && (
+                <a href={`/login?next=/flags${mode === "daily" ? "" : `?mode=${mode}`}`} target="_blank" rel="noopener" className="font-semibold underline mr-xs">
+                  Log in
+                </a>
+              )}
               <button type="button" onClick={() => run.current && saveResult({ ...run.current, answers: answersRef.current })} className="font-semibold underline cursor-pointer">
                 Try again
               </button>
