@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DeadlineRoom } from "@/components/deadline/DeadlineRoom";
 import { makeTypingStore } from "@/lib/deadline/useRoom";
-import { BONUS_EVERY, MAX_EXTENSIONS, START_EXTENSIONS, TURN_MS } from "@/lib/deadline/config";
+import { BONUS_EVERY, MAX_EXTENSIONS, OVERTIME_AFTER_MS, OVERTIME_STEP_MS, START_EXTENSIONS, turnMsAt } from "@/lib/deadline/config";
 import type { ChatMessage, Reaction, RoomActions, RoomPlayer, RoomRound, RoomState, SubmitResult } from "@/lib/deadline/types";
 
 // Dev-only: a small fake engine that follows the game's rules closely enough
@@ -56,18 +56,18 @@ function nextHolder(s: RoomState, after: string) {
   const me = s.players.find((p) => p.user_id === after)!;
   return (seats.find((p) => p.seat! > me.seat!) ?? seats[0]).user_id;
 }
-function openRound(e: Engine, holder: string, overtimeForce = false): Engine {
+/** A new turn: its length comes from how long the game has run (Overtime after 5 min). */
+const turnNow = (e: Engine) => ({ turn_started_at: iso(), ...turnMsAt(Date.now() - (e.startedAt ?? Date.now())) });
+function openRound(e: Engine, holder: string): Engine {
   const subjects = e.state.room.settings.subjects ?? [];
   // Mixed (none ticked) never draws a flag: Flags is a mode of its own.
   const pool = PROMPTS.map((_, i) => i).filter((i) => (subjects.length ? subjects.includes(PROMPTS[i].subject) : PROMPTS[i].subject !== "flags"));
   const unused = pool.filter((i) => !e.used.includes(i));
   const idx = unused.length ? unused[Math.floor(Math.random() * unused.length)] : pool[Math.floor(Math.random() * pool.length)];
-  const overtime = overtimeForce || unused.length < 3;
   const prev = e.state.round;
   const round: RoomRound = {
     id: uid(), prompt: PROMPTS[idx].text, subject: PROMPTS[idx].subject, prompt_no: (prev?.prompt_no ?? 0) + 1, holder_id: holder,
-    turn_started_at: iso(), turn_ms: overtime ? Math.max(6000, 9000 - 1000 * (prev?.overtime ? prev.prompt_no % 3 : 0)) : TURN_MS,
-    overtime, fail_count: 0, failed_by: null, answers: [],
+    ...turnNow(e), fail_count: 0, failed_by: null, answers: [],
   };
   return { ...e, used: [...e.used, idx], promptIdx: idx, turns: 0, state: { ...e.state, round } };
 }
@@ -116,7 +116,7 @@ function advance(e: Engine, success: boolean): Engine {
     }
     return openRound(e, next);
   }
-  return { ...e, state: { ...s, round: { ...r, holder_id: next, turn_started_at: iso() } } };
+  return { ...e, state: { ...s, round: { ...r, holder_id: next, ...turnNow(e) } } };
 }
 function timeout(e: Engine): Engine {
   const s = e.state;
@@ -251,7 +251,7 @@ export function DeadlinePreview() {
         const players = s0.players.map((p) => (p.user_id === userId ? { ...p, is_out: true, extensions: 0 } : p));
         const next: Engine = { ...e, state: { ...s0, players } };
         if (active(next.state).length <= 1) return endGame(next);
-        if (s0.round.holder_id === userId) return { ...next, state: { ...next.state, round: { ...s0.round, holder_id: nextHolder(next.state, userId), turn_started_at: iso() } } };
+        if (s0.round.holder_id === userId) return { ...next, state: { ...next.state, round: { ...s0.round, holder_id: nextHolder(next.state, userId), ...turnNow(next) } } };
         return next;
       });
       return { ok: true };
@@ -291,14 +291,20 @@ export function DeadlinePreview() {
     state: {
       ...e.state,
       players: e.state.players.map((p) => (p.user_id === ME && p.is_out ? { ...p, is_out: false, extensions: 1 } : p)),
-      round: { ...e.state.round, holder_id: ME, turn_started_at: iso() },
+      round: { ...e.state.round, holder_id: ME, ...turnNow(e) },
     },
   } : e));
   const someBot = () => {
     const inRoom = eng.state.players.filter((p) => p.user_id !== ME);
     return inRoom[Math.floor(Math.random() * inRoom.length)]?.user_id ?? "b1";
   };
-  const overtime = () => setEng((e) => (e.state.round ? openRound(e, e.state.round.holder_id, true) : e));
+  // Jumps the game clock to Overtime (5:00), then one step (90 s) further each press, and restarts the turn.
+  const overtime = () => setEng((e) => {
+    if (!e.state.round || !e.startedAt) return e;
+    const ran = Date.now() - e.startedAt;
+    const jumped: Engine = { ...e, startedAt: Date.now() - (ran < OVERTIME_AFTER_MS ? OVERTIME_AFTER_MS : ran + OVERTIME_STEP_MS) };
+    return { ...jumped, state: { ...jumped.state, round: { ...jumped.state.round!, ...turnNow(jumped) } } };
+  });
   const finish = () => setEng((e) => (e.state.room.status === "playing" ? endGame({ ...e, state: { ...e.state, players: e.state.players.map((p) => (p.seat === null ? p : p.user_id === ME ? { ...p, is_out: false, extensions: Math.max(1, p.extensions) } : { ...p, is_out: true, extensions: 0 })) } }) : e));
   const BTN = "rounded-full border border-outline-variant px-sm py-0.5 text-label-sm font-semibold text-on-surface hover:border-primary cursor-pointer";
 

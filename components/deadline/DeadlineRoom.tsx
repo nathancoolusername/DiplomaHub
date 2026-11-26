@@ -77,6 +77,16 @@ export function DeadlineRoom({ state, offset, messages, reactions, actions, onEv
       if (round && round.id === seenRound) setFlash({ key: `${round.id}:${round.turn_started_at}`, text: "Your turn!" });
     }
   }
+  // Overtime (after 5 minutes of play): "Overtime!" when it starts, "Faster!"
+  // each time the turns get shorter. These win over the other flashes.
+  const turnMs = playing ? round!.turn_ms : null;
+  const [seenMs, setSeenMs] = useState(turnMs);
+  if (turnMs !== seenMs) {
+    setSeenMs(turnMs);
+    if (round && turnMs !== null && seenMs !== null && turnMs < seenMs) {
+      setFlash({ key: `${round.id}:${round.turn_started_at}:ot`, text: seenMs >= 10000 ? "Overtime!" : "Faster!" });
+    }
+  }
   // Unread: messages from others that arrived while the sheet was closed.
   const [readCount, setReadCount] = useState(messages.length);
   if (sheet && readCount !== messages.length) setReadCount(messages.length);
@@ -210,7 +220,7 @@ export function DeadlineRoom({ state, offset, messages, reactions, actions, onEv
                     {/* On the clock's edges, so the prompt itself stays readable. */}
                     {flash && (
                       <span className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 z-20 whitespace-nowrap" aria-hidden="true">
-                        <span key={flash.key} className={`dl-flash block rounded-full px-lg py-xs font-black shadow-lg ${flash.text === "Go!" ? "bg-primary text-on-primary text-headline-lg px-xl" : flash.text === "Your turn!" ? "bg-error text-on-error text-headline-md" : "bg-inverse-surface text-inverse-on-surface text-headline-md"}`}>
+                        <span key={flash.key} className={`dl-flash block rounded-full px-lg py-xs font-black shadow-lg ${flash.text === "Go!" ? "bg-primary text-on-primary text-headline-lg px-xl" : flash.text === "Your turn!" || flash.text === "Overtime!" || flash.text === "Faster!" ? "bg-error text-on-error text-headline-md" : "bg-inverse-surface text-inverse-on-surface text-headline-md"}`}>
                           {flash.text}
                         </span>
                       </span>
