@@ -2,6 +2,15 @@
 // The rules themselves live in migration 56; these only describe them.
 
 export const TURN_MS = 10_000;
+/** Overtime (migration 20261221): from 5 min into a game, turns drop to 9 s, then 1 s less every 90 s, never under 6 s. */
+export const OVERTIME_AFTER_MS = 300_000;
+export const OVERTIME_STEP_MS = 90_000;
+export const MIN_TURN_MS = 6_000;
+/** A turn's length after the game has run `elapsedMs` (mirrors dl_turn_length). */
+export function turnMsAt(elapsedMs: number): { turn_ms: number; overtime: boolean } {
+  if (elapsedMs < OVERTIME_AFTER_MS) return { turn_ms: TURN_MS, overtime: false };
+  return { turn_ms: Math.max(MIN_TURN_MS, TURN_MS - 1000 - 1000 * Math.floor((elapsedMs - OVERTIME_AFTER_MS) / OVERTIME_STEP_MS)), overtime: true };
+}
 export const GRACE_MS = 250;
 export const MAX_PLAYERS = 8;
 export const START_EXTENSIONS = 2;

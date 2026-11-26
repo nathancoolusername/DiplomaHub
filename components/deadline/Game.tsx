@@ -59,6 +59,7 @@ export function PromptClock({ round, offset, mine, holderName, typing = NO_TYPIN
         <span>{round.subject === "mixed" ? "Mixed" : subjectLabel(round.subject)}</span>
         <span aria-hidden="true">·</span>
         <span>{flag ? "Flag" : "Prompt"} {round.prompt_no}</span>
+        {round.overtime && <span className="rounded-full bg-error text-on-error px-sm py-0.5 font-bold normal-case tracking-normal">Overtime</span>}
       </div>
       {flag ? (
         <>
