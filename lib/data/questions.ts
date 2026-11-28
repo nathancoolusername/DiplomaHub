@@ -110,6 +110,8 @@ const SUBJECT_ID_BY_EXPORT_SLUG: Record<string, SubjectId> = {
   "math-ai": "math_ai",
   "computer-science": "cs",
   ess: "ess",
+  "french-a-lit": "french_a_lit", // French A: Literature (same Paper 2 bank as Lang & Lit)
+  "french-a-langlit": "french_a_langlit", // French A: Language & Literature
 };
 
 /** Science exports keep Paper 1A (MCQ) and 1B (data-based): the catalog lists them as papers (migration 16). */

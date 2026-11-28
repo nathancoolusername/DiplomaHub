@@ -12,6 +12,7 @@ import { getBroConversations, getProStatus } from "@/lib/data";
 import { getTodayUsage } from "@/lib/data/supabase/usage";
 import { getReviewAllowance, getReviewProjects } from "@/lib/data/supabase/reviews";
 import { ProHub } from "@/components/pro/ProHub";
+import { SampleReview } from "@/components/pro/SampleReview";
 import { LaunchCounter } from "@/components/pro/LaunchCounter";
 import { getCampaignJoined } from "@/lib/data/supabase/campaign";
 
@@ -208,6 +209,19 @@ export default async function ProPage() {
           </div>
         </div>
       </header>
+
+      <section className="flex flex-col gap-md" aria-labelledby="review-heading">
+        <div className="flex flex-col gap-xs max-w-160">
+          <h2 id="review-heading" className="font-serif font-bold text-headline-md text-on-surface">
+            Your IA, marked like a moderator would
+          </h2>
+          <p className="text-body-lg text-on-surface-variant">
+            Upload a draft of your IA, EE or TOK and Bro marks it against the official IB criteria: a mark for every criterion with the reasons, comments pinned to the exact
+            lines on your pages, and the three changes most likely to gain marks. This is a real review of a Maths IA. Tap a criterion.
+          </p>
+        </div>
+        <SampleReview />
+      </section>
 
       <section className="grid md:grid-cols-[1fr_1.1fr] gap-lg items-center" aria-labelledby="sample-heading">
         <div className="flex flex-col gap-sm">
